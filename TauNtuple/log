@@ -1,0 +1,232 @@
+>> Local Products Rules ..... started
+>> Local Products Rules ..... done
+>> Entering Package TauDataFormat/TauNtuple
+>>Creating project symlinks
+>> Compiling /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc 
+In file included from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:77,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:11:28: warning: HepMC/GenEvent.h: No such file or directory
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:12:32: warning: HepMC/SimpleVector.h: No such file or directory
+In file included from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:78:71: error: DataFormats/KinematicFit/interface/SelectedKinematicDecay.h: No such file or directory
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/TrackingRecHit.h:4,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecSegment.h:17,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:16,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:8:33: error: CLHEP/Matrix/Vector.h: No such file or directory
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:9:33: error: CLHEP/Matrix/Matrix.h: No such file or directory
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:10:36: error: CLHEP/Matrix/SymMatrix.h: No such file or directory
+In file included from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:111:68: error: RecoTauTag/KinematicTau/interface/ThreeProngTauCreator.h: No such file or directory
+In file included from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:77,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:23: error: expected `)' before '*' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:26: error: 'HepMC::GenEvent' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:28: error: 'HepMC::FourVector' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:32: error: ISO C++ forbids declaration of 'GenEvent' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:32: error: invalid use of '::'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:32: error: expected ';' before '&' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:34: error: ISO C++ forbids declaration of 'GenEvent' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:34: error: invalid use of '::'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:34: error: expected ';' before '*' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:36: error: expected `;' before 'bool'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:45: error: ISO C++ forbids declaration of 'GenEvent' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:45: error: invalid use of '::'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:45: error: expected ';' before '*' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h: In constructor 'edm::HepMCProduct::HepMCProduct()':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:20: error: class 'edm::HepMCProduct' does not have any field named 'evt_'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h: In member function 'const HepMC::GenParticle* edm::refhelper::FindTrait<edm::HepMCProduct, HepMC::GenParticle>::Find::operator()(const edm::HepMCProduct&, int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:61: error: 'const class edm::HepMCProduct' has no member named 'getHepMCData'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:68: error: 'GenVertex' is not a member of 'HepMC'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:68: error: 'GenVertex' is not a member of 'HepMC'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/SimDataFormats/GeneratorProducts/interface/HepMCProduct.h:68: error: template argument 2 is invalid
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/TrackingRecHit.h:4,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecSegment.h:17,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:16,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:12: error: 'CLHEP' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:12: error: expected initializer before 'AlgebraicVector'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:13: error: 'CLHEP' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:13: error: expected initializer before 'AlgebraicMatrix'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:14: error: 'CLHEP' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:14: error: expected initializer before 'AlgebraicSymMatrix'
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/AlgebraicObjects.h:16,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/TrackingRecHit.h:4,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecSegment.h:17,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:16,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:25: error: expected ',' or '...' before '::' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:25: error: ISO C++ forbids declaration of 'CLHEP' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h: In function 'ROOT::Math::SMatrix<double, D1, D2, ROOT::Math::MatRepStd<double, D1, D2> > asSMatrix(int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:27: error: 'm' was not declared in this scope
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:32: error: expected ',' or '...' before '::' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:32: error: ISO C++ forbids declaration of 'CLHEP' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h: In function 'ROOT::Math::SMatrix<double, N, N, ROOT::Math::MatRepSym<double, N> > asSMatrix(int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:34: error: 'm' was not declared in this scope
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:39: error: expected ',' or '...' before '::' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:39: error: ISO C++ forbids declaration of 'CLHEP' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h: In function 'ROOT::Math::SVector<double, D> asSVector(int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:40: error: 'm' was not declared in this scope
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:43: error: 'CLHEP' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:43: error: expected constructor, destructor, or type conversion before 'asHepVector'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:49: error: 'CLHEP' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:49: error: expected constructor, destructor, or type conversion before 'asHepMatrix'
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:56: error: 'CLHEP' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CLHEP/interface/Migration.h:56: error: expected constructor, destructor, or type conversion before 'asHepMatrix'
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecSegment.h:17,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:16,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/TrackingRecHit.h:35: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/TrackingRecHit.h:37: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/TrackingRecHit.h:39: error: 'AlgebraicMatrix' does not name a type
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecHit1D.h:19,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:36,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTSLRecSegment2D.h:13,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:19,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit1D.h:33: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit1D.h:37: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit1D.h:41: error: 'AlgebraicMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit1D.h:65: error: 'AlgebraicMatrix' does not name a type
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTSLRecSegment2D.h:13,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:19,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:61: error: 'AlgebraicSymMatrix' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:73: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:78: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:83: error: 'AlgebraicMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:119: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:133: error: expected ',' or '...' before '&' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:133: error: ISO C++ forbids declaration of 'AlgebraicSymMatrix' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:145: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:157: error: 'AlgebraicMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:166: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h: In member function 'void DTRecSegment2D::initialize() const':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:161: error: 'theProjectionMatrix' was not declared in this scope
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment2D.h:161: error: 'AlgebraicMatrix' was not declared in this scope
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:19,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTSLRecSegment2D.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTSLRecSegment2D.h:28: error: 'AlgebraicSymMatrix' has not been declared
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTChamberRecSegment2D.h:46: error: 'AlgebraicSymMatrix' has not been declared
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4DCollection.h:20,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:6,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:52: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:55: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:58: error: 'AlgebraicMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:114: error: 'AlgebraicSymMatrix' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:142: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h: In member function 'void DTRecSegment4D::setCovMatrix(int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/DTRecHit/interface/DTRecSegment4D.h:114: error: 'theCovMatrix' was not declared in this scope
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCRecHit2D.h:12,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h:11,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegment.h:16,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegmentCollection.h:13,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:7,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit2DLocalPos.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit2DLocalPos.h:19: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit2DLocalPos.h:21: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit2DLocalPos.h:23: error: 'AlgebraicMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackingRecHit/interface/RecHit2DLocalPos.h:42: error: 'AlgebraicMatrix' does not name a type
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegmentCollection.h:13,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonSegmentMatch.h:7,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/MuonChamberMatch.h:5,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/MuonReco/interface/Muon.h:17,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:98,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegment.h:31: error: 'AlgebraicSymMatrix' has not been declared
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegment.h:46: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegment.h:49: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegment.h:52: error: 'AlgebraicMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/CSCRecHit/interface/CSCSegment.h:95: error: 'AlgebraicSymMatrix' does not name a type
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/PTrajectoryStateOnDet.h:4,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectorySeed/interface/TrajectorySeed.h:7,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackReco/interface/TrackExtra.h:22,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrackReco/interface/Track.h:21,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/VertexReco/interface/Vertex.h:25,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:104,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:39: error: expected ',' or '...' before '&' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:39: error: ISO C++ forbids declaration of 'AlgebraicVector' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:132: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:177: error: 'AlgebraicVector' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h: In constructor 'LocalTrajectoryParameters::LocalTrajectoryParameters(int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:40: error: 'v' was not declared in this scope
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:45: error: 'aPzSign' was not declared in this scope
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/TrajectoryState/interface/LocalTrajectoryParameters.h:46: error: 'charged' was not declared in this scope
+In file included from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalError.h:4,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/RecoVertex/VertexTools/interface/VertexDistance.h:9,
+                 from /net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/RecoVertex/VertexTools/interface/VertexDistance3D.h:4,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:106,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalErrorBase.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalErrorBase.h:60: error: expected ',' or '...' before '&' token
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalErrorBase.h:60: error: ISO C++ forbids declaration of 'AlgebraicSymMatrix' with no type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalErrorBase.h:106: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalErrorBase.h: In constructor 'GlobalErrorBase<T, ErrorWeightType>::GlobalErrorBase(int)':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/DataFormats/GeometryCommonDetAlgo/interface/GlobalErrorBase.h:61: error: 'err' was not declared in this scope
+In file included from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/interface/TauNtuple.h:106,
+                 from /.automount/home/home__home2/institut_3b/nugent/Software/TauNtupleMaker/CMSSW_4_2_4/src/TauDataFormat/TauNtuple/src/TauNtuple.cc:1:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/RecoVertex/VertexTools/interface/VertexDistance3D.h: At global scope:
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/RecoVertex/VertexTools/interface/VertexDistance3D.h:42: error: 'AlgebraicSymMatrix' does not name a type
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/RecoVertex/VertexTools/interface/VertexDistance3D.h: In constructor 'VertexDistance3D::VertexDistance3D()':
+/net/software_cms/slc5_amd64_gcc434/cms/cmssw/CMSSW_4_2_4/src/RecoVertex/VertexTools/interface/VertexDistance3D.h:19: error: class 'VertexDistance3D' does not have any field named 'theNullMatrix'
+/net/software_cms/slc5_amd64_gcc434/external/boost/1.44.0-cms3/include/boost/system/error_code.hpp: At global scope:
+/net/software_cms/slc5_amd64_gcc434/external/boost/1.44.0-cms3/include/boost/system/error_code.hpp:214: warning: 'boost::system::posix_category' defined but not used [-Wunused-variable]
+/net/software_cms/slc5_amd64_gcc434/external/boost/1.44.0-cms3/include/boost/system/error_code.hpp:215: warning: 'boost::system::errno_ecat' defined but not used [-Wunused-variable]
+/net/software_cms/slc5_amd64_gcc434/external/boost/1.44.0-cms3/include/boost/system/error_code.hpp:216: warning: 'boost::system::native_ecat' defined but not used [-Wunused-variable]
+gmake: *** [tmp/slc5_amd64_gcc434/src/TauDataFormat/TauNtuple/src/TauDataFormatTauNtuple/TauNtuple.o] Error 1
