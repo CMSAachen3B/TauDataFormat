@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id$
+// $Id: TauNtuple.h,v 1.1 2011/12/01 13:51:23 cherepan Exp $
 //
 //
 
@@ -68,6 +68,7 @@
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include <DataFormats/Candidate/interface/Candidate.h>
 #include <SimDataFormats/GeneratorProducts/interface/HepMCProduct.h>
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 
 

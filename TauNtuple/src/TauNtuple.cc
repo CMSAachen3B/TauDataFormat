@@ -399,7 +399,7 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
   std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators;
   for(std::vector<std::string>::const_iterator discr=discriminators_.begin(); discr!=discriminators_.end(); ++discr) {
     edm::Handle<reco::PFTauDiscriminator> tmpHandle;
-    iEvent.getByLabel("KinematicTauProducer", *discr, tmpHandle);
+    iEvent.getByLabel("KinematicTauBasicProducer", *discr, tmpHandle);
     tauDiscriminators.push_back(tmpHandle);}
   unsigned int index = 0;
   //  std::cout<<"size of tauCollection ====== " << tauCollection->size()<<std::endl;
