@@ -1,11 +1,11 @@
 #include "TauDataFormat/TauNtuple/interface/TauNtuple.h"
 #include "TauDataFormat/TauNtuple/interface/TauDecay_CMSSW.h"
 #include "TauDataFormat/TauNtuple/interface/PdtPdgMini.h"
-
+#include "TauDataFormat/TauNtuple/interface/DataMCType.h"
 #include <vector>
 #include "TMatrixT.h"
 
-
+#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
@@ -23,11 +23,14 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   pfjetsTag_( iConfig.getParameter<edm::InputTag>( "pfjets" ) ),
   generalTracks_(iConfig.getParameter<edm::InputTag>( "generalTracks" )),
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
+  GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
   discriminators_( iConfig.getParameter< std::vector<std::string> >("discriminators") ),
-  do_MCComplete(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
-  do_MCSummary(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
+  DataMC_Type_(iConfig.getUntrackedParameter<std::string>("DataMCType","")),
+  do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
+  do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
 {   
-
+  DataMCType DMT;
+  DataMC_Type_idx=DMT.GetType(DataMC_Type_);
 } 
 
 
@@ -56,7 +59,6 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   // Get trackcollection for matching to objects
   edm::Handle< std::vector<reco::Track>  > trackCollection;
   iEvent_->getByLabel(generalTracks_,  trackCollection);
-
   fillPrimeVertex(iEvent, iSetup,trackCollection);
   fillMuons(iEvent, iSetup,trackCollection);
   fillPFTaus(iEvent, iSetup,trackCollection);
@@ -77,13 +79,22 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if(!iEvent.isRealData()){
 
+    edm::Handle<GenEventInfoProduct> GenEventInfoProduct;                                                                                                                                                                                    
+    iEvent.getByLabel("generator",GenEventInfoProduct);            
+    GenEventInfoProduct_signalProcessID=GenEventInfoProduct->signalProcessID();   
+    GenEventInfoProduct_weight=GenEventInfoProduct->weight();
+    GenEventInfoProduct_weights=GenEventInfoProduct->weights();        
+    GenEventInfoProduct_qScale=GenEventInfoProduct->qScale();    
+    GenEventInfoProduct_alphaQCD=GenEventInfoProduct->alphaQCD();      
+    GenEventInfoProduct_alphaQED=GenEventInfoProduct->alphaQED();  
+
     TauDecay_CMSSW TauDecay;
     edm::Handle<reco::GenParticleCollection> genParticles;
     iEvent_->getByLabel(gensrc_, genParticles);
     
 
     
-    if(do_MCComplete){
+    if(do_MCComplete_){
       std::vector<unsigned int> index;
       for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
 	MC_pdgid.push_back(itr->pdgId());
@@ -110,7 +121,7 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	}
       }
     }
-    if(do_MCSummary){
+    if(do_MCSummary_){
       for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
 	unsigned int pdgid=abs(itr->pdgId());
 	if(pdgid==PdtPdgMini::Z0 || pdgid==PdtPdgMini::W_plus || pdgid==PdtPdgMini::Higgs0 || pdgid==PdtPdgMini::Higgs_plus){
@@ -653,6 +664,8 @@ TauNtuple::beginJob()
   //  output = new TFile("MC_QCD_SkimmedTauNtuple.root","RECREATE");
   output_tree = new TTree("t","t");
 
+  output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
+
   //=============  Vertex Block ====
   output_tree->Branch("Vtx_chi2",&Vtx_chi2);
   output_tree->Branch("Vtx_nTrk",&Vtx_nTrk);
@@ -782,13 +795,20 @@ TauNtuple::beginJob()
 
   //=============== MC Block ==============
 
-  if(do_MCComplete){
+  output_tree->Branch("GenEventInfoProduct_signalProcessID",&GenEventInfoProduct_signalProcessID);
+  output_tree->Branch("GenEventInfoProduct_weight",&GenEventInfoProduct_weight);
+  output_tree->Branch("GenEventInfoProduct_weights",&GenEventInfoProduct_weights);
+  output_tree->Branch("GenEventInfoProduct_qScale",&GenEventInfoProduct_qScale);
+  output_tree->Branch("GenEventInfoProduct_alphaQED",&GenEventInfoProduct_alphaQED);
+  output_tree->Branch("GenEventInfoProduct_alphaQCD",&GenEventInfoProduct_alphaQCD);
+
+  if(do_MCComplete_){
     output_tree->Branch("MC_p4",&MC_p4);
     output_tree->Branch("MC_pdgid",&MC_pdgid);
     output_tree->Branch("MC_charge",&MC_charge);
     output_tree->Branch("MC_midx",&MC_midx);
   }
-  if(do_MCSummary){
+  if(do_MCSummary_){
     output_tree->Branch("MCSignalParticle_p4",&MCSignalParticle_p4);
     output_tree->Branch("MCSignalParticle_pdgid",&MCSignalParticle_pdgid);
     output_tree->Branch("MCSignalParticle_charge",&MCSignalParticle_charge);
@@ -1110,13 +1130,21 @@ TauNtuple::ClearEvent(){
 
   //=============== MC Block ==============
 
-  if(do_MCComplete){
+   GenEventInfoProduct_weights.clear();
+   GenEventInfoProduct_signalProcessID=0;
+   GenEventInfoProduct_weight=0;
+   GenEventInfoProduct_qScale=0;
+   GenEventInfoProduct_alphaQED=0;
+   GenEventInfoProduct_alphaQCD=0;
+
+
+  if(do_MCComplete_){
     MC_p4.clear();
     MC_pdgid.clear();
     MC_charge.clear();
     MC_midx.clear();
   }
-  if(do_MCSummary){
+  if(do_MCSummary_){
   MCSignalParticle_p4.clear();
   MCSignalParticle_pdgid.clear();
   MCSignalParticle_charge.clear();

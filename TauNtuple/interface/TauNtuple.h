@@ -13,9 +13,11 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.1 2011/12/01 13:51:23 cherepan Exp $
+// $Id: TauNtuple.h,v 1.2 2011/12/04 19:15:28 inugent Exp $
 //
 //
+#ifndef TauNtuple_h
+#define TauNtuple_h
 
 
 // system include files
@@ -179,8 +181,11 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag pfjetsTag_;
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;
-
+  edm::InputTag GenEventInfo_;
   std::vector<std::string> discriminators_;
+  std::string DataMC_Type_;
+  unsigned int DataMC_Type_idx;
+
 
   TFile *output;
   TTree *output_tree;
@@ -334,15 +339,22 @@ class TauNtuple : public edm::EDProducer {
 
   //====== MCTruth =======
   // verbose variables
+  std::vector<double> GenEventInfoProduct_weights;
+  float GenEventInfoProduct_signalProcessID;
+  float GenEventInfoProduct_weight;
+  float GenEventInfoProduct_qScale;
+  float GenEventInfoProduct_alphaQED;
+  float GenEventInfoProduct_alphaQCD;
+
   //do All
-  bool do_MCComplete;
+  bool do_MCComplete_;
   std::vector<std::vector<float> > MC_p4;
   std::vector<int> MC_pdgid;
   std::vector<int> MC_charge;
   std::vector<unsigned int> MC_midx;
 
   // Do MC Signal Summary
-  bool do_MCSummary;
+  bool do_MCSummary_;
 
   // Signal particles Z, W, H0, Hpm
   std::vector<std::vector<float> > MCSignalParticle_p4;
@@ -371,3 +383,4 @@ class TauNtuple : public edm::EDProducer {
 };
 //define this as a plug-in
 DEFINE_FWK_MODULE(TauNtuple);
+#endif

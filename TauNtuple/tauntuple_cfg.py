@@ -9,8 +9,8 @@ process.MessageLogger.cerr = cms.untracked.PSet(
 	DEBUG = cms.untracked.PSet(limit = cms.untracked.int32(-1))
     )
 
-#process.GlobalTag.globaltag = 'START42_V11::All'
-process.GlobalTag.globaltag = 'GR_P_V22::All'
+process.GlobalTag.globaltag = 'START42_V11::All'
+#process.GlobalTag.globaltag = 'GR_P_V22::All'
 
 numberOfEvents = 100
 
@@ -48,7 +48,8 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 #    listOfFiles_data)                 
 #    listOfFiles)
-    'file:///user/inugent/TauXPromptReco172_798.root')
+    'file:///user/inugent/DYtoTauTau_TauQualitySkim.root')
+#    'file:///user/inugent/TauXPromptReco172_798.root')
 #    'file:/afs/cern.ch/cms/Tutorials/TWIKI_DATA/RelValTTbar_RECO_424.root')
     
 )

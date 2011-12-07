@@ -14,7 +14,9 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              pfjets         = cms.InputTag("ak5PFJets"),
                              generalTracks  = cms.InputTag("generalTracks"),
                              gensrc         = cms.InputTag('genParticles'),
+                             GenEventInfo   = cms.InputTag('generator'),
                              discriminators = cms.vstring("PFRecoTauDiscriminationByKinematicFit","PFRecoTauDiscriminationByKinematicFitQuality"),
+                             DataMCType     = cms.untracked.string("data"),
                              do_MCComplete  = cms.untracked.bool(False),
                              do_MCSummary   = cms.untracked.bool(True)
 )
