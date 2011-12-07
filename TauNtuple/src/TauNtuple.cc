@@ -6,6 +6,7 @@
 #include "TMatrixT.h"
 
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
@@ -648,6 +649,21 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
   Event_orbitNumber=iEvent.orbitNumber();
   Event_luminosityBlock=iEvent.luminosityBlock(); 
   Event_isRealData=iEvent.isRealData();
+
+  edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
+  iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo); 
+  std::vector<PileupSummaryInfo>::const_iterator PVI; 
+  PileupInfo_NumInteractions_nm1 = -1;
+  PileupInfo_NumInteractions_n0  = -1; 
+  PileupInfo_NumInteractions_np1 = -1; 
+  for(PVI = PupInfo->begin(); PVI != PupInfo->end();++PVI) { 
+    int BX = PVI->getBunchCrossing(); 
+    if(BX == -1) PileupInfo_NumInteractions_nm1 =  PVI->getPU_NumInteractions(); 
+    if(BX == 0)  PileupInfo_NumInteractions_n0  =  PVI->getPU_NumInteractions();  
+    if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
+  } 
+
+
 }
 
 
@@ -781,6 +797,11 @@ TauNtuple::beginJob()
   output_tree->Branch("Event_orbitNumber",&Event_orbitNumber);
   output_tree->Branch("Event_luminosityBlock",&Event_luminosityBlock);	 
   output_tree->Branch("Event_isRealData",&Event_isRealData);
+
+  output_tree->Branch("PileupInfo_NumInteractions_nm1",&PileupInfo_NumInteractions_nm1);
+  output_tree->Branch("PileupInfo_NumInteractions_n0",&PileupInfo_NumInteractions_n0);
+  output_tree->Branch("PileupInfo_NumInteractions_np1",&PileupInfo_NumInteractions_np1);
+
 
   //=============== Track Block ==============
   output_tree->Branch("Track_p4",&Track_p4);

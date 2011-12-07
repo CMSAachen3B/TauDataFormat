@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.2 2011/12/04 19:15:28 inugent Exp $
+// $Id: TauNtuple.h,v 1.3 2011/12/07 17:24:14 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -193,9 +193,6 @@ class TauNtuple : public edm::EDProducer {
   int cnt_;
 
   //=======  Vertex ===
-
-
-
   std::vector<float> Vtx_chi2;
   std::vector<float> Vtx_nTrk;
   std::vector<float> Vtx_ndof;
@@ -250,8 +247,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<int> > PFTau_Track_idx;
 
   // to include: HPS discriminators against muon and electron
-
-
   //======= KinFitTaus ===
 
   std::vector<bool> KFTau_discriminatorByKFit;
@@ -323,6 +318,9 @@ class TauNtuple : public edm::EDProducer {
   int  Event_orbitNumber;	 
   unsigned int  Event_luminosityBlock;	 
   bool  Event_isRealData;        
+  int PileupInfo_NumInteractions_nm1;
+  int PileupInfo_NumInteractions_n0;
+  int PileupInfo_NumInteractions_np1;
 
 
   //====== Tracks ======= 
