@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.3 2011/12/07 17:24:14 inugent Exp $
+// $Id: TauNtuple.h,v 1.4 2011/12/07 19:31:26 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -122,6 +122,11 @@
 #include "DataFormats/KinematicFit/interface/SelectedKinematicDecay.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 
+// PU
+#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
+//
 
 
 
@@ -186,6 +191,15 @@ class TauNtuple : public edm::EDProducer {
   std::string DataMC_Type_;
   unsigned int DataMC_Type_idx;
 
+  // PU
+  std::string ScaleFactor_;
+  std::string PUInputFile_;
+  std::string PUInputHistoMC_;
+  std::string PUInputHistoData_;
+
+
+  edm::Lumi3DReWeighting LumiWeights_;
+  //
 
   TFile *output;
   TTree *output_tree;
@@ -321,6 +335,7 @@ class TauNtuple : public edm::EDProducer {
   int PileupInfo_NumInteractions_nm1;
   int PileupInfo_NumInteractions_n0;
   int PileupInfo_NumInteractions_np1;
+  double EvtWeight3D;
 
 
   //====== Tracks ======= 

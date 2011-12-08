@@ -5,9 +5,6 @@
 #include <vector>
 #include "TMatrixT.h"
 
-#include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
-#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
-
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
 
@@ -27,11 +24,21 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
   discriminators_( iConfig.getParameter< std::vector<std::string> >("discriminators") ),
   DataMC_Type_(iConfig.getUntrackedParameter<std::string>("DataMCType","")),
+  ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
+  PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
+  PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
+  PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
   do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
   do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
 {   
   DataMCType DMT;
   DataMC_Type_idx=DMT.GetType(DataMC_Type_);
+
+
+  LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
+  LumiWeights_.weight3D_init(1);
+
+
 } 
 
 
@@ -663,7 +670,7 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
   } 
 
-
+  if(!Event_isRealData){ EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);}
 }
 
 
@@ -801,7 +808,7 @@ TauNtuple::beginJob()
   output_tree->Branch("PileupInfo_NumInteractions_nm1",&PileupInfo_NumInteractions_nm1);
   output_tree->Branch("PileupInfo_NumInteractions_n0",&PileupInfo_NumInteractions_n0);
   output_tree->Branch("PileupInfo_NumInteractions_np1",&PileupInfo_NumInteractions_np1);
-
+  output_tree->Branch("EvtWeight3D",&EvtWeight3D);
 
   //=============== Track Block ==============
   output_tree->Branch("Track_p4",&Track_p4);
@@ -1149,6 +1156,11 @@ TauNtuple::ClearEvent(){
    Track_numberOfValidHits.clear();
    Track_qualityMask.clear();
 
+
+   //============= Event Block =============
+
+
+   EvtWeight3D=0;
   //=============== MC Block ==============
 
    GenEventInfoProduct_weights.clear();

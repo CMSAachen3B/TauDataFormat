@@ -1,5 +1,12 @@
 import FWCore.ParameterSet.Config as cms
 
+
+Scale = '1.0'       # The "Scale" argument should be set to 1.0 if you want to reweight to exactly the 
+                   #input data distribution. If you are evaluating systematic errors, you can use this factor
+                   #to scale the distribution before the weights are calculated (i.e., correctly) by putting in a non-unity argument. 
+
+
+
 NtupleMaker = cms.EDProducer('TauNtuple',
                              primVtx = cms.InputTag("offlinePrimaryVertices"),
                              hpsTauProducer=cms.InputTag("hpsPFTauProducer"),
@@ -18,5 +25,10 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              discriminators = cms.vstring("PFRecoTauDiscriminationByKinematicFit","PFRecoTauDiscriminationByKinematicFitQuality"),
                              DataMCType     = cms.untracked.string("data"),
                              do_MCComplete  = cms.untracked.bool(False),
-                             do_MCSummary   = cms.untracked.bool(True)
+                             do_MCSummary   = cms.untracked.bool(True),
+                             ScaleFactor    = cms.untracked.string(Scale),
+                             PUInputFile    = cms.untracked.string("Lumi_160404_180252_andMC_Flat_Tail.root"),
+                             PUInputHistoMC    = cms.untracked.string("MC_FLAT_PLUS_TAIL_PU"),               
+                             PUInputHistoData  = cms.untracked.string("h_160404_180252_all")
+                  
 )
