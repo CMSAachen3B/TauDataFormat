@@ -657,6 +657,8 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
   Event_luminosityBlock=iEvent.luminosityBlock(); 
   Event_isRealData=iEvent.isRealData();
 
+
+  if(!Event_isRealData){
   edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
   iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo); 
   std::vector<PileupSummaryInfo>::const_iterator PVI; 
@@ -670,7 +672,8 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
   } 
 
-  if(!Event_isRealData){ EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);}
+   EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);
+  }
 }
 
 
