@@ -27,7 +27,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              do_MCComplete  = cms.untracked.bool(False),
                              do_MCSummary   = cms.untracked.bool(True),
                              ScaleFactor    = cms.untracked.string(Scale),
-                             PUInputFile    = cms.untracked.string("Lumi_160404_180252_andMC_Flat_Tail.root"),
+                             PUInputFile    = cms.untracked.string("/home/home2/institut_3b/cherepanov/work/CMSSW_4_4_0/src/TauDataFormat/TauNtuple/Cert_PU_FILES/Lumi_160404_180252_andMC_Flat_Tail.root"),
                              PUInputHistoMC    = cms.untracked.string("MC_FLAT_PLUS_TAIL_PU"),               
                              PUInputHistoData  = cms.untracked.string("h_160404_180252_all")
                   
