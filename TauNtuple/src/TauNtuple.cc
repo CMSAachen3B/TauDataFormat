@@ -5,8 +5,16 @@
 #include <vector>
 #include "TMatrixT.h"
 
+
+
+
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
+
+#include <sys/types.h>
+#include <dirent.h>
+
+
 
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   primVtxTag_( iConfig.getParameter<edm::InputTag>( "primVtx" ) ),
@@ -30,15 +38,14 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
   do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
   do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
+
 {   
   DataMCType DMT;
   DataMC_Type_idx=DMT.GetType(DataMC_Type_);
 
-
   LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
   LumiWeights_.weight3D_init(1);
-
-
+  
 } 
 
 
@@ -423,6 +430,9 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
   unsigned int index = 0;
   //  std::cout<<"size of tauCollection ====== " << tauCollection->size()<<std::endl;
   int NoRefittedTaus =0;
+
+  float buffer1 =0;
+  float buffer2 =0;
   for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
     reco::PFTauRef tauRef(tauCollection, index);
 
@@ -446,13 +456,25 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
     iKFTau_TauVis_p4.push_back(tauRef->p4().Px());
     iKFTau_TauVis_p4.push_back(tauRef->p4().Py());
     iKFTau_TauVis_p4.push_back(tauRef->p4().Pz()); 
-//     //=======debug
+
 //     if(discriminatorPair.at(0))printf("1: %f %f %f %f\n",tauRef->alternatLorentzVect().E(),
 // 				                         tauRef->alternatLorentzVect().Px(),
 // 				                         tauRef->alternatLorentzVect().Py(),
 // 				                         tauRef->alternatLorentzVect().Pz());
-//     //=======debug
-
+  
+ 
+ 
+//////////////////// debugging issues
+    if(discriminatorPair.at(0)){
+      AllFit.SetPxPyPzE(tauRef->alternatLorentzVect().Px(), tauRef->alternatLorentzVect().Py(), tauRef->alternatLorentzVect().Pz(), tauRef->alternatLorentzVect().E());
+      AllVis.SetPxPyPzE(tauRef->p4().Px(),tauRef->p4().Py(),tauRef->p4().Pz(),tauRef->p4().E());
+      tree1->Fill();
+      if(tauRef->p4().Pt() > buffer1){highestVis.SetPxPyPzE(tauRef->p4().Px(),tauRef->p4().Py(),tauRef->p4().Pz(),tauRef->p4().E());}
+      if(tauRef->alternatLorentzVect().Pt() > buffer2){highestFit.SetPxPyPzE(tauRef->alternatLorentzVect().Px(), tauRef->alternatLorentzVect().Py(), tauRef->alternatLorentzVect().Pz(), tauRef->alternatLorentzVect().E());}
+      //      std::cout<<"AllFit phi "  << AllFit.Phi()<<std::endl;
+    }
+  
+//////////////////// debugging issues
     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().E());
     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Px());
     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Py());
@@ -467,12 +489,21 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
     KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
     KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
 
+    TLorentzVector vecKf;
+    double px  = iKFTau_TauFit_p4.at(1);
+    double py  = iKFTau_TauFit_p4.at(2);
+    double pz  = iKFTau_TauFit_p4.at(3);
+    double e   = iKFTau_TauFit_p4.at(0);
+    vecKf.SetPxPyPzE(px,py,pz,e);
+
+    //  std::cout<<"KFTau phi "  <<vecKf.Phi() <<std::endl;
     unsigned int idx =0;
     reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4,idx);
     KFTau_MatchedHPS_idx.push_back(idx);
 
 
   }
+  tree2->Fill();
   KFTau_nKinTaus = NoRefittedTaus;
 
     //================== KinematicFit Info ===================
@@ -528,10 +559,6 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
 
 
 	//=======debug
-
-
-
-
 	  //	KFTau_debug.push_back((*iParticle)->p4().E());
 //  	printf("tau: %f %f %f %f chi2 %f\n",(*iParticle)->p4().E(),
 //  	       (*iParticle)->p4().Px(),
@@ -563,13 +590,13 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
   }
   //std::cout<<"test debug" <<KFTau_indexOfFitInfo.size() <<std::endl;
 
-  for(unsigned int kk = 0; kk < KFTau_indexOfFitInfo.size(); kk++){
+  //  for(unsigned int kk = 0; kk < KFTau_indexOfFitInfo.size(); kk++){
     //   std::cout<<"test debug" << kk  << KFTau_indexOfFitInfo.at(kk) <<  KFTau_debug.size() << std::endl;
 //      if(KFTau_indexOfFitInfo.at(kk)!=-1){printf("2: %d ener %f\n",KFTau_indexOfFitInfo.at(kk),KFTau_debug.at(KFTau_indexOfFitInfo.at(kk)));
      
 //      }
 
-  }
+//  }
   //================== KinematicFit Info ===================
    
 
@@ -658,7 +685,10 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
   Event_isRealData=iEvent.isRealData();
 
 
-  if(!Event_isRealData){
+  std::cout<<Event_luminosityBlock <<std::endl;
+
+if(!Event_isRealData){
+
   edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
   iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo); 
   std::vector<PileupSummaryInfo>::const_iterator PVI; 
@@ -671,9 +701,9 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
     if(BX == 0)  PileupInfo_NumInteractions_n0  =  PVI->getPU_NumInteractions();  
     if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
   } 
-
-   EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);
-  }
+  
+   EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);}
+//  std::cout<<"EvtWeight3D "<<EvtWeight3D <<std::endl;
 }
 
 
@@ -683,11 +713,23 @@ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
 void 
 TauNtuple::beginJob()
 {
+
+
+//-------------------------
+//   TString cmd1="pwd";
+//   TString cmd2="ls";
+//   TString cmd3="ls ../";
+//   TString cmd4="ls */";
+//   system(cmd1.Data());
+//   system(cmd2.Data());
+//   system(cmd3.Data());
+//   system(cmd4.Data());
+//-------------------------
   cnt_=0;
   output = new TFile("DATA_SkimmedTauNtuple.root","RECREATE");
-  //  output = new TFile("MC_DY_SkimmedTauNtuple.root","RECREATE");
-  //  output = new TFile("MC_WJ_SkimmedTauNtuple.root","RECREATE");
-  //  output = new TFile("MC_QCD_SkimmedTauNtuple.root","RECREATE");
+  //output = new TFile("MC_DY_SkimmedTauNtuple.root","RECREATE");
+  //output = new TFile("MC_WJ_SkimmedTauNtuple.root","RECREATE");
+  //output = new TFile("MC_QCD_SkimmedTauNtuple.root","RECREATE");
   output_tree = new TTree("t","t");
 
   output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
@@ -852,6 +894,20 @@ TauNtuple::beginJob()
     output_tree->Branch("MCTau_JAK",&MCTau_JAK);   
     output_tree->Branch("MCTau_DecayBitMask",&MCTau_DecayBitMask); 
   }
+
+  file = new TFile("file.root","RECREATE");
+  tree1 = new TTree("t1","t1");
+  tree2 = new TTree("t2","t2");
+  
+  tree1->Branch("AllFit",&AllFit); 
+  tree1->Branch("AllVis",&AllVis); 
+
+
+  tree2->Branch("highestFit",&highestFit); 
+  tree2->Branch("highestVis",&highestVis); 
+  
+
+
 } 
 
 
@@ -1008,12 +1064,32 @@ TauNtuple::endJob() {
   std::cout<<" No Of event processed: "<< cnt_ << std::endl;
   output->Write();
   output->Close();
+  file->Write();
+  file->Close();
 }  
 
 // ------------ method called when starting to processes a run  ------------
 void   
-TauNtuple::beginRun(edm::Run&, edm::EventSetup const&)
-{
+TauNtuple::beginRun(edm::Run& Run, edm::EventSetup const& Setup){ 
+//------------------- printf out triggeer menu
+//   std::string processName = "HLT";
+//   bool changed(true);
+//   if (hltConfig_.init(Run,Setup,processName,changed)) {
+//     if (changed) {
+//       const std::string &  DSName = hltConfig_.datasetName(1);
+//       std::cout << DSName << std::endl;
+//       const std::vector< std::vector< std::string > > & AllDSName=hltConfig_.datasetContents(); 
+//       const std::vector< std::string > & TriggNames=hltConfig_.triggerNames();
+
+
+//       for(std::vector< std::string >::const_iterator iName = TriggNames.begin(); iName !=TriggNames.end(); ++iName ){
+
+// 			std::cout << (*iName) << std::endl;
+//       }
+//     }
+//   } else {
+//     std::cout<<"TauNtuple: " << " HLT config extraction failure with process name " << processName_<<std::endl;
+//   }
 
 } 
 
@@ -1159,13 +1235,12 @@ TauNtuple::ClearEvent(){
    Track_numberOfValidHits.clear();
    Track_qualityMask.clear();
 
-
-   //============= Event Block =============
-
-
+   // Event Block
    EvtWeight3D=0;
-  //=============== MC Block ==============
 
+
+   //=============== MC Block ==============
+   
    GenEventInfoProduct_weights.clear();
    GenEventInfoProduct_signalProcessID=0;
    GenEventInfoProduct_weight=0;

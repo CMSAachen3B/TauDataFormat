@@ -122,6 +122,7 @@
 #include "DataFormats/KinematicFit/interface/SelectedKinematicDecay.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 
+
 // PU
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
@@ -130,6 +131,13 @@
 
 
 
+
+//  Trigger 
+#include "DataFormats/Common/interface/TriggerResults.h"
+#include <FWCore/Common/interface/TriggerNames.h>
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+
+//
 //
 // class declaration
 //
@@ -200,6 +208,7 @@ class TauNtuple : public edm::EDProducer {
 
   edm::Lumi3DReWeighting LumiWeights_;
   //
+
 
   TFile *output;
   TTree *output_tree;
@@ -384,6 +393,7 @@ class TauNtuple : public edm::EDProducer {
   std::vector<unsigned int>      MCTau_JAK;
   std::vector<unsigned int>      MCTau_DecayBitMask;
 
+
   // Object Truth
   /*std::vector<std::vector<float> > MCJet_p4;
   double MET_et;
@@ -393,6 +403,26 @@ class TauNtuple : public edm::EDProducer {
   double MET_phi;
   double MET_sumET;
   */
+
+
+
+  std::string processName_; // process name of (HLT) process for which to get HLT configuration
+  HLTConfigProvider hltConfig_;/// The instance of the HLTConfigProvider as a data member
+
+
+  //////////////////// debugging issues
+
+  TFile *file;
+  TTree *tree1;
+  TTree *tree2;
+
+  TLorentzVector AllFit;
+  TLorentzVector AllVis;
+  TLorentzVector highestFit;
+  TLorentzVector highestVis;
+  
+
+  //////////////////// debugging issues
 };
 //define this as a plug-in
 DEFINE_FWK_MODULE(TauNtuple);
