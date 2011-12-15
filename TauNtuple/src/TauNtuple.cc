@@ -40,9 +40,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
 
 {   
-  DataMCType DMT;
-  DataMC_Type_idx=DMT.GetType(DataMC_Type_);
-
   LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
   LumiWeights_.weight3D_init(1);
   
@@ -67,7 +64,11 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   ClearEvent();
   using namespace edm;
   iEvent_=&iEvent;
-
+  DataMCType DMT;
+  DataMC_Type_idx=DMT.GetType(DataMC_Type_);
+  if(iEvent.isRealData()){
+    DataMC_Type_idx=DataMCType::Data;
+  }
   fillEventInfo(iEvent, iSetup);
   fillMET(iEvent, iSetup);
 
@@ -87,9 +88,15 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 // ------------ method called once each job just before starting event loop  ------------
                           
 void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  if(!iEvent.isRealData()){
 
-    edm::Handle<GenEventInfoProduct> GenEventInfoProduct;                                                                                                                                                                                    
+  if(!iEvent.isRealData()){
+    TauDecay_CMSSW myTauDecay;
+    edm::Handle<reco::GenParticleCollection> genParticles;
+    iEvent_->getByLabel(gensrc_, genParticles);
+    myTauDecay.CheckForSignal(DataMC_Type_idx,genParticles);
+
+
+    edm::Handle<GenEventInfoProduct> GenEventInfoProduct;   
     iEvent.getByLabel("generator",GenEventInfoProduct);            
     GenEventInfoProduct_signalProcessID=GenEventInfoProduct->signalProcessID();   
     GenEventInfoProduct_weight=GenEventInfoProduct->weight();
@@ -98,12 +105,6 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
     GenEventInfoProduct_alphaQCD=GenEventInfoProduct->alphaQCD();      
     GenEventInfoProduct_alphaQED=GenEventInfoProduct->alphaQED();  
 
-    TauDecay_CMSSW TauDecay;
-    edm::Handle<reco::GenParticleCollection> genParticles;
-    iEvent_->getByLabel(gensrc_, genParticles);
-    
-
-    
     if(do_MCComplete_){
       std::vector<unsigned int> index;
       for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
@@ -132,9 +133,9 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
     }
     if(do_MCSummary_){
+      DataMCType DMT;
       for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
-	unsigned int pdgid=abs(itr->pdgId());
-	if(pdgid==PdtPdgMini::Z0 || pdgid==PdtPdgMini::W_plus || pdgid==PdtPdgMini::Higgs0 || pdgid==PdtPdgMini::Higgs_plus){
+	if(DMT.isSignalParticle(itr->pdgId())){
 	  // flag to only select particles that has a daughter tau
 	  bool hastaudaughter=false;
 	  // look for daughter tau
@@ -167,9 +168,9 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	      MCTauandProd_p4.push_back(std::vector<std::vector<float> >());
 	      MCTauandProd_pdgid.push_back(std::vector<int>());
 	      MCTauandProd_charge.push_back(std::vector<int>());
-	      TauDecay.AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
-	      std::vector<const reco::GenParticle* > TauDecayProducts=TauDecay.Get_TauDecayProducts();
-	      MCTauandProd_midx.push_back(TauDecay.Get_MotherIdx());
+	      myTauDecay.AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
+	      std::vector<const reco::GenParticle* > TauDecayProducts=myTauDecay.Get_TauDecayProducts();
+	      MCTauandProd_midx.push_back(myTauDecay.Get_MotherIdx());
 	      MCTau_JAK.push_back(JAK_ID);
 	      MCTau_DecayBitMask.push_back(TauBitMask);
 	      
@@ -263,7 +264,6 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
     Muon_isTimeValid.push_back(RefMuon->isTimeValid());
     Muon_isIsolationValid.push_back(RefMuon->isIsolationValid());
     Muon_Charge.push_back(RefMuon->charge());
-    Muon_hitPattern_pixelLayerwithMeas.push_back(RefMuon->innerTrack()->hitPattern().pixelLayersWithMeasurement());
     Muon_numberOfMatchedStations.push_back(RefMuon->numberOfMatchedStations());
     Muon_numberOfMatches.push_back(RefMuon->numberOfMatches());
     if(RefMuon->isGlobalMuon()){
@@ -276,9 +276,11 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
     }
     if(RefMuon->isTrackerMuon()){
       Muon_innerTrack_numberofValidHits.push_back(RefMuon->innerTrack()->numberOfValidHits());
+      Muon_hitPattern_pixelLayerwithMeas.push_back(RefMuon->innerTrack()->hitPattern().pixelLayersWithMeasurement());
     }
     else{
       Muon_innerTrack_numberofValidHits.push_back(0);
+      Muon_hitPattern_pixelLayerwithMeas.push_back(0);
     }
 
     if(RefMuon->isIsolationValid()){

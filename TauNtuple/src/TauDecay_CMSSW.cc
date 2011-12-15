@@ -1,5 +1,6 @@
 #include "TauDataFormat/TauNtuple/interface/TauDecay_CMSSW.h"
 #include "TauDataFormat/TauNtuple/interface/PdtPdgMini.h"
+#include "TauDataFormat/TauNtuple/interface/DataMCType.h"
 
 #include <iomanip>
 #include <cstdlib> 
@@ -71,5 +72,31 @@ void TauDecay_CMSSW::AddPi0Info(const reco::GenParticle *Particle,unsigned int m
   for (unsigned int i=0; i< Particle->numberOfDaughters(); i++){
     const reco::Candidate *dau=Particle->daughter(i);
     AddPi0Info(static_cast<const reco::GenParticle*>(dau),midx);
+  }
+}
+
+void TauDecay_CMSSW::CheckForSignal(unsigned int &type,edm::Handle<reco::GenParticleCollection> &genParticles){
+  DataMCType DMT;
+  for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
+    unsigned int JAK_ID1(0), nprong1(0), JAK_ID2(0), nprong2(0);
+    if(DMT.isSignalParticle(itr->pdgId())){
+      for(unsigned int i = 0; i <itr->numberOfDaughters(); i++){
+	const reco::Candidate *dau=itr->daughter(i);
+	if(abs(dau->pdgId())==PdtPdgMini::tau_minus){
+	  unsigned int JAK_ID,TauBitMask;
+	  AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
+	  if(JAK_ID1==0){
+	    JAK_ID1=JAK_ID;
+	    nprong1=nProng(TauBitMask);
+	  }
+	  else{
+	    JAK_ID2=JAK_ID;
+	    nprong2=nProng(TauBitMask);
+	  }
+	}
+	type=DMT.SignalCode(type,JAK_ID1,nprong1,JAK_ID2,nprong2);
+	break;
+      }
+    }
   }
 }

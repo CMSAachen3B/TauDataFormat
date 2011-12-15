@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  
 //         Created:  Fri Nov 18 13:49:02 CET 2011
-// $Id$
+// $Id: TauDecay_CMSSW.h,v 1.1 2011/12/01 13:51:23 cherepan Exp $
 //
 //
 #ifndef TauDecay_CMSSW_h
@@ -38,6 +38,7 @@ public:
   // Functions to get results
   std::vector<const reco::GenParticle* > Get_TauDecayProducts(){return TauDecayProducts;}
   std::vector<unsigned int> Get_MotherIdx(){return MotherIdx;}
+  void CheckForSignal(unsigned int &type,edm::Handle<reco::GenParticleCollection> &genParticles);
 
 private:
   // recursive function to loop through tau decay products

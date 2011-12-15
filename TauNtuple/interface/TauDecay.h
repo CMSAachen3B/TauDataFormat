@@ -11,7 +11,7 @@
 //
 // Original Author:  Ian Nugent  
 //         Created:  Fri Nov 18 13:49:02 CET 2011
-// $Id$
+// $Id: TauDecay.h,v 1.1 2011/12/01 13:51:23 cherepan Exp $
 //
 //
 #ifndef TauDecay_h
@@ -100,8 +100,20 @@ class TauDecay {
   bool isTauParticleCounter(int pdgid);
   bool isTauResonanceCounter(int pdgid);
   void ClassifyDecayMode(unsigned int &JAK_ID,unsigned int &TauBitMask);
+  unsigned int nProng(unsigned int &TauBitMask){
+    if(OneProng&TauBitMask)   return 1;
+    if(ThreeProng&TauBitMask) return 3;
+    if(FiveProng&TauBitMask)  return 5;
+    return 7;
+  }
+  unsigned int nPi0(unsigned int &TauBitMask){
+    if(OnePi0&TauBitMask)   return 1;
+    if(TwoPi0&TauBitMask)   return 2;
+    if(ThreePi0&TauBitMask) return 3;
+    return 0;
+  }
 
-  
+
  private:
   // Functions
   void ClassifyDecayResonance(unsigned int &TauBitMask);

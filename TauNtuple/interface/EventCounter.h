@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.cc,v 1.1 2011/12/03 15:27:51 inugent Exp $
+// $Id: EventCounter.h,v 1.1 2011/12/07 19:31:26 inugent Exp $
 //
 //
 #ifndef EventsCounter_h
@@ -44,24 +44,23 @@
 //
 
 class EventCounter : public edm::EDAnalyzer {
-   public:
-      explicit EventCounter(const edm::ParameterSet&);
-      ~EventCounter();
-
-      static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-
-
-   private:
-      virtual void beginJob() ;
-      virtual void analyze(const edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-
+public:
+  explicit EventCounter(const edm::ParameterSet&);
+  ~EventCounter();
+  
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+  
+  
+private:
+  virtual void beginJob() ;
+  virtual void analyze(const edm::Event&, const edm::EventSetup&);
+  virtual void endJob() ;
+  
       virtual void beginRun(edm::Run const&, edm::EventSetup const&);
-      virtual void endRun(edm::Run const&, edm::EventSetup const&);
-      virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-      virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
-
-      // ----------member data ---------------------------
+  virtual void endRun(edm::Run const&, edm::EventSetup const&);
+  virtual void beginLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  virtual void endLuminosityBlock(edm::LuminosityBlock const&, edm::EventSetup const&);
+  
   std::string CounterType_;
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
@@ -70,6 +69,7 @@ class EventCounter : public edm::EDAnalyzer {
   std::vector<double> nevents;
   unsigned int DataMC_Type_idx;
   std::map<unsigned int,unsigned int>    DataMCMap;
+
 };
 
 

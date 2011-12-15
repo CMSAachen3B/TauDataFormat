@@ -3,7 +3,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.cc,v 1.1 2011/12/03 15:27:51 inugent Exp $
+// $Id: EventCounter.cc,v 1.1 2011/12/07 19:31:27 inugent Exp $
 //
 #include "TauDataFormat/TauNtuple/interface/EventCounter.h"
 
@@ -35,11 +35,8 @@ EventCounter::EventCounter(const edm::ParameterSet& iConfig):
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
   DataMC_Type_(iConfig.getUntrackedParameter<std::string>("DataMCType",""))
 {
-
   DataMCType DMT;
   DataMC_Type_idx=DMT.GetType(DataMC_Type_);
-
-  //now do what ever initialization is needed
   nevents_weighted.clear();
   nevents.clear();
   DataMCMap.clear();
@@ -48,10 +45,6 @@ EventCounter::EventCounter(const edm::ParameterSet& iConfig):
 
 EventCounter::~EventCounter()
 {
- 
-   // do anything here that needs to be done at desctruction time
-   // (e.g. close files, deallocate resources etc.)
-
 }
 
 
@@ -69,7 +62,7 @@ EventCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    // Determine the mc/data type 
    //
    float w=1;
-   int type=-999;
+   unsigned int type=DataMCType::unknown;
    if(iEvent.isRealData()){
      type=DataMCType::Data;
    }
@@ -84,33 +77,8 @@ EventCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      //
      edm::Handle<reco::GenParticleCollection> genParticles;
      iEvent.getByLabel(gensrc_, genParticles);
-     for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
-       bool found=false;
-       unsigned int pdgid=abs(itr->pdgId());
-       if(pdgid==PdtPdgMini::Z0 || pdgid==PdtPdgMini::W_plus || pdgid==PdtPdgMini::Higgs0 || pdgid==PdtPdgMini::Higgs_plus){
-	 // flag to only select particles that has a daughter tau                                                                                                                                                                           
-	 for(unsigned int i = 0; i <itr->numberOfDaughters(); i++){
-	   const reco::Candidate *dau=itr->daughter(i);
-	   if(abs(dau->pdgId())==PdtPdgMini::tau_minus){
-	     unsigned int JAK_ID,TauBitMask;
-	     TauDecay_CMSSW TauDecay;
-	     TauDecay.AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
-	     unsigned int mask=TauBitMask%127;
-	     if(!found){
-	       found=true;
-	       type*=100000000;
-	       type+=JAK_ID*1000000;
-	       type+=mask*10000;
-	     }
-	     else{
-	       type+=JAK_ID*100;
-	       type+=mask;
-	     }
-	   }
-	 }
-       }
-       if(found)break;
-     }
+     TauDecay_CMSSW myTauDecay;
+     myTauDecay.CheckForSignal(type,genParticles);
    }
    ///////////////////////////////////////
    //
