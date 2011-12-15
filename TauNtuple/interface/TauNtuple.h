@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.4 2011/12/07 19:31:26 inugent Exp $
+// $Id: TauNtuple.h,v 1.6 2011/12/12 13:32:41 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -57,8 +57,6 @@
 
 #include "TVectorT.h"
 #include "TH1.h"
-#include "TTree.h"
-#include "TFile.h"
 #include "TLorentzVector.h"
 
 
@@ -222,8 +220,9 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> Vtx_y;
   std::vector<float> Vtx_x;
   std::vector<float> Vtx_z;
-  std::vector<std::vector<float> >  Vtx_Cov;
+  std::vector<std::vector<std::vector<float> > >  Vtx_Cov;
   std::vector<std::vector<int> >    Vtx_Track_idx;
+  std::vector<float> Vtx_isFake;
 
   //=======  Muons ===
   std::vector<std::vector<float> > Muon_p4;
@@ -257,6 +256,14 @@ class TauNtuple : public edm::EDProducer {
   std::vector<int>      Muon_numberOfChambers;
   std::vector<int>      Muon_Charge;
   std::vector<unsigned int>  Muon_Track_idx;
+
+  std::vector<float> Muon_hitPattern_pixelLayerwithMeas;
+  std::vector<float> Muon_numberOfMatchedStations;
+  std::vector<float> Muon_normChi2;
+  std::vector<float> Muon_hitPattern_numberOfValidMuonHits;
+  std::vector<float> Muon_innerTrack_numberofValidHits;
+  std::vector<float> Muon_numberOfMatches;
+
 
   //======= PFTaus ===
 
@@ -324,6 +331,11 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<int> > PFJet_Track_idx;
   std::vector<unsigned int> PFJet_MatchedHPS_idx;
 
+  std::vector<int>   PFJet_numberOfDaughters;
+  std::vector<float> PFJet_chargedEmEnergyFraction;
+  std::vector<float> PFJet_HFHadronEnergyFraction;
+  std::vector<float> PFJet_neutralHadronEnergyFraction;
+  std::vector<float> PFJet_PFJet_neutralEmEnergyFraction;
 
   //=======  MET ===
   // now only PFMET
@@ -356,6 +368,9 @@ class TauNtuple : public edm::EDProducer {
   std::vector<unsigned short> Track_numberOfLostHits;
   std::vector<unsigned short> Track_numberOfValidHits;
   std::vector<unsigned int> Track_qualityMask;
+  std::vector<std::vector<float> > Track_par;
+  std::vector<std::vector<std::vector<float> > > Track_parCov;
+
 
   //====== Trigger ======= 
 
@@ -410,19 +425,6 @@ class TauNtuple : public edm::EDProducer {
   HLTConfigProvider hltConfig_;/// The instance of the HLTConfigProvider as a data member
 
 
-  //////////////////// debugging issues
-
-  TFile *file;
-  TTree *tree1;
-  TTree *tree2;
-
-  TLorentzVector AllFit;
-  TLorentzVector AllVis;
-  TLorentzVector highestFit;
-  TLorentzVector highestVis;
-  
-
-  //////////////////// debugging issues
 };
 //define this as a plug-in
 DEFINE_FWK_MODULE(TauNtuple);
