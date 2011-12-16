@@ -557,7 +557,7 @@ TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
     PFJet_p4.push_back(iPFJet_p4);
     PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
     PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
-    PFJet_chargedHadronEnergyFraction.push_back(PFJet->HFHadronEnergyFraction());
+    PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
     PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
     PFJet_PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
     PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
