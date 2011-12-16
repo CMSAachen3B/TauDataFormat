@@ -173,7 +173,6 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	      MCTauandProd_midx.push_back(myTauDecay.Get_MotherIdx());
 	      MCTau_JAK.push_back(JAK_ID);
 	      MCTau_DecayBitMask.push_back(TauBitMask);
-	      
 	      MCTauandProd_pdgid.push_back(std::vector<int>());
 	      MCTauandProd_charge.push_back(std::vector<int>());
 	      MCTauandProd_p4.push_back(std::vector<std::vector<float> >());

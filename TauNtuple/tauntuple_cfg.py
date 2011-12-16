@@ -54,8 +54,7 @@ process.source = cms.Source("PoolSource",
     
 )
 
-process.myProducerLabel = cms.EDProducer('TauNtuple'
-)
+process.myProducerLabel = cms.EDProducer('TauNtuple')
 
 #process.out = cms.OutputModule("PoolOutputModule",
 #    fileName = cms.untracked.string('myOutputFile.root')
@@ -69,6 +68,15 @@ process.load("RecoTauTag.KinematicTau.kinematictau_cfi")
 process.load("RecoTauTag.KinematicTau.kinematictauAdvanced_cfi")
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
 process.load("TauDataFormat.TauNtuple.tauntuple_cfi")
+
+#EvntCounter = cms.EDAnalyser('EventCounter',
+#                             CounterType    = cms.untracked.string("WW"),
+#                             gensrc         = cms.InputTag('genParticles'),
+#                             GenEventInfo   = cms.InputTag('generator'),
+#                             DataMCType     = cms.untracked.string("DataMCType")
+#                             )
+
+
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numberOfEvents) )
 

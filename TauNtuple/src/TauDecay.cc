@@ -4,7 +4,8 @@
 
 #include <iomanip>
 #include <cstdlib> 
-
+#include <iostream>
+ 
 TauDecay::TauDecay(){
   Reset();
 }
@@ -110,8 +111,8 @@ void TauDecay::ClassifyDecayMode(unsigned int &JAK_ID,unsigned int &TauBitMask){
     ClassifyDecayResonance(TauBitMask);
     return;
   }
-  if(n_Kstar==1){ //JAK_KSTAR K0SPi && KPi0 
-    if(n_e==0 && n_mu==0 && n_pi>=1 && n_pi0==0 && n_K==0 && n_K0L==0 && n_K0S==1 && n_nu==1){
+  //if(n_Kstar==1){ //JAK_KSTAR K0SPi && KPi0 
+    if(n_e==0 && n_mu==0 && n_pi>=1 && n_pi0==0 && n_K==0 && n_K0L+n_K0S==1 && n_nu==1){
       JAK_ID=JAK_KSTAR;
       TauBitMask=OneProng;
       if(n_pi==3)TauBitMask+=KS0_to_pipi;
@@ -124,7 +125,7 @@ void TauDecay::ClassifyDecayMode(unsigned int &JAK_ID,unsigned int &TauBitMask){
       ClassifyDecayResonance(TauBitMask);
       return;
     }
-  }
+    //}
   //JAK_PIK0PI0
   if(n_e==0 && n_mu==0 && n_pi>=1 && n_pi0==1 && n_K==0 && n_K0L==0 && n_K0S==1  && n_nu==1){
     JAK_ID=JAK_PIK0PI0;
@@ -151,14 +152,21 @@ void TauDecay::ClassifyDecayMode(unsigned int &JAK_ID,unsigned int &TauBitMask){
     return;
   }
   
-  
   //Safty handelling for exlusive modes
-  if (n_K0L!=0) return;
-  if (n_K0S!=0) return;
-  if (n_eta!=0) return;
+  if (n_K0L!=0){
+    std::cout << "Unknown mode with KL0: n_e " <<  n_e << " n_mu " << n_mu << " n_pi " << n_pi << " n_pi0 " << n_pi0 << " n_K " << n_K << "  n_K0L " << n_K0L << "  n_K0S " << n_K0S << " n_nu  " << n_nu << " n_gamma " << n_gamma << std::endl; 
+    return;
+  }
+  if (n_K0S!=0){
+    std::cout << "Unknown mode with KS0: n_e " <<  n_e << " n_mu " << n_mu << " n_pi " << n_pi << " n_pi0 " << n_pi0 << " n_K " << n_K << "  n_K0L " << n_K0L << "  n_K0S " << n_K0S << " n_nu  " << n_nu << " n_gamma " << n_gamma << std::endl;
+    return;
+  }
+  if (n_eta!=0){
+    std::cout << "Unknown mode with eta: n_e " <<  n_e << " n_mu " << n_mu << " n_pi " << n_pi << " n_pi0 " << n_pi0 << " n_K " << n_K << "  n_K0L " << n_K0L << "  n_K0S " << n_K0S << " n_nu  " << n_nu << " n_gamma " << n_gamma << std::endl;
+    return;
+  }
 
-
-  if(n_pi+n_K==1)TauBitMask=OneProng;
+  if(n_pi+n_K+n_mu+n_e==1)TauBitMask=OneProng;
   if(n_pi+n_K==3)TauBitMask=ThreeProng;
   if(n_pi+n_K==5)TauBitMask=FiveProng;
   if(n_pi0==1)TauBitMask+=OnePi0;
@@ -238,6 +246,7 @@ void TauDecay::ClassifyDecayMode(unsigned int &JAK_ID,unsigned int &TauBitMask){
     return;
   }
   JAK_ID=JAK_UNKNOWN;
+  std::cout << "Tau Mode not found: n_e " <<  n_e << " n_mu " << n_mu << " n_pi " << n_pi << " n_pi0 " << n_pi0 << " n_K " << n_K << "  n_K0L " << n_K0L << "  n_K0S " << n_K0S << " n_nu  " << n_nu << " n_gamma " << n_gamma << std::endl;
 }
 
 void TauDecay::ClassifyDecayResonance(unsigned int &TauBitMask){
