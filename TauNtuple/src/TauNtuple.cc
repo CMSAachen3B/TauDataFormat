@@ -557,7 +557,7 @@ TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
     PFJet_p4.push_back(iPFJet_p4);
     PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
     PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
-    PFJet_HFHadronEnergyFraction.push_back(PFJet->HFHadronEnergyFraction());
+    PFJet_chargedHadronEnergyFraction.push_back(PFJet->HFHadronEnergyFraction());
     PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
     PFJet_PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
     PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
@@ -770,7 +770,7 @@ TauNtuple::beginJob()
   output_tree->Branch("PFJet_MatchedHPS_idx",&PFJet_MatchedHPS_idx);
   output_tree->Branch("PFJet_numberOfDaughters",&PFJet_numberOfDaughters);
   output_tree->Branch("PFJet_chargedEmEnergyFraction",&PFJet_chargedEmEnergyFraction);
-  output_tree->Branch("PFJet_HFHadronEnergyFraction",&PFJet_HFHadronEnergyFraction);
+  output_tree->Branch("PFJet_chargedHadronEnergyFraction",&PFJet_chargedHadronEnergyFraction);
   output_tree->Branch("PFJet_neutralHadronEnergyFraction",&PFJet_neutralHadronEnergyFraction);
   output_tree->Branch("PFJet_PFJet_neutralEmEnergyFraction",&PFJet_PFJet_neutralEmEnergyFraction);
 
@@ -1154,7 +1154,7 @@ TauNtuple::ClearEvent(){
 
    PFJet_numberOfDaughters.clear();
    PFJet_chargedEmEnergyFraction.clear();
-   PFJet_HFHadronEnergyFraction.clear();
+   PFJet_chargedHadronEnergyFraction.clear();
    PFJet_neutralHadronEnergyFraction.clear();
    PFJet_PFJet_neutralEmEnergyFraction.clear();
 

@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.6 2011/12/12 13:32:41 cherepan Exp $
+// $Id: TauNtuple.h,v 1.7 2011/12/15 13:30:58 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -333,7 +333,7 @@ class TauNtuple : public edm::EDProducer {
 
   std::vector<int>   PFJet_numberOfDaughters;
   std::vector<float> PFJet_chargedEmEnergyFraction;
-  std::vector<float> PFJet_HFHadronEnergyFraction;
+  std::vector<float> PFJet_chargedHadronEnergyFraction;
   std::vector<float> PFJet_neutralHadronEnergyFraction;
   std::vector<float> PFJet_PFJet_neutralEmEnergyFraction;
 
