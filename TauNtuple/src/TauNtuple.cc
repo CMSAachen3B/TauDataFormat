@@ -660,7 +660,11 @@ TauNtuple::beginJob()
 //   system(cmd4.Data());
 //-------------------------
   cnt_=0;
-  output = new TFile("DATA_SkimmedTauNtuple.root","RECREATE");
+  //output = new TFile("DATA_SkimmedTauNtuple.root","RECREATE");
+  output = new TFile("MC_DY_SkimmedTauNtuple.root","RECREATE"); 	 
+  //output = new TFile("MC_WJ_SkimmedTauNtuple.root","RECREATE"); 	 
+  //output = new TFile("MC_QCD_SkimmedTauNtuple.root","RECREATE"); 	 
+  
   output_tree = new TTree("t","t");
 
   output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
