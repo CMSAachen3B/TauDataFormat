@@ -59,6 +59,8 @@ process.myProducerLabel = cms.EDProducer('TauNtuple')
 #process.out = cms.OutputModule("PoolOutputModule",
 #    fileName = cms.untracked.string('myOutputFile.root')
 #)
+process.load("TauDataFormat.TauNtuple.tauntuple_cfi")
+process.load("TauDataFormat.TauNtuple.eventCounter_cfi")
 
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
 process.load("CommonTools.PrimVtxSelector.PrimVtxSelector_cfi")
@@ -67,25 +69,6 @@ process.load("RecoTauTag.KinematicTau.ThreeProngInputSelector_cfi")
 process.load("RecoTauTag.KinematicTau.kinematictau_cfi")
 process.load("RecoTauTag.KinematicTau.kinematictauAdvanced_cfi")
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
-process.load("TauDataFormat.TauNtuple.tauntuple_cfi")
-
-
-process.EvntCounterA = cms.EDAnalyzer('EventCounter',
-                                     CounterType    = cms.untracked.string("AllEvents"),
-                                     gensrc         = cms.InputTag('genParticles'),
-                                     GenEventInfo   = cms.InputTag('generator'),
-                                     DataMCType     = cms.untracked.string("dy_tautau")
-                                     )
-
-
-process.EvntCounterB = cms.EDAnalyzer('EventCounter',
-                                     CounterType    = cms.untracked.string("BeforeTauNtuple"),
-                                     gensrc         = cms.InputTag('genParticles'),
-                                     GenEventInfo   = cms.InputTag('generator'),
-                                     DataMCType     = cms.untracked.string("dy_tautau")
-                                     )
-
-
 
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numberOfEvents) )
