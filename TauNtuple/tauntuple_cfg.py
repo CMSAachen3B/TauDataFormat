@@ -69,18 +69,28 @@ process.load("RecoTauTag.KinematicTau.kinematictauAdvanced_cfi")
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
 process.load("TauDataFormat.TauNtuple.tauntuple_cfi")
 
-#EvntCounter = cms.EDAnalyser('EventCounter',
-#                             CounterType    = cms.untracked.string("WW"),
-#                             gensrc         = cms.InputTag('genParticles'),
-#                             GenEventInfo   = cms.InputTag('generator'),
-#                             DataMCType     = cms.untracked.string("DataMCType")
-#                             )
+
+process.EvntCounterA = cms.EDAnalyzer('EventCounter',
+                                     CounterType    = cms.untracked.string("AllEvents"),
+                                     gensrc         = cms.InputTag('genParticles'),
+                                     GenEventInfo   = cms.InputTag('generator'),
+                                     DataMCType     = cms.untracked.string("dy_tautau")
+                                     )
+
+
+process.EvntCounterB = cms.EDAnalyzer('EventCounter',
+                                     CounterType    = cms.untracked.string("BeforeTauNtuple"),
+                                     gensrc         = cms.InputTag('genParticles'),
+                                     GenEventInfo   = cms.InputTag('generator'),
+                                     DataMCType     = cms.untracked.string("dy_tautau")
+                                     )
+
 
 
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numberOfEvents) )
 
-process.p = cms.Path(process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.DetailedProducer*process.NtupleMaker)
+process.p = cms.Path(process.EvntCounterA*process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.DetailedProducer*process.EvntCounterB*process.NtupleMaker)
 
 #process.p = cms.Path(process.NtupleMaker)
 

@@ -94,9 +94,9 @@ void TauDecay_CMSSW::CheckForSignal(unsigned int &type,edm::Handle<reco::GenPart
 	    nprong2=nProng(TauBitMask);
 	  }
 	}
-	type=DMT.SignalCode(type,JAK_ID1,nprong1,JAK_ID2,nprong2);
-	break;
       }
+      type=DMT.SignalCode(type,JAK_ID1,nprong1,JAK_ID2,nprong2);
+      break;
     }
   }
 }
