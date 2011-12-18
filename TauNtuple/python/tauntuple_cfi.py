@@ -21,14 +21,13 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              gensrc         = cms.InputTag('genParticles'),
                              GenEventInfo   = cms.InputTag('generator'),
                              discriminators = cms.vstring("PFRecoTauDiscriminationByKinematicFit","PFRecoTauDiscriminationByKinematicFitQuality"),
-                             DataMCType     = cms.untracked.string("data"),
                              do_MCComplete  = cms.untracked.bool(False),
                              do_MCSummary   = cms.untracked.bool(True),
                              ScaleFactor    = cms.untracked.string(Scale),
                              PUInputHistoMC    = cms.untracked.string("MC_FLAT_PLUS_TAIL_PU"),               
                              PUInputHistoData  = cms.untracked.string("h_160404_180252_all"),
-                             PUInputFile = cms.untracked.string("src/data/Lumi_160404_180252_andMC_Flat_Tail.root")  # if run on the GRID
-#                             PUInputFile = cms.untracked.string("Lumi_160404_180252_andMC_Flat_Tail.root")            # if run on the local PC
+                             #PUInputFile = cms.untracked.string("src/data/Lumi_160404_180252_andMC_Flat_Tail.root")  # if run on the GRID
+                             PUInputFile = cms.untracked.string("Lumi_160404_180252_andMC_Flat_Tail.root")            # if run on the local PC
                              
 )                                                                   
  

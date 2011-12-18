@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.7 2011/12/15 13:30:58 inugent Exp $
+// $Id: TauNtuple.h,v 1.8 2011/12/16 15:38:22 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -194,8 +194,6 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
   std::vector<std::string> discriminators_;
-  std::string DataMC_Type_;
-  unsigned int DataMC_Type_idx;
 
   // PU
   std::string ScaleFactor_;
@@ -346,7 +344,7 @@ class TauNtuple : public edm::EDProducer {
   //=======  Event ===
 
   int EventNumber;
-
+  unsigned int DataMC_Type_idx;
   unsigned int  Event_EventNumber;	 
   unsigned int  Event_RunNumber;	 
   int  Event_bunchCrossing;	 

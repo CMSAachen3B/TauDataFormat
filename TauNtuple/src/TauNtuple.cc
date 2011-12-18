@@ -31,7 +31,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
   discriminators_( iConfig.getParameter< std::vector<std::string> >("discriminators") ),
-  DataMC_Type_(iConfig.getUntrackedParameter<std::string>("DataMCType","")),
   ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
   PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
   PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
@@ -65,7 +64,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   using namespace edm;
   iEvent_=&iEvent;
   DataMCType DMT;
-  DataMC_Type_idx=DMT.GetType(DataMC_Type_);
+  DataMC_Type_idx=DMT.GetType();
   if(iEvent.isRealData()){
     DataMC_Type_idx=DataMCType::Data;
   }
@@ -660,11 +659,7 @@ TauNtuple::beginJob()
 //   system(cmd4.Data());
 //-------------------------
   cnt_=0;
-  //output = new TFile("DATA_SkimmedTauNtuple.root","RECREATE");
-  output = new TFile("MC_DY_SkimmedTauNtuple.root","RECREATE"); 	 
-  //output = new TFile("MC_WJ_SkimmedTauNtuple.root","RECREATE"); 	 
-  //output = new TFile("MC_QCD_SkimmedTauNtuple.root","RECREATE"); 	 
-  
+  output = new TFile("TauNtuple.root","RECREATE");
   output_tree = new TTree("t","t");
 
   output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
