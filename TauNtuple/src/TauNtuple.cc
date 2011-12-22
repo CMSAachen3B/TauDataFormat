@@ -708,6 +708,8 @@ TauNtuple::beginJob()
   output_tree->Branch("Muon_hitPattern_numberOfValidMuonHits",&Muon_hitPattern_numberOfValidMuonHits);
   output_tree->Branch("Muon_innerTrack_numberofValidHits",&Muon_innerTrack_numberofValidHits);
   output_tree->Branch("Muon_numberOfMatches",&Muon_numberOfMatches);
+  output_tree->Branch("Muon_Charge",&Muon_Charge);
+  output_tree->Branch("Muon_numberOfChambers",&Muon_numberOfChambers);
   
   //================  PFTau block ==========
   output_tree->Branch("PFTau_p4",&PFTau_p4);
