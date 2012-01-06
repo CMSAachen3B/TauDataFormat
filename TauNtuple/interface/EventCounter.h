@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.h,v 1.1 2011/12/07 19:31:26 inugent Exp $
+// $Id: EventCounter.h,v 1.2 2011/12/15 15:59:20 inugent Exp $
 //
 //
 #ifndef EventsCounter_h
@@ -39,6 +39,8 @@
 #include <vector>
 #include <string>
 #include <map>
+#include "TH1D.h"
+
 //
 // class declaration
 //
@@ -65,8 +67,7 @@ private:
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
   std::string DataMC_Type_;
-  std::vector<double> nevents_weighted;
-  std::vector<double> nevents;
+  std::vector<TH1D> nevents;
   unsigned int DataMC_Type_idx;
   std::map<unsigned int,unsigned int>    DataMCMap;
 

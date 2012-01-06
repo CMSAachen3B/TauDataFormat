@@ -3,7 +3,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.cc,v 1.1 2011/12/07 19:31:27 inugent Exp $
+// $Id: EventCounter.cc,v 1.2 2011/12/15 15:59:21 inugent Exp $
 //
 #include "TauDataFormat/TauNtuple/interface/EventCounter.h"
 
@@ -37,7 +37,6 @@ EventCounter::EventCounter(const edm::ParameterSet& iConfig):
 {
   DataMCType DMT;
   DataMC_Type_idx=DMT.GetType(DataMC_Type_);
-  nevents_weighted.clear();
   nevents.clear();
   DataMCMap.clear();
  }
@@ -91,12 +90,11 @@ EventCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    else{
      idx=nevents.size();
      DataMCMap.insert(std::pair<unsigned int,unsigned int>(type,(unsigned int)idx));
-     nevents.push_back(0);
-     nevents_weighted.push_back(0);
+     nevents.push_back(TH1D("","",2,-0.5,1.5));
    }
-   if(idx<(int)nevents_weighted.size() && idx<(int)nevents.size() && idx>=0){
-     nevents_weighted.at(idx)+=w;
-     nevents.at(idx)+=1;
+   if(idx<(int)nevents.size() && idx>=0){
+     nevents.at(idx).Fill(1.0,w);
+     nevents.at(idx).Fill(0.0,1.0);
    }
 }
 
@@ -114,8 +112,11 @@ EventCounter::endJob()
   for( std::map<unsigned int,unsigned int>::iterator it=DataMCMap.begin() ; it != DataMCMap.end(); it++ ){
     unsigned int idx=(*it).second;
     TString type="";type+=(*it).first;
-    if(idx<nevents_weighted.size() && idx<nevents.size()){
-      std::cout <<"[EventCounter-" << CounterType_ << "]: " << type <<  " no of weighted events: " <<  nevents_weighted.at(idx) << " no. of events: " <<  nevents.at(idx) << std::endl;
+    if(idx<nevents.size()){
+      std::cout <<"[EventCounter-" << CounterType_ << "]: " << type 
+		<< " no of weighted events: " <<  nevents.at(idx).GetBinContent(2) << " +/- " << nevents.at(idx).GetBinError(2) 
+		<< " no. of events: "         <<  nevents.at(idx).GetBinContent(1) << " +/- " << nevents.at(idx).GetBinError(1) 
+		<< std::endl;
     }
   }
 }
