@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.8 2011/12/16 15:38:22 inugent Exp $
+// $Id: TauNtuple.h,v 1.9 2011/12/18 16:32:13 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -295,6 +295,14 @@ class TauNtuple : public edm::EDProducer {
   std::vector<int>      KFTau_Fit_iterations;
   std::vector<int> KFTau_Fit_IndexToPrimVertexVector;
   std::vector<std::vector<float> > KFTau_Fit_TauPrimVtx;
+
+  std::vector<double> KFTau_Fit_TauEnergyFraction;
+  std::vector<double> KFTau_Fit_RefitVisibleMass;
+  std::vector<double> KFTau_Fit_Chi2;
+  std::vector<double> KFTau_Fit_PV_PV_significance;
+  std::vector<double> KFTau_Fit_SV_PV_significance;
+
+
   //=======  Electrons ===
 
 

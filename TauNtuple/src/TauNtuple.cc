@@ -502,6 +502,16 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay){
     std::vector< SelectedKinematicParticle const* > Particles;
     decay->particles(Particles);
+    //----------------- Store Quality values
+
+    KFTau_Fit_TauEnergyFraction.push_back(decay->TauEnergyFraction());
+    KFTau_Fit_RefitVisibleMass.push_back(decay->RefitVisibleMass());
+    KFTau_Fit_Chi2.push_back(decay->Chi2());
+    KFTau_Fit_PV_PV_significance.push_back(decay->ModPV_PV_significance());
+    KFTau_Fit_SV_PV_significance.push_back(decay->PV_SV_significance());
+
+
+    //----------------- Store Quality values
     for(std::vector<SelectedKinematicParticle const*>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
       if((*iParticle)->name()=="tau"){
 	TVectorT<double> intauParam ;
@@ -739,6 +749,13 @@ TauNtuple::beginJob()
   output_tree->Branch("KFTau_Fit_charge",&KFTau_Fit_charge);
   output_tree->Branch("KFTau_Fit_csum",&KFTau_Fit_csum);
   output_tree->Branch("KFTau_Fit_iterations",&KFTau_Fit_iterations);
+
+  output_tree->Branch("KFTau_Fit_TauEnergyFraction",&KFTau_Fit_TauEnergyFraction);
+  output_tree->Branch("KFTau_Fit_RefitVisibleMass",&KFTau_Fit_RefitVisibleMass);
+  output_tree->Branch("KFTau_Fit_Chi2",&KFTau_Fit_Chi2);
+  output_tree->Branch("KFTau_Fit_PV_PV_significance",&KFTau_Fit_PV_PV_significance);
+  output_tree->Branch("KFTau_Fit_SV_PV_significance",&KFTau_Fit_SV_PV_significance);
+  
 
 
  //=======  PFJets ===
@@ -1122,6 +1139,16 @@ TauNtuple::ClearEvent(){
   KFTau_Fit_iterations.clear();
   KFTau_Fit_IndexToPrimVertexVector.clear();
   KFTau_Fit_TauPrimVtx.clear();
+
+
+  KFTau_Fit_TauEnergyFraction.clear();
+  KFTau_Fit_RefitVisibleMass.clear();
+  KFTau_Fit_Chi2.clear();
+  KFTau_Fit_PV_PV_significance.clear();
+  KFTau_Fit_SV_PV_significance.clear();
+  
+
+
   //=======  Electrons ===
 
   //=======  PFJets ===
