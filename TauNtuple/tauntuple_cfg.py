@@ -48,7 +48,7 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 #    listOfFiles_data)                 
 #    listOfFiles)
-    'file:///user/inugent/DYtoTauTau_TauQualitySkim.root')
+    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/mc/Summer11/DYJetsToLL_TuneZ2_M-50_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/BE080B04-B59C-E011-8A92-90E6BA19A25E.root')
 #    'file:///user/inugent/TauXPromptReco172_798.root')
 #    'file:/afs/cern.ch/cms/Tutorials/TWIKI_DATA/RelValTTbar_RECO_424.root')
     
@@ -88,7 +88,7 @@ process.EvntCounterB = cms.EDAnalyzer('EventCounter',
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numberOfEvents) )
 
-process.p = cms.Path(process.EvntCounterA*process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.DetailedProducer*process.EvntCounterB*process.NtupleMaker)
+process.p = cms.Path(process.EvntCounterA*process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.KinematicTauProducer*process.EvntCounterB*process.NtupleMaker)
 
 #process.p = cms.Path(process.NtupleMaker)
 
