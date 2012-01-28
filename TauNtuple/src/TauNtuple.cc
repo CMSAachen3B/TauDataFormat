@@ -164,9 +164,9 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	      MCSignalParticle_Tauidx.at(MCSignalParticle_Tauidx.size()-1).push_back(tauidx);
 	      // Analysis the tau decay
 	      unsigned int JAK_ID,TauBitMask;
-	      MCTauandProd_p4.push_back(std::vector<std::vector<float> >());
-	      MCTauandProd_pdgid.push_back(std::vector<int>());
-	      MCTauandProd_charge.push_back(std::vector<int>());
+	      //MCTauandProd_p4.push_back(std::vector<std::vector<float> >());
+	      //MCTauandProd_pdgid.push_back(std::vector<int>());
+	      //MCTauandProd_charge.push_back(std::vector<int>());
 	      myTauDecay.AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
 	      std::vector<const reco::GenParticle* > TauDecayProducts=myTauDecay.Get_TauDecayProducts();
 	      MCTauandProd_midx.push_back(myTauDecay.Get_MotherIdx());
