@@ -6,13 +6,13 @@ process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr = cms.untracked.PSet(
     threshold = cms.untracked.string('INFO'),
 	FwkReport = cms.untracked.PSet(limit = cms.untracked.int32(0)),
-	DEBUG = cms.untracked.PSet(limit = cms.untracked.int32(-1))
+	DEBUG = cms.untracked.PSet(limit = cms.untracked.int32(1))
     )
 
-process.GlobalTag.globaltag = 'START42_V11::All'
-#process.GlobalTag.globaltag = 'GR_P_V22::All'
+#process.GlobalTag.globaltag = 'START42_V11::All'
+process.GlobalTag.globaltag = 'FT_R_44_V9::All'
 
-numberOfEvents = 100
+numberOfEvents = 1000
 
 
 
@@ -48,7 +48,9 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
 #    listOfFiles_data)                 
 #    listOfFiles)
-    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/mc/Summer11/DYJetsToLL_TuneZ2_M-50_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/BE080B04-B59C-E011-8A92-90E6BA19A25E.root')
+#    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/mc/Summer11/DYJetsToLL_TuneZ2_M-50_7TeV-madgraph-tauola/AODSIM/PU_S4_START42_V11-v1/0000/BE080B04-B59C-E011-8A92-90E6BA19A25E.root')
+    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/data/Run2011A/TauPlusX/AOD/08Nov2011-v1/0001/28F4BD62-2416-E111-922D-00261894395C.root')
+                            
 #    'file:///user/inugent/TauXPromptReco172_798.root')
 #    'file:/afs/cern.ch/cms/Tutorials/TWIKI_DATA/RelValTTbar_RECO_424.root')
     
@@ -65,7 +67,7 @@ process.load("TauDataFormat.TauNtuple.tauntuple_cfi")
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
 process.load("CommonTools.PrimVtxSelector.PrimVtxSelector_cfi")
 process.load("RecoTauTag.KinematicTau.InputTrackSelector_cfi")
-process.load("RecoTauTag.KinematicTau.ThreeProngInputSelector_cfi")
+process.load("RecoTauTag.KinematicTau.ThreeProngInputSelector_cff")
 process.load("RecoTauTag.KinematicTau.kinematictau_cfi")
 process.load("RecoTauTag.KinematicTau.kinematictauAdvanced_cfi")
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
@@ -74,7 +76,7 @@ process.EvntCounterA = cms.EDAnalyzer('EventCounter',
                                       CounterType    = cms.untracked.string("AllEvents"),
                                       gensrc         = cms.InputTag('genParticles'),
                                       GenEventInfo   = cms.InputTag('generator'),
-                                      DataMCType     = cms.untracked.string("dy_tautau")
+                                      DataMCType     = cms.untracked.string("data")
                                       )
 
 
@@ -82,7 +84,7 @@ process.EvntCounterB = cms.EDAnalyzer('EventCounter',
                                       CounterType    = cms.untracked.string("BeforeTauNtuple"),
                                       gensrc         = cms.InputTag('genParticles'),
                                       GenEventInfo   = cms.InputTag('generator'),
-                                      DataMCType     = cms.untracked.string("dy_tautau")
+                                      DataMCType     = cms.untracked.string("data")
                                       )
 
 

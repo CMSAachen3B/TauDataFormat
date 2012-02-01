@@ -59,6 +59,7 @@ TauNtuple::~TauNtuple()
 void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 { 
   cnt_++;
+ std::cout<<"Proccess event number ======>>> "<< cnt_ <<std::endl;
   if( (cnt_%500)==0) std::cout<<"Proccess event number ======>>> "<< cnt_ <<std::endl;
   ClearEvent();
   using namespace edm;
@@ -70,7 +71,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   }
   fillEventInfo(iEvent, iSetup);
   fillMET(iEvent, iSetup);
-
+  std::cout<<" filKinTaus 1"<<std::endl;
   // Get trackcollection for matching to objects
   edm::Handle< std::vector<reco::Track>  > trackCollection;
   iEvent_->getByLabel(generalTracks_,  trackCollection);
@@ -78,7 +79,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   fillMuons(iEvent, iSetup,trackCollection);
   fillPFTaus(iEvent, iSetup,trackCollection);
   fillPFJets(iEvent, iSetup,trackCollection);
-  fillKinFitTaus(iEvent, iSetup,trackCollection);
+  fillKinFitTaus(iEvent, iSetup,trackCollection); 
   fillTracks(trackCollection);
   fillMCTruth(iEvent, iSetup);
   output_tree->Fill();
@@ -428,6 +429,7 @@ TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
 
 void 
 TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+ printf("fillKinFittaus 2  \n");
   edm::Handle<reco::PFTauCollection> tauCollection;
   iEvent.getByLabel(kinTausTag_, tauCollection);
   
@@ -496,28 +498,32 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
     
   }
   KFTau_nKinTaus = NoRefittedTaus;
-  
+   std::cout<<"fillKinFittaus  " <<std::endl;
+    printf("fillKinFittaus 3  \n");
+
   //================== KinematicFit Info ===================
   edm::Handle<SelectedKinematicDecayCollection> selected;
   iEvent.getByLabel(KinFitAdvanced_, selected);
   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay){
-    std::vector< SelectedKinematicParticle const* > Particles;
-    decay->particles(Particles);
+    //  std::vector< SelectedKinematicParticle const* > Particles;
+    const SelectedKinematicParticleCollection& Particles =decay->particles();
+    //    Particles = decay->particles();
     //----------------- Store Quality values
 
-    KFTau_Fit_TauEnergyFraction.push_back(decay->TauEnergyFraction());
-    KFTau_Fit_RefitVisibleMass.push_back(decay->RefitVisibleMass());
-    KFTau_Fit_Chi2.push_back(decay->Chi2());
-    KFTau_Fit_PV_PV_significance.push_back(decay->ModPV_PV_significance());
-    KFTau_Fit_SV_PV_significance.push_back(decay->PV_SV_significance());
-
-
+    KFTau_Fit_TauEnergyFraction.push_back(decay->energyTFraction());
+    KFTau_Fit_RefitVisibleMass.push_back(decay->a1Mass());
+    KFTau_Fit_Chi2.push_back(decay->chi2prob());
+    KFTau_Fit_PV_PV_significance.push_back(decay->vtxSignPVRotPVRed());
+    KFTau_Fit_SV_PV_significance.push_back(decay->vtxSignPVRotSV());
+    printf("decay->chi2prob()   %f  \n",decay->chi2prob());
+    std::cout<<"decay chi2  " << decay->chi2prob()<<std::endl;
     //----------------- Store Quality values
-    for(std::vector<SelectedKinematicParticle const*>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
-      if((*iParticle)->name()=="tau"){
+    for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
+      std::cout<<iParticle->name()<<std::endl;
+      if(iParticle->name()=="tau"){
 	TVectorT<double> intauParam ;
 	intauParam.ResizeTo(7);
-	intauParam=(*iParticle)->SelectedKinematicParticle::input_parameters();
+	intauParam=iParticle->SelectedKinematicParticle::input_parameters();
 	
 	unsigned int PrimaryVertexIndex =999;
 	float diff=999.;
@@ -534,17 +540,19 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
 	}
 	
 	std::vector<float> iKFTau_Fit_TauPrimVtx;
-	iKFTau_Fit_TauPrimVtx.push_back((*iParticle)->vertex().X());
-	iKFTau_Fit_TauPrimVtx.push_back((*iParticle)->vertex().Y());
-	iKFTau_Fit_TauPrimVtx.push_back((*iParticle)->vertex().Z());
+	iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().X());
+	iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Y());
+	iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Z());
 	KFTau_Fit_TauPrimVtx.push_back(iKFTau_Fit_TauPrimVtx);
 	KFTau_Fit_IndexToPrimVertexVector.push_back(PrimaryVertexIndex);
-	KFTau_Fit_chi2.push_back((*iParticle)->chi2());
-	KFTau_Fit_ndf.push_back((*iParticle)->ndf());
-	KFTau_Fit_ambiguity.push_back((*iParticle)->ambiguity());
-	KFTau_Fit_charge.push_back((*iParticle)->charge());
-	KFTau_Fit_csum.push_back((*iParticle)->csum());
-	KFTau_Fit_iterations.push_back((*iParticle)->iterations());
+	KFTau_Fit_chi2.push_back(decay->chi2());
+	KFTau_Fit_ndf.push_back(decay->ndf());
+	KFTau_Fit_ambiguity.push_back(iParticle->ambiguity());
+	KFTau_Fit_charge.push_back(iParticle->charge());
+	KFTau_Fit_csum.push_back(decay->csum());
+	KFTau_Fit_iterations.push_back(decay->iterations());
+
+	std::cout<<"tau   charge " << iParticle->charge()<<std::endl;
       }
     }
   }
