@@ -78,7 +78,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   fillPrimeVertex(iEvent, iSetup,trackCollection);
   fillMuons(iEvent, iSetup,trackCollection);
   fillPFTaus(iEvent, iSetup,trackCollection);
-  fillPFJets(iEvent, iSetup,trackCollection);
+  //  fillPFJets(iEvent, iSetup,trackCollection);
   fillKinFitTaus(iEvent, iSetup,trackCollection); 
   fillTracks(trackCollection);
   fillMCTruth(iEvent, iSetup);
@@ -88,7 +88,6 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 // ------------ method called once each job just before starting event loop  ------------
                           
 void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
-
   if(!iEvent.isRealData()){
     TauDecay_CMSSW myTauDecay;
     edm::Handle<reco::GenParticleCollection> genParticles;
@@ -334,7 +333,6 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
 
 void 
 TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollection){
-
   for(unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
     reco::TrackRef Track(trackCollection, iTrack);
 
@@ -383,7 +381,6 @@ TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollection)
 
 void 
 TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
-
   edm::Handle<std::vector<reco::PFTau> > HPStaus;
   iEvent_->getByLabel(hpsTauProducer_, HPStaus);
   
@@ -563,10 +560,8 @@ TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
   edm::Handle<reco::PFJetCollection> JetCollection;
   iEvent_->getByLabel(pfjetsTag_,  JetCollection);
 
-
   for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
     reco::PFJetRef PFJet(JetCollection, iPFJet);
-       
     std::vector<float> iPFJet_p4;
     iPFJet_p4.push_back(PFJet->p4().E());
     iPFJet_p4.push_back(PFJet->p4().Px());
@@ -604,18 +599,35 @@ TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
     PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
     std::vector<int> matches;
     std::vector<bool> found;
-    reco::TrackRefVector refTracks=PFJet->getTrackRefs();
+                                             
+    edm::Handle< std::vector<reco::Track>  > trackCollection;
+    iEvent_->getByLabel(generalTracks_,  trackCollection);
+    const edm::ProductID &TrID = trackCollection.id();
+    
+    reco::TrackRefVector refTracks;
+    refTracks.reserve( PFJet->chargedMultiplicity() );
+    for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
+      const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
+      reco::TrackRef trackref = pfcand->trackRef();
+      if( trackref.isNonnull() ) {
+	if(trackref.id() != TrID) continue;
+	refTracks.push_back( trackref );
+      }
+    }
+
+    //  reco::TrackRefVector refTracks = PFJet->getTrackRefs();
+    //std::vector<reco::TrackRef> refTracks = PFJet->getTrackRefs();   // <-------  fixing bug with ID uncoincedens, use std::vector<reco::TrackRef> instead reco::TrackRefVector refTracks
+
     getTrackMatch(trackCollection,refTracks,matches,found);
     PFJet_Track_idx.push_back(matches);
-
     edm::Handle<std::vector<reco::PFTau> > HPStaus;
     iEvent_->getByLabel(hpsTauProducer_, HPStaus);
-    unsigned int idx =0;
+    unsigned int idx =0; 
     reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
     PFJet_MatchedHPS_idx.push_back(idx);
 
-
   }
+
 }
 
 
@@ -624,7 +636,7 @@ TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::
 void 
 
 TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  
+
   edm::Handle< edm::View<reco::PFMET> > pfMEThandle;
   iEvent.getByLabel(pfMETTag_, pfMEThandle);
   MET_et=pfMEThandle->front().et();
@@ -636,6 +648,7 @@ TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 void 
 TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
+
   Event_EventNumber=iEvent.id().event();
   Event_RunNumber=iEvent.id().run();
   Event_bunchCrossing=iEvent.bunchCrossing(); 
