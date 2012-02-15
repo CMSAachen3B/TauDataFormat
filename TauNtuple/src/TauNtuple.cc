@@ -23,6 +23,10 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   hpsPFTauDiscriminationByTightIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByTightIsolation" ) ),
   hpsPFTauDiscriminationByMediumIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByMediumIsolation" ) ),
   hpsPFTauDiscriminationByLooseIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByLooseIsolation" ) ),
+  hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr" ) ),
+  hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr" ) ),
+  hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr" ) ),
+  hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr" ) ),
   pfMETTag_( iConfig.getParameter<edm::InputTag>( "pfMet" ) ),
   kinTausTag_( iConfig.getParameter<edm::InputTag>( "kinematicTaus" ) ),
   KinFitAdvanced_( iConfig.getParameter<edm::InputTag>( "kinematicTausAdvanced" ) ),
@@ -390,7 +394,15 @@ TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
   iEvent_->getByLabel(hpsPFTauDiscriminationByMediumIsolation_, HPSMediumIsoDiscr);
   edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscr;
   iEvent_->getByLabel(hpsPFTauDiscriminationByLooseIsolation_, HPSLooseIsoDiscr);
-  
+  edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscrDBSumPtCorr;
+  iEvent_->getByLabel(hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_, HPSTightIsoDiscrDBSumPtCorr);
+  edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscrDBSumPtCorr;
+  iEvent_->getByLabel(hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_, HPSMediumIsoDiscrDBSumPtCorr);
+  edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscrDBSumPtCorr;
+  iEvent_->getByLabel(hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_, HPSLooseIsoDiscrDBSumPtCorr);
+  edm::Handle<reco::PFTauDiscriminator> HPSVLooseIsoDiscrDBSumPtCorr;
+  iEvent_->getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
+
   for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
     
     reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
@@ -405,6 +417,14 @@ TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
     PFTau_isTightIsolation.push_back((*HPSTightIsoDiscr)[HPStauCandidate]);
     PFTau_isMediumIsolation.push_back((*HPSMediumIsoDiscr)[HPStauCandidate]);
     PFTau_isLooseIsolation.push_back((*HPSLooseIsoDiscr)[HPStauCandidate]);
+
+
+    PFTau_isTightIsolationDBSumPtCorr.push_back((*HPSTightIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+    PFTau_isMediumIsolationDBSumPtCorr.push_back((*HPSMediumIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+    PFTau_isLooseIsolationDBSumPtCorr.push_back((*HPSLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+    PFTau_isVLooseIsolationDBSumPtCorr.push_back((*HPSVLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+
+
     PFTau_hpsDecayMode.push_back(HPStauCandidate->decayMode());
     PFTau_Charge.push_back(HPStauCandidate->charge());
     
@@ -748,6 +768,14 @@ TauNtuple::beginJob()
   output_tree->Branch("PFTau_isTightIsolation",&PFTau_isTightIsolation);
   output_tree->Branch("PFTau_isMediumIsolation",&PFTau_isMediumIsolation);
   output_tree->Branch("PFTau_isLooseIsolation",&PFTau_isLooseIsolation);
+
+  output_tree->Branch("PFTau_isTightIsolationDBSumPtCorr",&PFTau_isTightIsolationDBSumPtCorr); 
+  output_tree->Branch("PFTau_isMediumIsolationDBSumPtCorr",&PFTau_isMediumIsolationDBSumPtCorr);
+  output_tree->Branch("PFTau_isLooseIsolationDBSumPtCorr",&PFTau_isLooseIsolationDBSumPtCorr); 
+  output_tree->Branch("PFTau_isVLooseIsolationDBSumPtCorr",&PFTau_isVLooseIsolationDBSumPtCorr);
+
+
+
   output_tree->Branch("PFTau_hpsDecayMode",&PFTau_hpsDecayMode);
   output_tree->Branch("PFTau_Charge",&PFTau_Charge);
   output_tree->Branch("PFTau_Track_idx",&PFTau_Track_idx);
@@ -1139,6 +1167,12 @@ TauNtuple::ClearEvent(){
   PFTau_isTightIsolation.clear();
   PFTau_isMediumIsolation.clear();
   PFTau_isLooseIsolation.clear();
+
+  PFTau_isTightIsolationDBSumPtCorr.clear(); 
+  PFTau_isMediumIsolationDBSumPtCorr.clear();
+  PFTau_isLooseIsolationDBSumPtCorr.clear(); 
+  PFTau_isVLooseIsolationDBSumPtCorr.clear();
+
   PFTau_hpsDecayMode.clear();   
   PFTau_Charge.clear();
   PFTau_Track_idx.clear();

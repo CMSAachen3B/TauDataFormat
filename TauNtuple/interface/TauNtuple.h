@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.9 2011/12/18 16:32:13 inugent Exp $
+// $Id: TauNtuple.h,v 1.10 2012/01/22 19:11:22 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -186,6 +186,13 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
   edm::InputTag hpsPFTauDiscriminationByMediumIsolation_;
   edm::InputTag hpsPFTauDiscriminationByLooseIsolation_;
+
+
+  edm::InputTag hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_;
+  edm::InputTag hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_; 
+  edm::InputTag hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_;
+  edm::InputTag hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_; 
+
   edm::InputTag pfMETTag_;
   edm::InputTag kinTausTag_;
   edm::InputTag KinFitAdvanced_;
@@ -270,6 +277,13 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> PFTau_isTightIsolation;
   std::vector<bool> PFTau_isMediumIsolation;
   std::vector<bool> PFTau_isLooseIsolation;
+
+  std::vector<bool> PFTau_isTightIsolationDBSumPtCorr;
+  std::vector<bool> PFTau_isMediumIsolationDBSumPtCorr;
+  std::vector<bool> PFTau_isLooseIsolationDBSumPtCorr;
+  std::vector<bool> PFTau_isVLooseIsolationDBSumPtCorr;
+
+
   std::vector<int>  PFTau_hpsDecayMode;   
   std::vector<int>  PFTau_Charge;
   std::vector<std::vector<int> > PFTau_Track_idx;
