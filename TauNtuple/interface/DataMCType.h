@@ -8,7 +8,6 @@ class DataMCType{
   enum Type {Data=1, 
 	     H_tautau=10, 
 	     Hpm_taunu=15, 
-	     ttbar=20, 
 	     W_lnu=20,
 	     W_enu=21,
 	     W_munu=22,
@@ -21,7 +20,10 @@ class DataMCType{
 	     WW=51, 
 	     WZ=52, 
 	     QCD=60, 
-	     unknown=99
+	     ttbar=70,
+	     unknown=999,
+	     DY_Signal=10230530, //Extra Flags for Ntuple Analysis  
+	     Signal=998
   };
 
   DataMCType();
