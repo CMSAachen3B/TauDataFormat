@@ -78,7 +78,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   fillPrimeVertex(iEvent, iSetup,trackCollection);
   fillMuons(iEvent, iSetup,trackCollection);
   fillPFTaus(iEvent, iSetup,trackCollection);
-  //  fillPFJets(iEvent, iSetup,trackCollection);
+  fillPFJets(iEvent, iSetup,trackCollection);
   fillKinFitTaus(iEvent, iSetup,trackCollection); 
   fillTracks(trackCollection);
   fillMCTruth(iEvent, iSetup);
