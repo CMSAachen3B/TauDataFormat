@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.10 2012/01/22 19:11:22 cherepan Exp $
+// $Id: TauNtuple.h,v 1.11 2012/02/15 18:42:19 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -207,7 +207,7 @@ class TauNtuple : public edm::EDProducer {
   std::string PUInputFile_;
   std::string PUInputHistoMC_;
   std::string PUInputHistoData_;
-
+  std::string PUOutputFile_;
 
   edm::Lumi3DReWeighting LumiWeights_;
   //

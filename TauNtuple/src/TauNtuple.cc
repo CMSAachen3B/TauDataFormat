@@ -39,11 +39,13 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
   PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
   PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
+  PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile",(std::string)("Weight3D.root"))),
   do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
   do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
 
 {   
-  LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
+
+  LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_,PUOutputFile_);
   LumiWeights_.weight3D_init(1);
   
 } 
