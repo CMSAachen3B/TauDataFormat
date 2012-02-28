@@ -33,7 +33,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              PUInputHistoMC    = cms.untracked.string("MC_Fall11_PU"),          ###  for Fall11                
                              PUInputHistoData  = cms.untracked.string("h_DataPileUpTrue"),
                              PUOutputFile  = cms.untracked.string("Weight3D.root"),
-                             PUInputFile = cms.untracked.string("src/data/Lumi_160404_180252_andMC_Flat_Tail.root")  # if run on the GRID
+                             PUInputFile = cms.untracked.string("$CMSSW_BASE/src/data/Lumi_160404_180252_andMC_Flat_Tail.root")  # if run on the GRID
                              #PUInputFile = cms.untracked.string("Lumi_160404_180252_andMC_Flat_Tail.root")            # if run on the local PC
                              
 )                                                                   
