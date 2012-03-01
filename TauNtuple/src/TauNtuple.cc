@@ -13,6 +13,7 @@
 
 #include <sys/types.h>
 #include <dirent.h>
+#include "DataFormats/Math/interface/deltaR.h"
 
 
 
@@ -40,9 +41,17 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
   PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
   PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile",(std::string)("Weight3D.root"))),
+  do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true))),
   do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
-  do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true)))
-
+  processName_(iConfig.getUntrackedParameter("TriggerProcessName",(std::string)"HLT")),
+  TriggerInfoName_( iConfig.getParameter<edm::InputTag>("TriggerInfoName")),
+  TriggerEvent_( iConfig.getParameter<edm::InputTag>("TriggerEvent")),
+  TriggerResults_( iConfig.getParameter<edm::InputTag>("TriggerResults")),
+  l1GtTriggerMenuLite_(iConfig.getParameter< edm::InputTag >("L1GtTriggerMenuLite")),
+  TriggerJetMatchingdr_(iConfig.getUntrackedParameter("TriggerJetMatchingdr",(double)0.3)),
+  TriggerMuonMatchingdr_(iConfig.getUntrackedParameter("TriggerMuonMatchingdr",(double)0.3)),
+  TriggerElectronMatchingdr_(iConfig.getUntrackedParameter("TriggerElectronMatchingdr",(double)0.3)),
+  TriggerTauMatchingdr_(iConfig.getUntrackedParameter("TriggerTauMatchingdr",(double)0.3))
 {   
 
   LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_,PUOutputFile_);
@@ -88,6 +97,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   fillKinFitTaus(iEvent, iSetup,trackCollection); 
   fillTracks(trackCollection);
   fillMCTruth(iEvent, iSetup);
+  fillTriggerInfo(iEvent, iSetup);
   output_tree->Fill();
 }      
 
@@ -653,17 +663,130 @@ TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Han
 }
 
 
-void 
-TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){}
-void 
+void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){}
 
-TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
+void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   edm::Handle< edm::View<reco::PFMET> > pfMEThandle;
   iEvent.getByLabel(pfMETTag_, pfMEThandle);
   MET_et=pfMEThandle->front().et();
   MET_phi=pfMEThandle->front().phi();
   MET_sumET=pfMEThandle->front().sumEt();
+}
+
+void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
+  if(!TriggerOK) return;
+  edm::Handle<trigger::TriggerEvent> triggerEvent;
+  iEvent.getByLabel(TriggerEvent_,triggerEvent);
+  edm::Handle<edm::TriggerResults> triggerResults;
+  iEvent.getByLabel(TriggerResults_, triggerResults);
+
+  edm::Handle<std::vector<std::string> > MyTriggerInfoNames;
+  iEvent_->getByLabel(TriggerInfoName_, MyTriggerInfoNames);
+  for(unsigned int i=0; i<HTLTriggerName.size();i++){
+    HTLTriggerName.push_back(MyTriggerInfoNames->at(i));
+    unsigned int triggerIndex = hltConfig_.triggerIndex(HTLTriggerName.at(i));  
+    TriggerAccept.push_back(triggerResults->accept(triggerIndex)); 
+    TriggerError.push_back(triggerResults->error(triggerIndex));
+    TriggerWasRun.push_back(triggerResults->wasrun(triggerIndex));
+    ////////////////////////////////////////////
+    // now get level 1 & HLT prescale
+    const std::vector< std::pair < bool, std::string > > level1Seeds = hltConfig_.hltL1GTSeeds(HTLTriggerName.at(i));
+    int l1Prescale(-1);
+    L1GtUtils l1GtUtils;
+    l1GtUtils.retrieveL1EventSetup(iSetup);
+    if(level1Seeds.size() == 1){
+      std::vector< std::string > l1SeedPaths_;
+      std::stringstream ss( level1Seeds.at( 0 ).second );
+      std::string       buf;
+      while(ss.good() && ! ss.eof()){
+	ss >> buf;
+	if ( buf[0] == '('  || buf[ buf.size() - 1 ] == ')' || buf == "AND" || buf == "NOT" ){
+	  l1SeedPaths_.clear();
+	  break;
+	}
+	else if(buf != "OR")l1SeedPaths_.push_back( buf );
+      }
+      if (l1SeedPaths_.empty()){
+	for(unsigned j=0; j<l1SeedPaths_.size(); j++){
+	  int l1TempPrescale(-1);
+	  int errorCode(0);
+	  if(level1Seeds.at(0).first) { // technical triggers
+	    unsigned int techBit(atoi(l1SeedPaths_.at(j).c_str()));
+	    const std::string techName(*(triggerMenuLite_->gtTechTrigName(techBit, errorCode)));
+	    if(errorCode != 0) continue;
+	    if(!l1GtUtils.decision(iEvent,techName,errorCode)) continue;
+	    if(errorCode != 0) continue;
+	    l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,techName,errorCode);
+	    if (errorCode != 0) continue; 
+	  }
+	  else{ // algorithmic triggers
+	    if(!l1GtUtils.decision(iEvent,l1SeedPaths_.at(j),errorCode)) continue;
+	    if(errorCode != 0) continue;
+	    l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,l1SeedPaths_.at(j),errorCode);
+	    if (errorCode != 0) continue;
+	  }
+	  if(l1TempPrescale > 0){
+	    if( l1Prescale == -1 || l1Prescale > l1TempPrescale) l1Prescale = l1TempPrescale;
+	  }
+	}
+      }
+    }
+    HLTPrescale.push_back(hltConfig_.prescaleValue(iEvent, iSetup, HTLTriggerName.at(i)));
+    NHLTL1GTSeeds.push_back(level1Seeds.size());
+    if(l1Prescale==-1){
+      L1SEEDPrescale.push_back(1);
+      L1SEEDPrescale.push_back(true);
+    }
+    else{
+      L1SEEDPrescale.push_back((unsigned int)l1Prescale);
+      L1SEEDInvalidPrescale.push_back(false);
+    }
+    ////////////////////////////////////
+    // Now get Trigger matching
+    if(triggerResults->accept(triggerIndex)){
+      std::vector<float> match;
+
+      // Muons
+      edm::Handle< reco::MuonCollection > muonCollection;
+      iEvent_->getByLabel(muonsTag_,muonCollection);
+      TriggerMatch(triggerEvent,triggerIndex,muonCollection,TriggerMuonMatchingdr_,match);
+      MuonTriggerMatch.push_back(match);
+
+      // Jets 
+      edm::Handle<reco::PFJetCollection> JetCollection;
+      iEvent_->getByLabel(pfjetsTag_,  JetCollection);
+      TriggerMatch(triggerEvent,triggerIndex,JetCollection,TriggerJetMatchingdr_,match);
+      JetTriggerMatch.push_back(match);
+
+      // Taus
+      edm::Handle<reco::PFTauCollection> tauCollection;
+      iEvent.getByLabel(kinTausTag_, tauCollection);
+      TriggerMatch(triggerEvent,triggerIndex,tauCollection,TriggerTauMatchingdr_,match);
+      TauTriggerMatch.push_back(match);
+    }
+    else{
+      MuonTriggerMatch.push_back(std::vector<float>());
+      JetTriggerMatch.push_back(std::vector<float>());
+      TauTriggerMatch.push_back(std::vector<float>());
+    }
+  }
+}
+
+template <class T>
+void TauNtuple::TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,
+			     double drmax,std::vector<float> &match){
+  match=std::vector<float>(obj->size(),999);
+  std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
+  const trigger::Keys& KEYS(triggerEvent->filterKeys(triggerIndex));
+  for(unsigned int ipart=0; ipart!=KEYS.size();ipart++){
+    for(unsigned int i=0; i< obj->size(); ++i ){
+      double dr = reco::deltaR(trgobjs.at(KEYS.at(ipart)).eta(),trgobjs.at(KEYS.at(ipart)).phi(),obj->at(i).eta(),obj->at(i).phi());
+      if(dr<drmax){
+	match.at(i)=true;
+      }
+    }
+  }
 }
 
 
@@ -902,6 +1025,21 @@ TauNtuple::beginJob()
     output_tree->Branch("MCTau_JAK",&MCTau_JAK);   
     output_tree->Branch("MCTau_DecayBitMask",&MCTau_DecayBitMask); 
   }
+
+  //================= Trigger Block ===============
+  output_tree->Branch("HTLTriggerName",&HTLTriggerName);
+  output_tree->Branch("TriggerAccept",&TriggerAccept);
+  output_tree->Branch("TriggerError",&TriggerError);
+  output_tree->Branch("TriggerWasRun",&TriggerWasRun);
+  output_tree->Branch("HLTPrescale",&HLTPrescale);
+  output_tree->Branch("NHLTL1GTSeeds",&NHLTL1GTSeeds);
+  output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
+  output_tree->Branch("L1SEEDInvalidPrescale",&L1SEEDInvalidPrescale);
+  output_tree->Branch("MuonTriggerMatch",&MuonTriggerMatch);
+  output_tree->Branch("ElectronTriggerMatch",&ElectronTriggerMatch);
+  output_tree->Branch("JetTriggerMatch",&JetTriggerMatch);
+  output_tree->Branch("TauTriggerMatch",&TauTriggerMatch);
+
 } 
 
 
@@ -936,8 +1074,7 @@ TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminat
 //
 // finds HPS tau candidate for a given KinFit tau candidate
 // the closest by deltaR HPS candidate is accepted
-reco::PFTauRef 
-TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &UnmodifiedTau, unsigned int &match){
+reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &UnmodifiedTau, unsigned int &match){
   TLorentzVector TauVisible;
   TauVisible.SetE(UnmodifiedTau.at(0));
   TauVisible.SetPx(UnmodifiedTau.at(1));
@@ -967,8 +1104,7 @@ TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   
 //
 // finds HPS tau candidate for a given KinFit tau candidate
 // the closest by deltaR HPS candidate is accepted
-reco::PFTauRef 
-TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &Jet, unsigned int &match){
+reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &Jet, unsigned int &match){
   TLorentzVector Jetp4;;
   Jetp4.SetE(Jet.at(0));
   Jetp4.SetPx(Jet.at(1));
@@ -1051,36 +1187,34 @@ double TauNtuple::DeltaPhi(double phi1, double phi2){
 
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-TauNtuple::endJob() {
+void TauNtuple::endJob() {
   std::cout<<" No Of event processed: "<< cnt_ << std::endl;
   output->Write();
   output->Close();
 }  
 
 // ------------ method called when starting to processes a run  ------------
-void   
-TauNtuple::beginRun(edm::Run& Run, edm::EventSetup const& Setup){ 
-//------------------- printf out triggeer menu
-//   std::string processName = "HLT";
-//   bool changed(true);
-//   if (hltConfig_.init(Run,Setup,processName,changed)) {
-//     if (changed) {
-//       const std::string &  DSName = hltConfig_.datasetName(1);
-//       std::cout << DSName << std::endl;
-//       const std::vector< std::vector< std::string > > & AllDSName=hltConfig_.datasetContents(); 
-//       const std::vector< std::string > & TriggNames=hltConfig_.triggerNames();
-
-
-//       for(std::vector< std::string >::const_iterator iName = TriggNames.begin(); iName !=TriggNames.end(); ++iName ){
-
-// 			std::cout << (*iName) << std::endl;
-//       }
-//     }
-//   } else {
-//     std::cout<<"TauNtuple: " << " HLT config extraction failure with process name " << processName_<<std::endl;
-//   }
-
+void TauNtuple::beginRun(edm::Run& Run, edm::EventSetup const& Setup){ 
+  bool changed(true);
+  TriggerOK=true;
+  if (hltConfig_.init(Run,Setup,processName_,changed)) {
+    // if init returns TRUE, initialisation has succeeded!
+    if (changed) {
+      // The HLT config has actually changed wrt the previous Run, hence rebook your
+      // histograms or do anything else dependent on the revised HLT config
+      std::cout << "Initalizing HLTConfigProvider"  << std::endl;
+    }
+  } 
+  else{
+    // if init returns FALSE, initialisation has NOT succeeded, which indicates a problem
+    // with the file and/or code and needs to be investigated!
+    std::cout << " HLT config extraction failure with process name " << processName_ << std::endl;
+    // In this case, all access methods will return empty values!
+    TriggerOK=false;
+  }
+  if(!Run.getByLabel(l1GtTriggerMenuLite_.label(), triggerMenuLite_)){
+    TriggerOK=false;
+  }
 } 
 
 // ------------ method called when ending the processing of a run  ------------
@@ -1290,8 +1424,21 @@ TauNtuple::ClearEvent(){
   MCTau_JAK.clear();   
   MCTau_DecayBitMask.clear(); 
   }
-}
 
+  //======================Trigger Block ======================
+  HTLTriggerName.clear();
+  HLTPrescale.clear();
+  NHLTL1GTSeeds.clear();
+  L1SEEDPrescale.clear();
+  L1SEEDInvalidPrescale.clear();
+  TriggerAccept.clear();
+  MuonTriggerMatch.clear();
+  ElectronTriggerMatch.clear();
+  JetTriggerMatch.clear();
+  TauTriggerMatch.clear();
+  TriggerError.clear();
+  TriggerWasRun.clear();
+}
 
 
 

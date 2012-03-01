@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.11 2012/02/15 18:42:19 cherepan Exp $
+// $Id: TauNtuple.h,v 1.12 2012/02/24 17:33:27 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -131,9 +131,21 @@
 
 
 //  Trigger 
+#include "DataFormats/HLTReco/interface/TriggerObject.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include <FWCore/Common/interface/TriggerNames.h>
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "HLTrigger/HLTanalyzers/interface/JetUtil.h"
+#include "DataFormats/METReco/interface/CaloMETCollection.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutRecord.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerReadoutSetupFwd.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMapRecord.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMapFwd.h"
+#include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMap.h"
+
+#include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
+#include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
 
 //
 //
@@ -167,7 +179,9 @@ class TauNtuple : public edm::EDProducer {
   void fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
   void fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
   void fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup);
-
+  void fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup);
+  template <class T>
+  void TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,double drmax,std::vector<float> &match);
   void fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup);
   std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef);
   reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &UnmodifiedTau, unsigned int &match);
@@ -177,6 +191,8 @@ class TauNtuple : public edm::EDProducer {
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRefVector &refTracks, std::vector<int> &matches,std::vector<bool> &found); 	
   double DeltaPhi(double phi1, double phi2);
   void ClearEvent();
+
+
 
 
   edm::Event * iEvent_;
@@ -210,9 +226,26 @@ class TauNtuple : public edm::EDProducer {
   std::string PUOutputFile_;
 
   edm::Lumi3DReWeighting LumiWeights_;
-  //
 
+  // MC Signal
+  bool do_MCSummary_;
+  bool do_MCComplete_;
 
+  // Trigger
+  std::string processName_; 
+  HLTConfigProvider hltConfig_; 
+  L1GtUtils m_l1GtUtils_;
+  edm::InputTag TriggerInfoName_;
+  edm::InputTag TriggerEvent_;
+  edm::InputTag TriggerResults_;
+  edm::InputTag l1GtTriggerMenuLite_;
+  double TriggerJetMatchingdr_;
+  double TriggerMuonMatchingdr_;
+  double TriggerElectronMatchingdr_;
+  double TriggerTauMatchingdr_;
+  double TriggerMETMatchingdr_;
+  edm::Handle< L1GtTriggerMenuLite > triggerMenuLite_;
+  // outputfile
   TFile *output;
   TTree *output_tree;
 
@@ -391,8 +424,20 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> > Track_par;
   std::vector<std::vector<std::vector<float> > > Track_parCov;
 
-
   //====== Trigger ======= 
+  std::vector<std::string>  HTLTriggerName;
+  std::vector<unsigned int> HLTPrescale;
+  std::vector<unsigned int> NHLTL1GTSeeds;
+  std::vector<unsigned int> L1SEEDPrescale;
+  std::vector<bool>         L1SEEDInvalidPrescale;
+  std::vector<bool>         TriggerAccept;
+  std::vector<bool>         TriggerWasRun;
+  std::vector<bool>         TriggerError;
+  std::vector<std::vector<float> >        MuonTriggerMatch;
+  std::vector<std::vector<float> >        ElectronTriggerMatch;
+  std::vector<std::vector<float> >        JetTriggerMatch;
+  std::vector<std::vector<float> >        TauTriggerMatch;
+  bool TriggerOK;
 
   //====== MCTruth =======
   // verbose variables
@@ -404,14 +449,11 @@ class TauNtuple : public edm::EDProducer {
   float GenEventInfoProduct_alphaQCD;
 
   //do All
-  bool do_MCComplete_;
   std::vector<std::vector<float> > MC_p4;
   std::vector<int> MC_pdgid;
   std::vector<int> MC_charge;
   std::vector<unsigned int> MC_midx;
 
-  // Do MC Signal Summary
-  bool do_MCSummary_;
 
   // Signal particles Z, W, H0, Hpm
   std::vector<std::vector<float> > MCSignalParticle_p4;
@@ -440,9 +482,6 @@ class TauNtuple : public edm::EDProducer {
   */
 
 
-
-  std::string processName_; // process name of (HLT) process for which to get HLT configuration
-  HLTConfigProvider hltConfig_;/// The instance of the HLTConfigProvider as a data member
 
 
 };

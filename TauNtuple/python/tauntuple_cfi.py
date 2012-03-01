@@ -19,7 +19,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              muons   = cms.InputTag('muons'),
                              kinematicTaus  = cms.InputTag("KinematicTauBasicProducer"),
                              kinematicTausAdvanced = cms.InputTag("KinematicTauProducer","SelectedKinematicDecays"),
-                             tauPrimaryVtx  =cms.InputTag("ThreeProngInputSelectorStep2","primVtx"),
+                             tauPrimaryVtx  = cms.InputTag("ThreeProngInputSelectorStep2","primVtx"),
                              pfjets         = cms.InputTag("ak5PFJets"),
                              generalTracks  = cms.InputTag("generalTracks"),
                              gensrc         = cms.InputTag('genParticles'),
@@ -28,13 +28,18 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              do_MCComplete  = cms.untracked.bool(False),
                              do_MCSummary   = cms.untracked.bool(True),
                              ScaleFactor    = cms.untracked.string(Scale),
-#                             PUInputHistoMC    = cms.untracked.string("MC_FLAT_PLUS_TAIL_PU"), ###  for Summer 11              
-#                             PUInputHistoData  = cms.untracked.string("h_160404_180252_all"),  ###  deprecated
                              PUInputHistoMC    = cms.untracked.string("MC_Fall11_PU"),          ###  for Fall11                
                              PUInputHistoData  = cms.untracked.string("h_DataPileUpTrue"),
                              PUOutputFile  = cms.untracked.string("Weight3D.root"),
-                             PUInputFile = cms.untracked.string("$CMSSW_BASE/src/data/Lumi_160404_180252_andMC_Flat_Tail.root")  # if run on the GRID
-                             #PUInputFile = cms.untracked.string("Lumi_160404_180252_andMC_Flat_Tail.root")            # if run on the local PC
-                             
-)                                                                   
+                             PUInputFile = cms.untracked.string("$CMSSW_BASE/src/data/Lumi_160404_180252_andMC_Flat_Tail.root"),
+                             TriggerProcessName = cms.untracked.string("HLT"),
+                             TriggerInfoName = cms.InputTag("TriggerFilterInfoList"),
+                             TriggerEvent = cms.InputTag("hltTriggerSummaryAOD"), #"HLT"
+                             TriggerResults = cms.InputTag("TriggerResults"), #HLT
+                             L1GtTriggerMenuLite = cms.InputTag("l1GtTriggerMenuLite"),
+                             TriggerJetMatchingdr = cms.untracked.double(0.3),
+                             TriggerMuonMatchingdr = cms.untracked.double(0.3),
+                             TriggerElectronMatchingdr = cms.untracked.double(0.3),
+                             TriggerTauMatchingdr = cms.untracked.double(0.3)
+                             )                                                                   
  
