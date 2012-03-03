@@ -237,12 +237,13 @@ TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     }
     Vtx_Cov.push_back(iVtx_Cov);
     std::vector<int> matches;
-    std::vector<bool> found;
     for(reco::Vertex::trackRef_iterator iTrack=pv.tracks_begin(); iTrack<pv.tracks_end();iTrack++){
-      int match;
+      int match(-1);
       reco::TrackRef refTrack=iTrack->castTo<reco::TrackRef>();
-      getTrackMatch(trackCollection,refTrack,match);
-      matches.push_back(match);
+      if( refTrack.isNonnull() ) {
+	getTrackMatch(trackCollection,refTrack,match);
+	matches.push_back(match);
+      }
     }
     Vtx_Track_idx.push_back(matches);
   }
@@ -348,828 +349,791 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
 
 
 void 
-TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollection){
-  for(unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
-    reco::TrackRef Track(trackCollection, iTrack);
-
-    std::vector<float> iTrack_p4;
-
-    //assume pion mass
-    float pionmass=0.13957018;
-    iTrack_p4.push_back(sqrt(pow(Track->p(),2.0)+pow(pionmass,2.0)));
-    iTrack_p4.push_back(Track->px());
-    iTrack_p4.push_back(Track->py());
-    iTrack_p4.push_back(Track->pz());
-
-
-    Track_p4.push_back(iTrack_p4);
+ TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollection){
+   for(unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
+     reco::TrackRef Track(trackCollection, iTrack);
+     std::vector<float> iTrack_p4;
     
-    std::vector<double> iTrack_Poca;
-    
-    iTrack_Poca.push_back(Track->vx());
-    iTrack_Poca.push_back(Track->vy());
-    iTrack_Poca.push_back(Track->vz());
-    Track_Poca.push_back(iTrack_Poca);
-    
-    Track_charge.push_back(Track->charge());
-    Track_chi2.push_back(Track->chi2());
-    Track_ndof.push_back(Track->ndof());
-    Track_numberOfLostHits.push_back(Track->numberOfLostHits()); 
-    Track_numberOfValidHits.push_back(Track->numberOfValidHits());
-    Track_qualityMask.push_back(Track->qualityMask());
-
-    //Track par.
-    std::vector<float> iTrack_par;
-    std::vector<std::vector<float> > iTrack_parCov;
-    for(int j=0;j<reco::Track::dimension;j++){
-      iTrack_par.push_back(Track->parameters()(j));
-      iTrack_parCov.push_back(std::vector<float>());
-      for(int k=0;k<=j;k++){
-        iTrack_parCov.at(j).push_back(Track->covariance()(j,k));
-      }
-    }
-    Track_par.push_back(iTrack_par);
-    Track_parCov.push_back(iTrack_parCov);
-  }
-}
-
-
-
-void 
-TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
-  edm::Handle<std::vector<reco::PFTau> > HPStaus;
-  iEvent_->getByLabel(hpsTauProducer_, HPStaus);
-  
-  edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByTightIsolation_, HPSTightIsoDiscr);
-  edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByMediumIsolation_, HPSMediumIsoDiscr);
-  edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByLooseIsolation_, HPSLooseIsoDiscr);
-  edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscrDBSumPtCorr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_, HPSTightIsoDiscrDBSumPtCorr);
-  edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscrDBSumPtCorr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_, HPSMediumIsoDiscrDBSumPtCorr);
-  edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscrDBSumPtCorr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_, HPSLooseIsoDiscrDBSumPtCorr);
-  edm::Handle<reco::PFTauDiscriminator> HPSVLooseIsoDiscrDBSumPtCorr;
-  iEvent_->getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
-
-  for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
-    
-    reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
-    std::vector<float> iPFTau_p4;
-    iPFTau_p4.push_back(HPStauCandidate->p4().E());
-    iPFTau_p4.push_back(HPStauCandidate->p4().Px());
-    iPFTau_p4.push_back(HPStauCandidate->p4().Py());
-    iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
-
-    PFTau_p4.push_back(iPFTau_p4);
-    
-    PFTau_isTightIsolation.push_back((*HPSTightIsoDiscr)[HPStauCandidate]);
-    PFTau_isMediumIsolation.push_back((*HPSMediumIsoDiscr)[HPStauCandidate]);
-    PFTau_isLooseIsolation.push_back((*HPSLooseIsoDiscr)[HPStauCandidate]);
-
-
-    PFTau_isTightIsolationDBSumPtCorr.push_back((*HPSTightIsoDiscrDBSumPtCorr)[HPStauCandidate]);
-    PFTau_isMediumIsolationDBSumPtCorr.push_back((*HPSMediumIsoDiscrDBSumPtCorr)[HPStauCandidate]);
-    PFTau_isLooseIsolationDBSumPtCorr.push_back((*HPSLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
-    PFTau_isVLooseIsolationDBSumPtCorr.push_back((*HPSVLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
-
-
-    PFTau_hpsDecayMode.push_back(HPStauCandidate->decayMode());
-    PFTau_Charge.push_back(HPStauCandidate->charge());
-    
-
-    reco::PFCandidateRefVector ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
-    std::vector<int> matches;
-    std::vector<bool> found;
-    for(unsigned int i=0; i<ChargedHadrCand.size();i++){
-      reco::PFCandidateRef Cand(ChargedHadrCand,i);
-      reco::TrackRef refTrack=Cand.get()->trackRef();
-      int match;
-      found.push_back(getTrackMatch(trackCollection,refTrack,match));
-      matches.push_back(match);
-    }
-    PFTau_Track_idx.push_back(matches);
-  }
-}
-
-
-void 
-TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
-  // printf("fillKinFittaus 2  \n");
-  edm::Handle<reco::PFTauCollection> tauCollection;
-  iEvent.getByLabel(kinTausTag_, tauCollection);
-  
-  //========= HPS taus for matching issues
-  edm::Handle<std::vector<reco::PFTau> > HPStaus;
-  iEvent_->getByLabel(hpsTauProducer_, HPStaus);
-  //========= HPS taus for matching issues
-
-  std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators;
-  for(std::vector<std::string>::const_iterator discr=discriminators_.begin(); discr!=discriminators_.end(); ++discr) {
-    edm::Handle<reco::PFTauDiscriminator> tmpHandle;
-    iEvent.getByLabel("KinematicTauBasicProducer", *discr, tmpHandle);
-    tauDiscriminators.push_back(tmpHandle);
-  }
-  unsigned int index = 0;
-  int NoRefittedTaus =0;
-  for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
-    reco::PFTauRef tauRef(tauCollection, index);
-    
-    std::vector<bool> discriminatorPair = CheckTauDiscriminators(tauDiscriminators,tauRef);
-    KFTau_discriminatorByKFit.push_back(discriminatorPair.at(0));
-    KFTau_discriminatorByQC.push_back(discriminatorPair.at(1));
-    //---------------------- count number of taus passed KF ----------------
-    if(discriminatorPair.at(0)){ 
-      NoRefittedTaus++;
-      KFTau_indexOfFitInfo.push_back(NoRefittedTaus - 1);
-    }else{
-      KFTau_indexOfFitInfo.push_back(-1);
-    }
-    //---------------------- count number of taus passed KF ----------------
-    std::vector<float> iKFTau_TauVis_p4;
-    std::vector<float> iKFTau_TauFit_p4;
-    std::vector<float> iKFTau_Neutrino_p4;
-    
-    iKFTau_TauVis_p4.push_back(tauRef->p4().E());
-    iKFTau_TauVis_p4.push_back(tauRef->p4().Px());
-    iKFTau_TauVis_p4.push_back(tauRef->p4().Py());
-    iKFTau_TauVis_p4.push_back(tauRef->p4().Pz()); 
-    
-    iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().E());
-    iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Px());
-    iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Py());
-    iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Pz());
-    
-    iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().E() - tauRef->p4().E());
-    iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().Px()- tauRef->p4().Px());
-    iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().Py()- tauRef->p4().Py());
-    iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().Pz()- tauRef->p4().Pz());
-    
-    KFTau_TauFit_p4.push_back(iKFTau_TauFit_p4);
-    KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
-    KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
-    
-    TLorentzVector vecKf;
-    double px  = iKFTau_TauFit_p4.at(1);
-    double py  = iKFTau_TauFit_p4.at(2);
-    double pz  = iKFTau_TauFit_p4.at(3);
-    double e   = iKFTau_TauFit_p4.at(0);
-    vecKf.SetPxPyPzE(px,py,pz,e);
-    
-    
-    unsigned int idx =0;
-    reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4,idx);
-    KFTau_MatchedHPS_idx.push_back(idx);
-    
-    
-  }
-  KFTau_nKinTaus = NoRefittedTaus;
-  //   std::cout<<"fillKinFittaus  " <<std::endl;
-  //    printf("fillKinFittaus 3  \n");
-
-  //================== KinematicFit Info ===================
-  edm::Handle<SelectedKinematicDecayCollection> selected;
-  iEvent.getByLabel(KinFitAdvanced_, selected);
-  for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay){
-    //  std::vector< SelectedKinematicParticle const* > Particles;
-    const SelectedKinematicParticleCollection& Particles =decay->particles();
-    //    Particles = decay->particles();
-    //----------------- Store Quality values
-
-    KFTau_Fit_TauEnergyFraction.push_back(decay->energyTFraction());
-    KFTau_Fit_RefitVisibleMass.push_back(decay->a1Mass());
-    KFTau_Fit_Chi2.push_back(decay->chi2prob());
-    KFTau_Fit_PV_PV_significance.push_back(decay->vtxSignPVRotPVRed());
-    KFTau_Fit_SV_PV_significance.push_back(decay->vtxSignPVRotSV());
-    //    printf("decay->chi2prob()   %f  \n",decay->chi2prob());
-    //   std::cout<<"decay chi2  " << decay->chi2prob()<<std::endl;
-    //----------------- Store Quality values
-    for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
-      //      std::cout<<iParticle->name()<<std::endl;
-      if(iParticle->name()=="tau"){
-	TVectorT<double> intauParam ;
-	intauParam.ResizeTo(7);
-	intauParam=iParticle->SelectedKinematicParticle::input_parameters();
-	
-	unsigned int PrimaryVertexIndex =999;
-	float diff=999.;
-	for(unsigned int iPrVtx=0; iPrVtx <Vtx_x.size(); iPrVtx++ ){
-	  
-	  float delta = sqrt(pow(Vtx_x.at(iPrVtx)-intauParam[0],2)
- 		             + pow(Vtx_y.at(iPrVtx)-intauParam[1],2)
-                             + pow(Vtx_z.at(iPrVtx)-intauParam[2],2));
-	  
-	  if(delta < diff){
-	    diff = delta;
-	    PrimaryVertexIndex = iPrVtx;
-	  }
-	}
-	
-	std::vector<float> iKFTau_Fit_TauPrimVtx;
-	iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().X());
-	iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Y());
-	iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Z());
-	KFTau_Fit_TauPrimVtx.push_back(iKFTau_Fit_TauPrimVtx);
-	KFTau_Fit_IndexToPrimVertexVector.push_back(PrimaryVertexIndex);
-	KFTau_Fit_chi2.push_back(decay->chi2());
-	KFTau_Fit_ndf.push_back(decay->ndf());
-	KFTau_Fit_ambiguity.push_back(iParticle->ambiguity());
-	KFTau_Fit_charge.push_back(iParticle->charge());
-	KFTau_Fit_csum.push_back(decay->csum());
-	KFTau_Fit_iterations.push_back(decay->iterations());
-
-	//	std::cout<<"tau   charge " << iParticle->charge()<<std::endl;
-      }
-    }
-  }
-}
-
-void 
-TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
-  edm::Handle<reco::PFJetCollection> JetCollection;
-  iEvent_->getByLabel(pfjetsTag_,  JetCollection);
-
-  for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
-    reco::PFJetRef PFJet(JetCollection, iPFJet);
-    std::vector<float> iPFJet_p4;
-    iPFJet_p4.push_back(PFJet->p4().E());
-    iPFJet_p4.push_back(PFJet->p4().Px());
-    iPFJet_p4.push_back(PFJet->p4().Py());
-    iPFJet_p4.push_back(PFJet->p4().Pz());
-    PFJet_p4.push_back(iPFJet_p4);
-    PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
-    PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
-    PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
-    PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
-    PFJet_PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
-    PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
-    PFJet_chargedHadronEnergy.push_back(PFJet->chargedHadronEnergy());
-    PFJet_chargedHadronMultiplicity.push_back(PFJet->chargedHadronMultiplicity());
-    PFJet_chargedMuEnergy.push_back(PFJet->chargedMuEnergy());
-    PFJet_chargedMultiplicity.push_back(PFJet->chargedMultiplicity());
-    PFJet_electronEnergy.push_back(PFJet->electronEnergy());
-    PFJet_electronMultiplicity.push_back(PFJet->electronMultiplicity());
-    PFJet_HFEMEnergy.push_back(PFJet->HFEMEnergy());
-    PFJet_HFEMMultiplicity.push_back(PFJet->HFEMMultiplicity());
-    PFJet_HFHadronEnergy.push_back(PFJet->HFHadronEnergy());
-    PFJet_HFHadronMultiplicity.push_back(PFJet->HFHadronMultiplicity());
-    PFJet_muonEnergy.push_back(PFJet->muonEnergy());
-    PFJet_muonMultiplicity.push_back(PFJet->muonMultiplicity());
-    PFJet_neutralEmEnergy.push_back(PFJet->neutralEmEnergy());
-    PFJet_neutralHadronEnergy.push_back(PFJet->neutralHadronEnergy());
-    PFJet_neutralHadronMultiplicity.push_back(PFJet->neutralHadronMultiplicity());
-    PFJet_photonEnergy.push_back(PFJet->photonEnergy());
-    PFJet_photonMultiplicity.push_back(PFJet->photonMultiplicity());
-    PFJet_jetArea.push_back(PFJet->jetArea()); 
-    PFJet_maxDistance.push_back(PFJet->maxDistance());
-    PFJet_nConstituents.push_back(PFJet->nConstituents());
-    PFJet_pileup.push_back(PFJet->pileup());  
-    PFJet_etaetaMoment.push_back(PFJet->etaetaMoment());
-    PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
-    std::vector<int> matches;
-    std::vector<bool> found;
-                                             
-    edm::Handle< std::vector<reco::Track>  > trackCollection;
-    iEvent_->getByLabel(generalTracks_,  trackCollection);
-    const edm::ProductID &TrID = trackCollection.id();
-    
-    reco::TrackRefVector refTracks;
-    refTracks.reserve( PFJet->chargedMultiplicity() );
-    for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
-      const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
-      reco::TrackRef trackref = pfcand->trackRef();
-      if( trackref.isNonnull() ) {
-	if(trackref.id() != TrID) continue;
-	refTracks.push_back( trackref );
-      }
-    }
-
-    //  reco::TrackRefVector refTracks = PFJet->getTrackRefs();
-    //std::vector<reco::TrackRef> refTracks = PFJet->getTrackRefs();   // <-------  fixing bug with ID uncoincedens, use std::vector<reco::TrackRef> instead reco::TrackRefVector refTracks
-
-    getTrackMatch(trackCollection,refTracks,matches,found);
-    PFJet_Track_idx.push_back(matches);
-    edm::Handle<std::vector<reco::PFTau> > HPStaus;
-    iEvent_->getByLabel(hpsTauProducer_, HPStaus);
-    unsigned int idx =0; 
-    reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
-    PFJet_MatchedHPS_idx.push_back(idx);
-
-  }
-
-}
-
-
-void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){}
-
-void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
-
-  edm::Handle< edm::View<reco::PFMET> > pfMEThandle;
-  iEvent.getByLabel(pfMETTag_, pfMEThandle);
-  MET_et=pfMEThandle->front().et();
-  MET_phi=pfMEThandle->front().phi();
-  MET_sumET=pfMEThandle->front().sumEt();
-}
-
-void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  if(!TriggerOK) return;
-  edm::Handle<trigger::TriggerEvent> triggerEvent;
-  iEvent.getByLabel(TriggerEvent_,triggerEvent);
-  edm::Handle<edm::TriggerResults> triggerResults;
-  iEvent.getByLabel(TriggerResults_, triggerResults);
-
-  edm::Handle<std::vector<std::string> > MyTriggerInfoNames;
-  iEvent_->getByLabel(TriggerInfoName_, MyTriggerInfoNames);
-  for(unsigned int i=0; i<HTLTriggerName.size();i++){
-    HTLTriggerName.push_back(MyTriggerInfoNames->at(i));
-    unsigned int triggerIndex = hltConfig_.triggerIndex(HTLTriggerName.at(i));  
-    TriggerAccept.push_back(triggerResults->accept(triggerIndex)); 
-    TriggerError.push_back(triggerResults->error(triggerIndex));
-    TriggerWasRun.push_back(triggerResults->wasrun(triggerIndex));
-    ////////////////////////////////////////////
-    // now get level 1 & HLT prescale
-    const std::vector< std::pair < bool, std::string > > level1Seeds = hltConfig_.hltL1GTSeeds(HTLTriggerName.at(i));
-    int l1Prescale(-1);
-    L1GtUtils l1GtUtils;
-    l1GtUtils.retrieveL1EventSetup(iSetup);
-    if(level1Seeds.size() == 1){
-      std::vector< std::string > l1SeedPaths_;
-      std::stringstream ss( level1Seeds.at( 0 ).second );
-      std::string       buf;
-      while(ss.good() && ! ss.eof()){
-	ss >> buf;
-	if ( buf[0] == '('  || buf[ buf.size() - 1 ] == ')' || buf == "AND" || buf == "NOT" ){
-	  l1SeedPaths_.clear();
-	  break;
-	}
-	else if(buf != "OR")l1SeedPaths_.push_back( buf );
-      }
-      if (l1SeedPaths_.empty()){
-	for(unsigned j=0; j<l1SeedPaths_.size(); j++){
-	  int l1TempPrescale(-1);
-	  int errorCode(0);
-	  if(level1Seeds.at(0).first) { // technical triggers
-	    unsigned int techBit(atoi(l1SeedPaths_.at(j).c_str()));
-	    const std::string techName(*(triggerMenuLite_->gtTechTrigName(techBit, errorCode)));
-	    if(errorCode != 0) continue;
-	    if(!l1GtUtils.decision(iEvent,techName,errorCode)) continue;
-	    if(errorCode != 0) continue;
-	    l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,techName,errorCode);
-	    if (errorCode != 0) continue; 
-	  }
-	  else{ // algorithmic triggers
-	    if(!l1GtUtils.decision(iEvent,l1SeedPaths_.at(j),errorCode)) continue;
-	    if(errorCode != 0) continue;
-	    l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,l1SeedPaths_.at(j),errorCode);
-	    if (errorCode != 0) continue;
-	  }
-	  if(l1TempPrescale > 0){
-	    if( l1Prescale == -1 || l1Prescale > l1TempPrescale) l1Prescale = l1TempPrescale;
-	  }
-	}
-      }
-    }
-    HLTPrescale.push_back(hltConfig_.prescaleValue(iEvent, iSetup, HTLTriggerName.at(i)));
-    NHLTL1GTSeeds.push_back(level1Seeds.size());
-    if(l1Prescale==-1){
-      L1SEEDPrescale.push_back(1);
-      L1SEEDPrescale.push_back(true);
-    }
-    else{
-      L1SEEDPrescale.push_back((unsigned int)l1Prescale);
-      L1SEEDInvalidPrescale.push_back(false);
-    }
-    ////////////////////////////////////
-    // Now get Trigger matching
-    if(triggerResults->accept(triggerIndex)){
-      std::vector<float> match;
-
-      // Muons
-      edm::Handle< reco::MuonCollection > muonCollection;
-      iEvent_->getByLabel(muonsTag_,muonCollection);
-      TriggerMatch(triggerEvent,triggerIndex,muonCollection,TriggerMuonMatchingdr_,match);
-      MuonTriggerMatch.push_back(match);
-
-      // Jets 
-      edm::Handle<reco::PFJetCollection> JetCollection;
-      iEvent_->getByLabel(pfjetsTag_,  JetCollection);
-      TriggerMatch(triggerEvent,triggerIndex,JetCollection,TriggerJetMatchingdr_,match);
-      JetTriggerMatch.push_back(match);
-
-      // Taus
-      edm::Handle<reco::PFTauCollection> tauCollection;
-      iEvent.getByLabel(kinTausTag_, tauCollection);
-      TriggerMatch(triggerEvent,triggerIndex,tauCollection,TriggerTauMatchingdr_,match);
-      TauTriggerMatch.push_back(match);
-    }
-    else{
-      MuonTriggerMatch.push_back(std::vector<float>());
-      JetTriggerMatch.push_back(std::vector<float>());
-      TauTriggerMatch.push_back(std::vector<float>());
-    }
-  }
-}
-
-template <class T>
-void TauNtuple::TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,
-			     double drmax,std::vector<float> &match){
-  match=std::vector<float>(obj->size(),999);
-  std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
-  const trigger::Keys& KEYS(triggerEvent->filterKeys(triggerIndex));
-  for(unsigned int ipart=0; ipart!=KEYS.size();ipart++){
-    for(unsigned int i=0; i< obj->size(); ++i ){
-      double dr = reco::deltaR(trgobjs.at(KEYS.at(ipart)).eta(),trgobjs.at(KEYS.at(ipart)).phi(),obj->at(i).eta(),obj->at(i).phi());
-      if(dr<drmax){
-	match.at(i)=true;
-      }
-    }
-  }
-}
-
-
-
-void 
-TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
-
-  Event_EventNumber=iEvent.id().event();
-  Event_RunNumber=iEvent.id().run();
-  Event_bunchCrossing=iEvent.bunchCrossing(); 
-  Event_orbitNumber=iEvent.orbitNumber();
-  Event_luminosityBlock=iEvent.luminosityBlock(); 
-  Event_isRealData=iEvent.isRealData();
-  if(!Event_isRealData){
-    edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
-    iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo); 
-    std::vector<PileupSummaryInfo>::const_iterator PVI; 
-    PileupInfo_NumInteractions_nm1 = -1;
-    PileupInfo_NumInteractions_n0  = -1; 
-    PileupInfo_NumInteractions_np1 = -1; 
-    for(PVI = PupInfo->begin(); PVI != PupInfo->end();++PVI) { 
-      int BX = PVI->getBunchCrossing(); 
-      if(BX == -1) PileupInfo_NumInteractions_nm1 =  PVI->getPU_NumInteractions(); 
-      if(BX == 0)  PileupInfo_NumInteractions_n0  =  PVI->getPU_NumInteractions();  
-      if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
-    } 
-    EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);}
-}
-
-
-
-
-
-void 
-TauNtuple::beginJob()
-{
-
-
-//-------------------------
-//   TString cmd1="pwd";
-//   TString cmd2="ls";
-//   TString cmd3="ls ../";
-//   TString cmd4="ls */";
-//   system(cmd1.Data());
-//   system(cmd2.Data());
-//   system(cmd3.Data());
-//   system(cmd4.Data());
-//-------------------------
-  cnt_=0;
-  output = new TFile("TauNtuple.root","RECREATE");
-  output_tree = new TTree("t","t");
-
-  output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
-
-  //=============  Vertex Block ====
-  output_tree->Branch("Vtx_chi2",&Vtx_chi2);
-  output_tree->Branch("Vtx_nTrk",&Vtx_nTrk);
-  output_tree->Branch("Vtx_ndof",&Vtx_ndof);
-  output_tree->Branch("Vtx_x",&Vtx_x);
-  output_tree->Branch("Vtx_y",&Vtx_y);
-  output_tree->Branch("Vtx_z",&Vtx_z);
-  output_tree->Branch("Vtx_Cov",&Vtx_Cov);
-  output_tree->Branch("Vtx_Track_idx",&Vtx_Track_idx);
-  output_tree->Branch("Vtx_isFake",&Vtx_isFake);
-  
-  //=============  Muon Block ====
-  output_tree->Branch("Muon_p4",&Muon_p4);		       
-  output_tree->Branch("Muon_Poca",&Muon_Poca);	       
-  output_tree->Branch("Muon_isGlobalMuon",&Muon_isGlobalMuon);      
-  output_tree->Branch("Muon_isStandAloneMuon",&Muon_isStandAloneMuon);  
-  output_tree->Branch("Muon_isTrackerMuon",&Muon_isTrackerMuon);     
-  output_tree->Branch("Muon_isCaloMuon",&Muon_isCaloMuon);	       
-  output_tree->Branch("Muon_isIsolationValid",&Muon_isIsolationValid);  
-  output_tree->Branch("Muon_isQualityValid",&Muon_isQualityValid);    
-  output_tree->Branch("Muon_isTimeValid",&Muon_isTimeValid);       
-  output_tree->Branch("Muon_emEt03",&Muon_emEt03);          
-  output_tree->Branch("Muon_emVetoEt03",&Muon_emVetoEt03);      
-  output_tree->Branch("Muon_hadEt03",&Muon_hadEt03);         
-  output_tree->Branch("Muon_hadVetoEt03",&Muon_hadVetoEt03);     
-  output_tree->Branch("Muon_nJets03",&Muon_nJets03);         
-  output_tree->Branch("Muon_nTracks03",&Muon_nTracks03);       
-  output_tree->Branch("Muon_sumPt03",&Muon_sumPt03);         
-  output_tree->Branch("Muon_trackerVetoPt03",&Muon_trackerVetoPt03); 
-  output_tree->Branch("Muon_emEt05",&Muon_emEt05);          
-  output_tree->Branch("Muon_emVetoEt05",&Muon_emVetoEt05);      
-  output_tree->Branch("Muon_hadEt05",&Muon_hadEt05);         
-  output_tree->Branch("Muon_hadVetoEt05",&Muon_hadVetoEt05);     
-  output_tree->Branch("Muon_nJets05",&Muon_nJets05);         
-  output_tree->Branch("Muon_nTracks05",&Muon_nTracks05);       
-  output_tree->Branch("Muon_sumPt05",&Muon_sumPt05);         
-  output_tree->Branch("Muon_trackerVetoPt05",&Muon_trackerVetoPt05); 
-  output_tree->Branch("Muon_Track_idx",&Muon_Track_idx);
-  output_tree->Branch("Muon_hitPattern_pixelLayerwithMeas",&Muon_hitPattern_pixelLayerwithMeas);
-  output_tree->Branch("Muon_numberOfMatchedStations",&Muon_numberOfMatchedStations);
-  output_tree->Branch("Muon_normChi2",&Muon_normChi2);
-  output_tree->Branch("Muon_hitPattern_numberOfValidMuonHits",&Muon_hitPattern_numberOfValidMuonHits);
-  output_tree->Branch("Muon_innerTrack_numberofValidHits",&Muon_innerTrack_numberofValidHits);
-  output_tree->Branch("Muon_numberOfMatches",&Muon_numberOfMatches);
-  output_tree->Branch("Muon_Charge",&Muon_Charge);
-  output_tree->Branch("Muon_numberOfChambers",&Muon_numberOfChambers);
-  
-  //================  PFTau block ==========
-  output_tree->Branch("PFTau_p4",&PFTau_p4);
-  output_tree->Branch("PFTau_isTightIsolation",&PFTau_isTightIsolation);
-  output_tree->Branch("PFTau_isMediumIsolation",&PFTau_isMediumIsolation);
-  output_tree->Branch("PFTau_isLooseIsolation",&PFTau_isLooseIsolation);
-
-  output_tree->Branch("PFTau_isTightIsolationDBSumPtCorr",&PFTau_isTightIsolationDBSumPtCorr); 
-  output_tree->Branch("PFTau_isMediumIsolationDBSumPtCorr",&PFTau_isMediumIsolationDBSumPtCorr);
-  output_tree->Branch("PFTau_isLooseIsolationDBSumPtCorr",&PFTau_isLooseIsolationDBSumPtCorr); 
-  output_tree->Branch("PFTau_isVLooseIsolationDBSumPtCorr",&PFTau_isVLooseIsolationDBSumPtCorr);
-
-
-
-  output_tree->Branch("PFTau_hpsDecayMode",&PFTau_hpsDecayMode);
-  output_tree->Branch("PFTau_Charge",&PFTau_Charge);
-  output_tree->Branch("PFTau_Track_idx",&PFTau_Track_idx);
-
-  //================  KinFitTaus block ==========
-  output_tree->Branch("KFTau_discriminatorByKFit",&KFTau_discriminatorByKFit);
-  output_tree->Branch("KFTau_discriminatorByQC",&KFTau_discriminatorByQC);
-  output_tree->Branch("KFTau_nKinTaus",&KFTau_nKinTaus);	    	    
-  output_tree->Branch("KFTau_TauVis_p4",&KFTau_TauVis_p4);    
-  output_tree->Branch("KFTau_TauFit_p4",&KFTau_TauFit_p4);    
-  output_tree->Branch("KFTau_Neutrino_p4",&KFTau_Neutrino_p4);  
-  output_tree->Branch("KFTau_MatchedHPS_idx",&KFTau_MatchedHPS_idx);
-  output_tree->Branch("KFTau_Track_idx",&PFTau_Track_idx);
-  output_tree->Branch("KFTau_indexOfFitInfo",&KFTau_indexOfFitInfo);
-
-  output_tree->Branch("KFTau_Fit_TauPrimVtx",&KFTau_Fit_TauPrimVtx);
-  output_tree->Branch("KFTau_Fit_IndexToPrimVertexVector",&KFTau_Fit_IndexToPrimVertexVector);
-  output_tree->Branch("KFTau_Fit_chi2",&KFTau_Fit_chi2);
-  output_tree->Branch("KFTau_Fit_ndf",&KFTau_Fit_ndf);
-  output_tree->Branch("KFTau_Fit_ambiguity",&KFTau_Fit_ambiguity);
-  output_tree->Branch("KFTau_Fit_charge",&KFTau_Fit_charge);
-  output_tree->Branch("KFTau_Fit_csum",&KFTau_Fit_csum);
-  output_tree->Branch("KFTau_Fit_iterations",&KFTau_Fit_iterations);
-
-  output_tree->Branch("KFTau_Fit_TauEnergyFraction",&KFTau_Fit_TauEnergyFraction);
-  output_tree->Branch("KFTau_Fit_RefitVisibleMass",&KFTau_Fit_RefitVisibleMass);
-  output_tree->Branch("KFTau_Fit_Chi2",&KFTau_Fit_Chi2);
-  output_tree->Branch("KFTau_Fit_PV_PV_significance",&KFTau_Fit_PV_PV_significance);
-  output_tree->Branch("KFTau_Fit_SV_PV_significance",&KFTau_Fit_SV_PV_significance);
-  
-
-
- //=======  PFJets ===
-  output_tree->Branch("PFJet_p4",&PFJet_p4);
-  output_tree->Branch("PFJet_chargedEmEnergy",&PFJet_chargedEmEnergy);
-  output_tree->Branch("PFJet_chargedHadronEnergy",&PFJet_chargedHadronEnergy);
-  output_tree->Branch("PFJet_chargedHadronMultiplicity",&PFJet_chargedHadronMultiplicity);
-  output_tree->Branch("PFJet_chargedMuEnergy",&PFJet_chargedMuEnergy);
-  output_tree->Branch("PFJet_chargedMultiplicity",&PFJet_chargedMultiplicity);
-  output_tree->Branch("PFJet_electronEnergy",&PFJet_electronEnergy);
-  output_tree->Branch("PFJet_electronMultiplicity",&PFJet_electronMultiplicity);
-  output_tree->Branch("PFJet_HFEMEnergy",&PFJet_HFEMEnergy);
-  output_tree->Branch("PFJet_HFEMMultiplicity",&PFJet_HFEMMultiplicity);
-  output_tree->Branch("PFJet_HFHadronEnergy",&PFJet_HFHadronEnergy);
-  output_tree->Branch("PFJet_HFHadronMultiplicity",&PFJet_HFHadronMultiplicity);
-  output_tree->Branch("PFJet_muonEnergy",&PFJet_muonEnergy);
-  output_tree->Branch("PFJet_muonMultiplicity",&PFJet_muonMultiplicity);
-  output_tree->Branch("PFJet_neutralEmEnergy",&PFJet_neutralEmEnergy);
-  output_tree->Branch("PFJet_neutralHadronEnergy",&PFJet_neutralHadronEnergy);
-  output_tree->Branch("PFJet_neutralHadronMultiplicity",&PFJet_neutralHadronMultiplicity);
-  output_tree->Branch("PFJet_photonEnergy",&PFJet_photonEnergy);
-  output_tree->Branch("PFJet_photonMultiplicity",&PFJet_photonMultiplicity);
-  output_tree->Branch("PFJet_jetArea",&PFJet_jetArea); 
-  output_tree->Branch("PFJet_maxDistance",&PFJet_maxDistance);
-  output_tree->Branch("PFJet_nConstituents",&PFJet_nConstituents);
-  output_tree->Branch("PFJet_pileup",&PFJet_pileup);  
-  output_tree->Branch("PFJet_etaetaMoment",&PFJet_etaetaMoment);
-  output_tree->Branch("PFJet_etaphiMoment",&PFJet_etaphiMoment);
-  output_tree->Branch("PFJet_Track_idx",&PFJet_Track_idx);
-  output_tree->Branch("PFJet_MatchedHPS_idx",&PFJet_MatchedHPS_idx);
-  output_tree->Branch("PFJet_numberOfDaughters",&PFJet_numberOfDaughters);
-  output_tree->Branch("PFJet_chargedEmEnergyFraction",&PFJet_chargedEmEnergyFraction);
-  output_tree->Branch("PFJet_chargedHadronEnergyFraction",&PFJet_chargedHadronEnergyFraction);
-  output_tree->Branch("PFJet_neutralHadronEnergyFraction",&PFJet_neutralHadronEnergyFraction);
-  output_tree->Branch("PFJet_PFJet_neutralEmEnergyFraction",&PFJet_PFJet_neutralEmEnergyFraction);
-
-  //================  MET block ==========
-  output_tree->Branch("MET_et",&MET_et);
-  output_tree->Branch("MET_phi",&MET_phi);
-  output_tree->Branch("MET_sumET",&MET_sumET);
-
-  //=============== Event Block ==============
-  output_tree->Branch("Event_EventNumber",&Event_EventNumber);
-  output_tree->Branch("Event_RunNumber",&Event_RunNumber);
-  output_tree->Branch("Event_bunchCrossing",&Event_bunchCrossing);
-  output_tree->Branch("Event_orbitNumber",&Event_orbitNumber);
-  output_tree->Branch("Event_luminosityBlock",&Event_luminosityBlock);	 
-  output_tree->Branch("Event_isRealData",&Event_isRealData);
-
-  output_tree->Branch("PileupInfo_NumInteractions_nm1",&PileupInfo_NumInteractions_nm1);
-  output_tree->Branch("PileupInfo_NumInteractions_n0",&PileupInfo_NumInteractions_n0);
-  output_tree->Branch("PileupInfo_NumInteractions_np1",&PileupInfo_NumInteractions_np1);
-  output_tree->Branch("EvtWeight3D",&EvtWeight3D);
-
-  //=============== Track Block ==============
-  output_tree->Branch("Track_p4",&Track_p4);
-  output_tree->Branch("Track_Poca",&Track_Poca);
-  output_tree->Branch("Track_charge",&Track_charge);
-  output_tree->Branch("Track_chi2",&Track_chi2);
-  output_tree->Branch("Track_ndof",&Track_ndof);
-  output_tree->Branch("Track_numberOfLostHits",&Track_numberOfLostHits);
-  output_tree->Branch("Track_numberOfValidHits",&Track_numberOfValidHits);
-  output_tree->Branch("Track_qualityMask",&Track_qualityMask);
-  output_tree->Branch("Track_par",&Track_par);
-  output_tree->Branch("Track_parCov",&Track_parCov);
-
-  //=============== MC Block ==============
-
-  output_tree->Branch("GenEventInfoProduct_signalProcessID",&GenEventInfoProduct_signalProcessID);
-  output_tree->Branch("GenEventInfoProduct_weight",&GenEventInfoProduct_weight);
-  output_tree->Branch("GenEventInfoProduct_weights",&GenEventInfoProduct_weights);
-  output_tree->Branch("GenEventInfoProduct_qScale",&GenEventInfoProduct_qScale);
-  output_tree->Branch("GenEventInfoProduct_alphaQED",&GenEventInfoProduct_alphaQED);
-  output_tree->Branch("GenEventInfoProduct_alphaQCD",&GenEventInfoProduct_alphaQCD);
-
-  if(do_MCComplete_){
-    output_tree->Branch("MC_p4",&MC_p4);
-    output_tree->Branch("MC_pdgid",&MC_pdgid);
-    output_tree->Branch("MC_charge",&MC_charge);
-    output_tree->Branch("MC_midx",&MC_midx);
-  }
-  if(do_MCSummary_){
-    output_tree->Branch("MCSignalParticle_p4",&MCSignalParticle_p4);
-    output_tree->Branch("MCSignalParticle_pdgid",&MCSignalParticle_pdgid);
-    output_tree->Branch("MCSignalParticle_charge",&MCSignalParticle_charge);
-    output_tree->Branch("MCSignalParticle_Poca",&MCSignalParticle_Poca);
-    output_tree->Branch("MCSignalParticle_Tauidx",&MCSignalParticle_Tauidx);
-    output_tree->Branch("MCTauandProd_p4",&MCTauandProd_p4);
-    output_tree->Branch("MCTauandProd_pdgid",&MCTauandProd_pdgid);
-    output_tree->Branch("MCTauandProd_midx",&MCTauandProd_midx);
-    output_tree->Branch("MCTauandProd_charge",&MCTauandProd_charge);
-    output_tree->Branch("MCTau_JAK",&MCTau_JAK);   
-    output_tree->Branch("MCTau_DecayBitMask",&MCTau_DecayBitMask); 
-  }
-
-  //================= Trigger Block ===============
-  output_tree->Branch("HTLTriggerName",&HTLTriggerName);
-  output_tree->Branch("TriggerAccept",&TriggerAccept);
-  output_tree->Branch("TriggerError",&TriggerError);
-  output_tree->Branch("TriggerWasRun",&TriggerWasRun);
-  output_tree->Branch("HLTPrescale",&HLTPrescale);
-  output_tree->Branch("NHLTL1GTSeeds",&NHLTL1GTSeeds);
-  output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
-  output_tree->Branch("L1SEEDInvalidPrescale",&L1SEEDInvalidPrescale);
-  output_tree->Branch("MuonTriggerMatch",&MuonTriggerMatch);
-  output_tree->Branch("ElectronTriggerMatch",&ElectronTriggerMatch);
-  output_tree->Branch("JetTriggerMatch",&JetTriggerMatch);
-  output_tree->Branch("TauTriggerMatch",&TauTriggerMatch);
-
-} 
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// std::vector<bool> TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef)
-//
-// checks that tau candidate pass kinematic fit and KinFit quality criteria 
-// returns vector of bool variables, first variable true/false if tau candidate pass/fail kinematic fit
-// second variable is true/false if  refitted tau candidate pass/fail quality requirements
-std::vector<bool>
-TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef){
-  std::vector<bool> output_pair;
-  bool discriminateByKinFit = false;
-  bool discriminateByKinQC  = false;
-  int iDiscr =0;
-  for (std::vector<edm::Handle<reco::PFTauDiscriminator> >::const_iterator discr = tauDiscriminators.begin(); discr!=tauDiscriminators.end(); ++discr) {
-      iDiscr = iDiscr + (**discr)[tauRef];
-    }
-  if(iDiscr == 1 )discriminateByKinFit=true;
-  if(iDiscr == 2 ){discriminateByKinFit=true;discriminateByKinQC=true;}
-    output_pair.push_back(discriminateByKinFit);
-    output_pair.push_back(discriminateByKinQC);
-
-    return output_pair;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
-//
-// finds HPS tau candidate for a given KinFit tau candidate
-// the closest by deltaR HPS candidate is accepted
-reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &UnmodifiedTau, unsigned int &match){
-  TLorentzVector TauVisible;
-  TauVisible.SetE(UnmodifiedTau.at(0));
-  TauVisible.SetPx(UnmodifiedTau.at(1));
-  TauVisible.SetPy(UnmodifiedTau.at(2));
-  TauVisible.SetPz(UnmodifiedTau.at(3));
-  reco::PFTauRef MatchedHPSTau;
-  double deltaR = 999;
-  match=0;
-   for ( unsigned int iTau = 0; iTau < HPStaus->size(); ++iTau ) {
-    reco::PFTauRef HPStauCandidate(HPStaus, iTau);
-    double dr=sqrt( pow(DeltaPhi(HPStauCandidate->p4().Phi(),TauVisible.Phi()),2) + pow(HPStauCandidate->p4().Eta() - TauVisible.Eta(),2));
-    if(dr < deltaR){
-      deltaR = dr;
-      match=iTau;
-      MatchedHPSTau = HPStauCandidate;
-    }
-    
-  }
-  return MatchedHPSTau;
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
-//
-// finds HPS tau candidate for a given KinFit tau candidate
-// the closest by deltaR HPS candidate is accepted
-reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &Jet, unsigned int &match){
-  TLorentzVector Jetp4;;
-  Jetp4.SetE(Jet.at(0));
-  Jetp4.SetPx(Jet.at(1));
-  Jetp4.SetPy(Jet.at(2));
-  Jetp4.SetPz(Jet.at(3));
-
-  reco::PFTauRef MatchedHPSTau;
-  double deltaR = 999;
-  match=0;
-   for ( unsigned int iTau = 0; iTau < HPStaus->size(); ++iTau ) {
-    reco::PFTauRef HPStauCandidate(HPStaus, iTau);
-    double dr=sqrt( pow(DeltaPhi(HPStauCandidate->p4().Phi(),Jetp4.Phi()),2) + pow(HPStauCandidate->p4().Eta() - Jetp4.Eta(),2));
-    if(dr < deltaR){
-      deltaR = dr;
-      match=iTau;
-      MatchedHPSTau = HPStauCandidate;
-    }
-    
-  }
-  return MatchedHPSTau;
-}
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match)
-//
-// finds track match for a given TrackRef
-// returns true  if the matching track is found in the collection and sets match to the index of the found track
-// retruns false if on match is found in the collection and match is set to -1.
-bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match){
-  match=-1;
-  for(unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
-    reco::TrackRef Track(trackCollection, iTrack);
-    if(refTrack==Track){
-      match=iTrack;
-      return true;  
-    }
-  }
-  return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRefVector &refTracks, std::vector<int> &matches,std::vector<bool> &found)
-//
-// Finds vector of track matches
-// calls  getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match) to match individual tracks
-// returns is true if all tracks are found, false otherwise.
-bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRefVector &refTracks, std::vector<int> &matches,std::vector<bool> &found){
-  int match(-1);
-  bool flag=true;
-  matches.clear();
-  found.clear();
-  for(unsigned int i=0; i<refTracks.size();i++){
-    reco::TrackRef refTrack(trackCollection,i);
-    found.push_back(getTrackMatch(trackCollection,refTrack,match));
-    matches.push_back(match);
-    if(found.at(i)==false)flag=false;
-  }
-  return flag;
-}
-
+     //assume pion mass
+     float pionmass=0.13957018;
+     iTrack_p4.push_back(sqrt(pow(Track->p(),2.0)+pow(pionmass,2.0)));
+     iTrack_p4.push_back(Track->px());
+     iTrack_p4.push_back(Track->py());
+     iTrack_p4.push_back(Track->pz());
+     Track_p4.push_back(iTrack_p4);
+     std::vector<double> iTrack_Poca;
+
+     iTrack_Poca.push_back(Track->vx());
+     iTrack_Poca.push_back(Track->vy());
+     iTrack_Poca.push_back(Track->vz());
+     Track_Poca.push_back(iTrack_Poca);
+     Track_charge.push_back(Track->charge());
+     Track_chi2.push_back(Track->chi2());
+     Track_ndof.push_back(Track->ndof());
+     Track_numberOfLostHits.push_back(Track->numberOfLostHits()); 
+     Track_numberOfValidHits.push_back(Track->numberOfValidHits());
+     Track_qualityMask.push_back(Track->qualityMask());
+
+     //Track par.
+     std::vector<float> iTrack_par;
+     std::vector<std::vector<float> > iTrack_parCov;
+     for(int j=0;j<reco::Track::dimension;j++){
+       iTrack_par.push_back(Track->parameters()(j));
+       iTrack_parCov.push_back(std::vector<float>());
+       for(int k=0;k<=j;k++){
+	 iTrack_parCov.at(j).push_back(Track->covariance()(j,k));
+       }
+     }
+     Track_par.push_back(iTrack_par);
+     Track_parCov.push_back(iTrack_parCov);
+   }
+ }
+
+
+
+ void 
+ TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+   edm::Handle<std::vector<reco::PFTau> > HPStaus;
+   iEvent_->getByLabel(hpsTauProducer_, HPStaus);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByTightIsolation_, HPSTightIsoDiscr);
+   edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByMediumIsolation_, HPSMediumIsoDiscr);
+   edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByLooseIsolation_, HPSLooseIsoDiscr);
+   edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscrDBSumPtCorr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_, HPSTightIsoDiscrDBSumPtCorr);
+   edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscrDBSumPtCorr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_, HPSMediumIsoDiscrDBSumPtCorr);
+   edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscrDBSumPtCorr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_, HPSLooseIsoDiscrDBSumPtCorr);
+   edm::Handle<reco::PFTauDiscriminator> HPSVLooseIsoDiscrDBSumPtCorr;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
+
+   for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
+
+     reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
+     std::vector<float> iPFTau_p4;
+     iPFTau_p4.push_back(HPStauCandidate->p4().E());
+     iPFTau_p4.push_back(HPStauCandidate->p4().Px());
+     iPFTau_p4.push_back(HPStauCandidate->p4().Py());
+     iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
+
+     PFTau_p4.push_back(iPFTau_p4);
+
+     PFTau_isTightIsolation.push_back((*HPSTightIsoDiscr)[HPStauCandidate]);
+     PFTau_isMediumIsolation.push_back((*HPSMediumIsoDiscr)[HPStauCandidate]);
+     PFTau_isLooseIsolation.push_back((*HPSLooseIsoDiscr)[HPStauCandidate]);
+
+
+     PFTau_isTightIsolationDBSumPtCorr.push_back((*HPSTightIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+     PFTau_isMediumIsolationDBSumPtCorr.push_back((*HPSMediumIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+     PFTau_isLooseIsolationDBSumPtCorr.push_back((*HPSLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+     PFTau_isVLooseIsolationDBSumPtCorr.push_back((*HPSVLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+
+
+     PFTau_hpsDecayMode.push_back(HPStauCandidate->decayMode());
+     PFTau_Charge.push_back(HPStauCandidate->charge());
+
+
+     reco::PFCandidateRefVector ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
+     std::vector<int> matches;
+     for(unsigned int i=0; i<ChargedHadrCand.size();i++){
+       reco::PFCandidateRef Cand(ChargedHadrCand,i);
+       reco::TrackRef refTrack=Cand.get()->trackRef();
+       if( refTrack.isNonnull() ) {
+	 int match(-1);
+	 getTrackMatch(trackCollection,refTrack,match);
+	 matches.push_back(match);
+       }
+     }
+     PFTau_Track_idx.push_back(matches);
+   }
+ }
+
+
+ void 
+ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+   // printf("fillKinFittaus 2  \n");
+   edm::Handle<reco::PFTauCollection> tauCollection;
+   iEvent.getByLabel(kinTausTag_, tauCollection);
+
+   //========= HPS taus for matching issues
+   edm::Handle<std::vector<reco::PFTau> > HPStaus;
+   iEvent_->getByLabel(hpsTauProducer_, HPStaus);
+   //========= HPS taus for matching issues
+
+   std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators;
+   for(std::vector<std::string>::const_iterator discr=discriminators_.begin(); discr!=discriminators_.end(); ++discr) {
+     edm::Handle<reco::PFTauDiscriminator> tmpHandle;
+     iEvent.getByLabel("KinematicTauBasicProducer", *discr, tmpHandle);
+     tauDiscriminators.push_back(tmpHandle);
+   }
+   unsigned int index = 0;
+   int NoRefittedTaus =0;
+   for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
+     reco::PFTauRef tauRef(tauCollection, index);
+
+     std::vector<bool> discriminatorPair = CheckTauDiscriminators(tauDiscriminators,tauRef);
+     KFTau_discriminatorByKFit.push_back(discriminatorPair.at(0));
+     KFTau_discriminatorByQC.push_back(discriminatorPair.at(1));
+     //---------------------- count number of taus passed KF ----------------
+     if(discriminatorPair.at(0)){ 
+       NoRefittedTaus++;
+       KFTau_indexOfFitInfo.push_back(NoRefittedTaus - 1);
+     }else{
+       KFTau_indexOfFitInfo.push_back(-1);
+     }
+     //---------------------- count number of taus passed KF ----------------
+     std::vector<float> iKFTau_TauVis_p4;
+     std::vector<float> iKFTau_TauFit_p4;
+     std::vector<float> iKFTau_Neutrino_p4;
+
+     iKFTau_TauVis_p4.push_back(tauRef->p4().E());
+     iKFTau_TauVis_p4.push_back(tauRef->p4().Px());
+     iKFTau_TauVis_p4.push_back(tauRef->p4().Py());
+     iKFTau_TauVis_p4.push_back(tauRef->p4().Pz()); 
+
+     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().E());
+     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Px());
+     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Py());
+     iKFTau_TauFit_p4.push_back(tauRef->alternatLorentzVect().Pz());
+
+     iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().E() - tauRef->p4().E());
+     iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().Px()- tauRef->p4().Px());
+     iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().Py()- tauRef->p4().Py());
+     iKFTau_Neutrino_p4.push_back(tauRef->alternatLorentzVect().Pz()- tauRef->p4().Pz());
+
+     KFTau_TauFit_p4.push_back(iKFTau_TauFit_p4);
+     KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
+     KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
+
+     TLorentzVector vecKf;
+     double px  = iKFTau_TauFit_p4.at(1);
+     double py  = iKFTau_TauFit_p4.at(2);
+     double pz  = iKFTau_TauFit_p4.at(3);
+     double e   = iKFTau_TauFit_p4.at(0);
+     vecKf.SetPxPyPzE(px,py,pz,e);
+
+
+     unsigned int idx =0;
+     reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4,idx);
+     KFTau_MatchedHPS_idx.push_back(idx);
+
+
+   }
+   KFTau_nKinTaus = NoRefittedTaus;
+   //   std::cout<<"fillKinFittaus  " <<std::endl;
+   //    printf("fillKinFittaus 3  \n");
+
+   //================== KinematicFit Info ===================
+   edm::Handle<SelectedKinematicDecayCollection> selected;
+   iEvent.getByLabel(KinFitAdvanced_, selected);
+   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay){
+     //  std::vector< SelectedKinematicParticle const* > Particles;
+     const SelectedKinematicParticleCollection& Particles =decay->particles();
+     //    Particles = decay->particles();
+     //----------------- Store Quality values
+
+     KFTau_Fit_TauEnergyFraction.push_back(decay->energyTFraction());
+     KFTau_Fit_RefitVisibleMass.push_back(decay->a1Mass());
+     KFTau_Fit_Chi2.push_back(decay->chi2prob());
+     KFTau_Fit_PV_PV_significance.push_back(decay->vtxSignPVRotPVRed());
+     KFTau_Fit_SV_PV_significance.push_back(decay->vtxSignPVRotSV());
+     //    printf("decay->chi2prob()   %f  \n",decay->chi2prob());
+     //   std::cout<<"decay chi2  " << decay->chi2prob()<<std::endl;
+     //----------------- Store Quality values
+     for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
+       //      std::cout<<iParticle->name()<<std::endl;
+       if(iParticle->name()=="tau"){
+	 TVectorT<double> intauParam ;
+	 intauParam.ResizeTo(7);
+	 intauParam=iParticle->SelectedKinematicParticle::input_parameters();
+
+	 unsigned int PrimaryVertexIndex =999;
+	 float diff=999.;
+	 for(unsigned int iPrVtx=0; iPrVtx <Vtx_x.size(); iPrVtx++ ){
+
+	   float delta = sqrt(pow(Vtx_x.at(iPrVtx)-intauParam[0],2)
+			      + pow(Vtx_y.at(iPrVtx)-intauParam[1],2)
+			      + pow(Vtx_z.at(iPrVtx)-intauParam[2],2));
+
+	   if(delta < diff){
+	     diff = delta;
+	     PrimaryVertexIndex = iPrVtx;
+	   }
+	 }
+
+	 std::vector<float> iKFTau_Fit_TauPrimVtx;
+	 iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().X());
+	 iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Y());
+	 iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Z());
+	 KFTau_Fit_TauPrimVtx.push_back(iKFTau_Fit_TauPrimVtx);
+	 KFTau_Fit_IndexToPrimVertexVector.push_back(PrimaryVertexIndex);
+	 KFTau_Fit_chi2.push_back(decay->chi2());
+	 KFTau_Fit_ndf.push_back(decay->ndf());
+	 KFTau_Fit_ambiguity.push_back(iParticle->ambiguity());
+	 KFTau_Fit_charge.push_back(iParticle->charge());
+	 KFTau_Fit_csum.push_back(decay->csum());
+	 KFTau_Fit_iterations.push_back(decay->iterations());
+
+	 //	std::cout<<"tau   charge " << iParticle->charge()<<std::endl;
+       }
+     }
+   }
+ }
+
+ void 
+ TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+   edm::Handle<reco::PFJetCollection> JetCollection;
+   iEvent_->getByLabel(pfjetsTag_,  JetCollection);
+
+   for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
+     reco::PFJetRef PFJet(JetCollection, iPFJet);
+     std::vector<float> iPFJet_p4;
+     iPFJet_p4.push_back(PFJet->p4().E());
+     iPFJet_p4.push_back(PFJet->p4().Px());
+     iPFJet_p4.push_back(PFJet->p4().Py());
+     iPFJet_p4.push_back(PFJet->p4().Pz());
+     PFJet_p4.push_back(iPFJet_p4);
+     PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
+     PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
+     PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
+     PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
+     PFJet_PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
+     PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
+     PFJet_chargedHadronEnergy.push_back(PFJet->chargedHadronEnergy());
+     PFJet_chargedHadronMultiplicity.push_back(PFJet->chargedHadronMultiplicity());
+     PFJet_chargedMuEnergy.push_back(PFJet->chargedMuEnergy());
+     PFJet_chargedMultiplicity.push_back(PFJet->chargedMultiplicity());
+     PFJet_electronEnergy.push_back(PFJet->electronEnergy());
+     PFJet_electronMultiplicity.push_back(PFJet->electronMultiplicity());
+     PFJet_HFEMEnergy.push_back(PFJet->HFEMEnergy());
+     PFJet_HFEMMultiplicity.push_back(PFJet->HFEMMultiplicity());
+     PFJet_HFHadronEnergy.push_back(PFJet->HFHadronEnergy());
+     PFJet_HFHadronMultiplicity.push_back(PFJet->HFHadronMultiplicity());
+     PFJet_muonEnergy.push_back(PFJet->muonEnergy());
+     PFJet_muonMultiplicity.push_back(PFJet->muonMultiplicity());
+     PFJet_neutralEmEnergy.push_back(PFJet->neutralEmEnergy());
+     PFJet_neutralHadronEnergy.push_back(PFJet->neutralHadronEnergy());
+     PFJet_neutralHadronMultiplicity.push_back(PFJet->neutralHadronMultiplicity());
+     PFJet_photonEnergy.push_back(PFJet->photonEnergy());
+     PFJet_photonMultiplicity.push_back(PFJet->photonMultiplicity());
+     PFJet_jetArea.push_back(PFJet->jetArea()); 
+     PFJet_maxDistance.push_back(PFJet->maxDistance());
+     PFJet_nConstituents.push_back(PFJet->nConstituents());
+     PFJet_pileup.push_back(PFJet->pileup());  
+     PFJet_etaetaMoment.push_back(PFJet->etaetaMoment());
+     PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
+     std::vector<int> matches;
+     const edm::ProductID &TrID = trackCollection.id();
+     for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
+       const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
+       reco::TrackRef trackref = pfcand->trackRef();
+       if( trackref.isNonnull() ) {
+	 if(trackref.id() != TrID) continue;
+	 int match(-1);
+	 getTrackMatch(trackCollection,trackref,match);
+	 if(match>=0)matches.push_back(match);
+       }
+     }
+     PFJet_Track_idx.push_back(matches);
+     edm::Handle<std::vector<reco::PFTau> > HPStaus;
+     iEvent_->getByLabel(hpsTauProducer_, HPStaus);
+     unsigned int idx =0; 
+     reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
+     PFJet_MatchedHPS_idx.push_back(idx);
+
+   }
+ }
+
+
+ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){}
+
+ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
+
+   edm::Handle< edm::View<reco::PFMET> > pfMEThandle;
+   iEvent.getByLabel(pfMETTag_, pfMEThandle);
+   MET_et=pfMEThandle->front().et();
+   MET_phi=pfMEThandle->front().phi();
+   MET_sumET=pfMEThandle->front().sumEt();
+ }
+
+ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
+   if(!TriggerOK) return;
+   edm::Handle<trigger::TriggerEvent> triggerEvent;
+   iEvent.getByLabel(TriggerEvent_,triggerEvent);
+   edm::Handle<edm::TriggerResults> triggerResults;
+   iEvent.getByLabel(TriggerResults_, triggerResults);
+
+   edm::Handle<std::vector<std::string> > MyTriggerInfoNames;
+   iEvent_->getByLabel(TriggerInfoName_, MyTriggerInfoNames);
+   for(unsigned int i=0; i<HTLTriggerName.size();i++){
+     HTLTriggerName.push_back(MyTriggerInfoNames->at(i));
+     unsigned int triggerIndex = hltConfig_.triggerIndex(HTLTriggerName.at(i));  
+     TriggerAccept.push_back(triggerResults->accept(triggerIndex)); 
+     TriggerError.push_back(triggerResults->error(triggerIndex));
+     TriggerWasRun.push_back(triggerResults->wasrun(triggerIndex));
+     ////////////////////////////////////////////
+     // now get level 1 & HLT prescale
+     const std::vector< std::pair < bool, std::string > > level1Seeds = hltConfig_.hltL1GTSeeds(HTLTriggerName.at(i));
+     int l1Prescale(-1);
+     L1GtUtils l1GtUtils;
+     l1GtUtils.retrieveL1EventSetup(iSetup);
+     if(level1Seeds.size() == 1){
+       std::vector< std::string > l1SeedPaths_;
+       std::stringstream ss( level1Seeds.at( 0 ).second );
+       std::string       buf;
+       while(ss.good() && ! ss.eof()){
+	 ss >> buf;
+	 if ( buf[0] == '('  || buf[ buf.size() - 1 ] == ')' || buf == "AND" || buf == "NOT" ){
+	   l1SeedPaths_.clear();
+	   break;
+	 }
+	 else if(buf != "OR")l1SeedPaths_.push_back( buf );
+       }
+       if (l1SeedPaths_.empty()){
+	 for(unsigned j=0; j<l1SeedPaths_.size(); j++){
+	   int l1TempPrescale(-1);
+	   int errorCode(0);
+	   if(level1Seeds.at(0).first) { // technical triggers
+	     unsigned int techBit(atoi(l1SeedPaths_.at(j).c_str()));
+	     const std::string techName(*(triggerMenuLite_->gtTechTrigName(techBit, errorCode)));
+	     if(errorCode != 0) continue;
+	     if(!l1GtUtils.decision(iEvent,techName,errorCode)) continue;
+	     if(errorCode != 0) continue;
+	     l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,techName,errorCode);
+	     if (errorCode != 0) continue; 
+	   }
+	   else{ // algorithmic triggers
+	     if(!l1GtUtils.decision(iEvent,l1SeedPaths_.at(j),errorCode)) continue;
+	     if(errorCode != 0) continue;
+	     l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,l1SeedPaths_.at(j),errorCode);
+	     if (errorCode != 0) continue;
+	   }
+	   if(l1TempPrescale > 0){
+	     if( l1Prescale == -1 || l1Prescale > l1TempPrescale) l1Prescale = l1TempPrescale;
+	   }
+	 }
+       }
+     }
+     HLTPrescale.push_back(hltConfig_.prescaleValue(iEvent, iSetup, HTLTriggerName.at(i)));
+     NHLTL1GTSeeds.push_back(level1Seeds.size());
+     if(l1Prescale==-1){
+       L1SEEDPrescale.push_back(1);
+       L1SEEDPrescale.push_back(true);
+     }
+     else{
+       L1SEEDPrescale.push_back((unsigned int)l1Prescale);
+       L1SEEDInvalidPrescale.push_back(false);
+     }
+     ////////////////////////////////////
+     // Now get Trigger matching
+     if(triggerResults->accept(triggerIndex)){
+       std::vector<float> match;
+
+       // Muons
+       edm::Handle< reco::MuonCollection > muonCollection;
+       iEvent_->getByLabel(muonsTag_,muonCollection);
+       TriggerMatch(triggerEvent,triggerIndex,muonCollection,TriggerMuonMatchingdr_,match);
+       MuonTriggerMatch.push_back(match);
+
+       // Jets 
+       edm::Handle<reco::PFJetCollection> JetCollection;
+       iEvent_->getByLabel(pfjetsTag_,  JetCollection);
+       TriggerMatch(triggerEvent,triggerIndex,JetCollection,TriggerJetMatchingdr_,match);
+       JetTriggerMatch.push_back(match);
+
+       // Taus
+       edm::Handle<reco::PFTauCollection> tauCollection;
+       iEvent.getByLabel(kinTausTag_, tauCollection);
+       TriggerMatch(triggerEvent,triggerIndex,tauCollection,TriggerTauMatchingdr_,match);
+       TauTriggerMatch.push_back(match);
+     }
+     else{
+       MuonTriggerMatch.push_back(std::vector<float>());
+       JetTriggerMatch.push_back(std::vector<float>());
+       TauTriggerMatch.push_back(std::vector<float>());
+     }
+   }
+ }
+
+ template <class T>
+ void TauNtuple::TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,
+			      double drmax,std::vector<float> &match){
+   match=std::vector<float>(obj->size(),999);
+   std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
+   const trigger::Keys& KEYS(triggerEvent->filterKeys(triggerIndex));
+   for(unsigned int ipart=0; ipart!=KEYS.size();ipart++){
+     for(unsigned int i=0; i< obj->size(); ++i ){
+       double dr = reco::deltaR(trgobjs.at(KEYS.at(ipart)).eta(),trgobjs.at(KEYS.at(ipart)).phi(),obj->at(i).eta(),obj->at(i).phi());
+       if(dr<drmax){
+	 match.at(i)=true;
+       }
+     }
+   }
+ }
+
+
+
+ void 
+ TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
+
+   Event_EventNumber=iEvent.id().event();
+   Event_RunNumber=iEvent.id().run();
+   Event_bunchCrossing=iEvent.bunchCrossing(); 
+   Event_orbitNumber=iEvent.orbitNumber();
+   Event_luminosityBlock=iEvent.luminosityBlock(); 
+   Event_isRealData=iEvent.isRealData();
+   if(!Event_isRealData){
+     edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
+     iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo); 
+     std::vector<PileupSummaryInfo>::const_iterator PVI; 
+     PileupInfo_NumInteractions_nm1 = -1;
+     PileupInfo_NumInteractions_n0  = -1; 
+     PileupInfo_NumInteractions_np1 = -1; 
+     for(PVI = PupInfo->begin(); PVI != PupInfo->end();++PVI) { 
+       int BX = PVI->getBunchCrossing(); 
+       if(BX == -1) PileupInfo_NumInteractions_nm1 =  PVI->getPU_NumInteractions(); 
+       if(BX == 0)  PileupInfo_NumInteractions_n0  =  PVI->getPU_NumInteractions();  
+       if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
+     } 
+     EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);}
+ }
+
+
+
+
+
+ void 
+ TauNtuple::beginJob()
+ {
+
+
+ //-------------------------
+ //   TString cmd1="pwd";
+ //   TString cmd2="ls";
+ //   TString cmd3="ls ../";
+ //   TString cmd4="ls */";
+ //   system(cmd1.Data());
+ //   system(cmd2.Data());
+ //   system(cmd3.Data());
+ //   system(cmd4.Data());
+ //-------------------------
+   cnt_=0;
+   output = new TFile("TauNtuple.root","RECREATE");
+   output_tree = new TTree("t","t");
+
+   output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
+
+   //=============  Vertex Block ====
+   output_tree->Branch("Vtx_chi2",&Vtx_chi2);
+   output_tree->Branch("Vtx_nTrk",&Vtx_nTrk);
+   output_tree->Branch("Vtx_ndof",&Vtx_ndof);
+   output_tree->Branch("Vtx_x",&Vtx_x);
+   output_tree->Branch("Vtx_y",&Vtx_y);
+   output_tree->Branch("Vtx_z",&Vtx_z);
+   output_tree->Branch("Vtx_Cov",&Vtx_Cov);
+   output_tree->Branch("Vtx_Track_idx",&Vtx_Track_idx);
+   output_tree->Branch("Vtx_isFake",&Vtx_isFake);
+
+   //=============  Muon Block ====
+   output_tree->Branch("Muon_p4",&Muon_p4);		       
+   output_tree->Branch("Muon_Poca",&Muon_Poca);	       
+   output_tree->Branch("Muon_isGlobalMuon",&Muon_isGlobalMuon);      
+   output_tree->Branch("Muon_isStandAloneMuon",&Muon_isStandAloneMuon);  
+   output_tree->Branch("Muon_isTrackerMuon",&Muon_isTrackerMuon);     
+   output_tree->Branch("Muon_isCaloMuon",&Muon_isCaloMuon);	       
+   output_tree->Branch("Muon_isIsolationValid",&Muon_isIsolationValid);  
+   output_tree->Branch("Muon_isQualityValid",&Muon_isQualityValid);    
+   output_tree->Branch("Muon_isTimeValid",&Muon_isTimeValid);       
+   output_tree->Branch("Muon_emEt03",&Muon_emEt03);          
+   output_tree->Branch("Muon_emVetoEt03",&Muon_emVetoEt03);      
+   output_tree->Branch("Muon_hadEt03",&Muon_hadEt03);         
+   output_tree->Branch("Muon_hadVetoEt03",&Muon_hadVetoEt03);     
+   output_tree->Branch("Muon_nJets03",&Muon_nJets03);         
+   output_tree->Branch("Muon_nTracks03",&Muon_nTracks03);       
+   output_tree->Branch("Muon_sumPt03",&Muon_sumPt03);         
+   output_tree->Branch("Muon_trackerVetoPt03",&Muon_trackerVetoPt03); 
+   output_tree->Branch("Muon_emEt05",&Muon_emEt05);          
+   output_tree->Branch("Muon_emVetoEt05",&Muon_emVetoEt05);      
+   output_tree->Branch("Muon_hadEt05",&Muon_hadEt05);         
+   output_tree->Branch("Muon_hadVetoEt05",&Muon_hadVetoEt05);     
+   output_tree->Branch("Muon_nJets05",&Muon_nJets05);         
+   output_tree->Branch("Muon_nTracks05",&Muon_nTracks05);       
+   output_tree->Branch("Muon_sumPt05",&Muon_sumPt05);         
+   output_tree->Branch("Muon_trackerVetoPt05",&Muon_trackerVetoPt05); 
+   output_tree->Branch("Muon_Track_idx",&Muon_Track_idx);
+   output_tree->Branch("Muon_hitPattern_pixelLayerwithMeas",&Muon_hitPattern_pixelLayerwithMeas);
+   output_tree->Branch("Muon_numberOfMatchedStations",&Muon_numberOfMatchedStations);
+   output_tree->Branch("Muon_normChi2",&Muon_normChi2);
+   output_tree->Branch("Muon_hitPattern_numberOfValidMuonHits",&Muon_hitPattern_numberOfValidMuonHits);
+   output_tree->Branch("Muon_innerTrack_numberofValidHits",&Muon_innerTrack_numberofValidHits);
+   output_tree->Branch("Muon_numberOfMatches",&Muon_numberOfMatches);
+   output_tree->Branch("Muon_Charge",&Muon_Charge);
+   output_tree->Branch("Muon_numberOfChambers",&Muon_numberOfChambers);
+
+   //================  PFTau block ==========
+   output_tree->Branch("PFTau_p4",&PFTau_p4);
+   output_tree->Branch("PFTau_isTightIsolation",&PFTau_isTightIsolation);
+   output_tree->Branch("PFTau_isMediumIsolation",&PFTau_isMediumIsolation);
+   output_tree->Branch("PFTau_isLooseIsolation",&PFTau_isLooseIsolation);
+
+   output_tree->Branch("PFTau_isTightIsolationDBSumPtCorr",&PFTau_isTightIsolationDBSumPtCorr); 
+   output_tree->Branch("PFTau_isMediumIsolationDBSumPtCorr",&PFTau_isMediumIsolationDBSumPtCorr);
+   output_tree->Branch("PFTau_isLooseIsolationDBSumPtCorr",&PFTau_isLooseIsolationDBSumPtCorr); 
+   output_tree->Branch("PFTau_isVLooseIsolationDBSumPtCorr",&PFTau_isVLooseIsolationDBSumPtCorr);
+
+
+
+   output_tree->Branch("PFTau_hpsDecayMode",&PFTau_hpsDecayMode);
+   output_tree->Branch("PFTau_Charge",&PFTau_Charge);
+   output_tree->Branch("PFTau_Track_idx",&PFTau_Track_idx);
+
+   //================  KinFitTaus block ==========
+   output_tree->Branch("KFTau_discriminatorByKFit",&KFTau_discriminatorByKFit);
+   output_tree->Branch("KFTau_discriminatorByQC",&KFTau_discriminatorByQC);
+   output_tree->Branch("KFTau_nKinTaus",&KFTau_nKinTaus);	    	    
+   output_tree->Branch("KFTau_TauVis_p4",&KFTau_TauVis_p4);    
+   output_tree->Branch("KFTau_TauFit_p4",&KFTau_TauFit_p4);    
+   output_tree->Branch("KFTau_Neutrino_p4",&KFTau_Neutrino_p4);  
+   output_tree->Branch("KFTau_MatchedHPS_idx",&KFTau_MatchedHPS_idx);
+   output_tree->Branch("KFTau_Track_idx",&PFTau_Track_idx);
+   output_tree->Branch("KFTau_indexOfFitInfo",&KFTau_indexOfFitInfo);
+
+   output_tree->Branch("KFTau_Fit_TauPrimVtx",&KFTau_Fit_TauPrimVtx);
+   output_tree->Branch("KFTau_Fit_IndexToPrimVertexVector",&KFTau_Fit_IndexToPrimVertexVector);
+   output_tree->Branch("KFTau_Fit_chi2",&KFTau_Fit_chi2);
+   output_tree->Branch("KFTau_Fit_ndf",&KFTau_Fit_ndf);
+   output_tree->Branch("KFTau_Fit_ambiguity",&KFTau_Fit_ambiguity);
+   output_tree->Branch("KFTau_Fit_charge",&KFTau_Fit_charge);
+   output_tree->Branch("KFTau_Fit_csum",&KFTau_Fit_csum);
+   output_tree->Branch("KFTau_Fit_iterations",&KFTau_Fit_iterations);
+
+   output_tree->Branch("KFTau_Fit_TauEnergyFraction",&KFTau_Fit_TauEnergyFraction);
+   output_tree->Branch("KFTau_Fit_RefitVisibleMass",&KFTau_Fit_RefitVisibleMass);
+   output_tree->Branch("KFTau_Fit_Chi2",&KFTau_Fit_Chi2);
+   output_tree->Branch("KFTau_Fit_PV_PV_significance",&KFTau_Fit_PV_PV_significance);
+   output_tree->Branch("KFTau_Fit_SV_PV_significance",&KFTau_Fit_SV_PV_significance);
+
+
+
+  //=======  PFJets ===
+   output_tree->Branch("PFJet_p4",&PFJet_p4);
+   output_tree->Branch("PFJet_chargedEmEnergy",&PFJet_chargedEmEnergy);
+   output_tree->Branch("PFJet_chargedHadronEnergy",&PFJet_chargedHadronEnergy);
+   output_tree->Branch("PFJet_chargedHadronMultiplicity",&PFJet_chargedHadronMultiplicity);
+   output_tree->Branch("PFJet_chargedMuEnergy",&PFJet_chargedMuEnergy);
+   output_tree->Branch("PFJet_chargedMultiplicity",&PFJet_chargedMultiplicity);
+   output_tree->Branch("PFJet_electronEnergy",&PFJet_electronEnergy);
+   output_tree->Branch("PFJet_electronMultiplicity",&PFJet_electronMultiplicity);
+   output_tree->Branch("PFJet_HFEMEnergy",&PFJet_HFEMEnergy);
+   output_tree->Branch("PFJet_HFEMMultiplicity",&PFJet_HFEMMultiplicity);
+   output_tree->Branch("PFJet_HFHadronEnergy",&PFJet_HFHadronEnergy);
+   output_tree->Branch("PFJet_HFHadronMultiplicity",&PFJet_HFHadronMultiplicity);
+   output_tree->Branch("PFJet_muonEnergy",&PFJet_muonEnergy);
+   output_tree->Branch("PFJet_muonMultiplicity",&PFJet_muonMultiplicity);
+   output_tree->Branch("PFJet_neutralEmEnergy",&PFJet_neutralEmEnergy);
+   output_tree->Branch("PFJet_neutralHadronEnergy",&PFJet_neutralHadronEnergy);
+   output_tree->Branch("PFJet_neutralHadronMultiplicity",&PFJet_neutralHadronMultiplicity);
+   output_tree->Branch("PFJet_photonEnergy",&PFJet_photonEnergy);
+   output_tree->Branch("PFJet_photonMultiplicity",&PFJet_photonMultiplicity);
+   output_tree->Branch("PFJet_jetArea",&PFJet_jetArea); 
+   output_tree->Branch("PFJet_maxDistance",&PFJet_maxDistance);
+   output_tree->Branch("PFJet_nConstituents",&PFJet_nConstituents);
+   output_tree->Branch("PFJet_pileup",&PFJet_pileup);  
+   output_tree->Branch("PFJet_etaetaMoment",&PFJet_etaetaMoment);
+   output_tree->Branch("PFJet_etaphiMoment",&PFJet_etaphiMoment);
+   output_tree->Branch("PFJet_Track_idx",&PFJet_Track_idx);
+   output_tree->Branch("PFJet_MatchedHPS_idx",&PFJet_MatchedHPS_idx);
+   output_tree->Branch("PFJet_numberOfDaughters",&PFJet_numberOfDaughters);
+   output_tree->Branch("PFJet_chargedEmEnergyFraction",&PFJet_chargedEmEnergyFraction);
+   output_tree->Branch("PFJet_chargedHadronEnergyFraction",&PFJet_chargedHadronEnergyFraction);
+   output_tree->Branch("PFJet_neutralHadronEnergyFraction",&PFJet_neutralHadronEnergyFraction);
+   output_tree->Branch("PFJet_PFJet_neutralEmEnergyFraction",&PFJet_PFJet_neutralEmEnergyFraction);
+
+   //================  MET block ==========
+   output_tree->Branch("MET_et",&MET_et);
+   output_tree->Branch("MET_phi",&MET_phi);
+   output_tree->Branch("MET_sumET",&MET_sumET);
+
+   //=============== Event Block ==============
+   output_tree->Branch("Event_EventNumber",&Event_EventNumber);
+   output_tree->Branch("Event_RunNumber",&Event_RunNumber);
+   output_tree->Branch("Event_bunchCrossing",&Event_bunchCrossing);
+   output_tree->Branch("Event_orbitNumber",&Event_orbitNumber);
+   output_tree->Branch("Event_luminosityBlock",&Event_luminosityBlock);	 
+   output_tree->Branch("Event_isRealData",&Event_isRealData);
+
+   output_tree->Branch("PileupInfo_NumInteractions_nm1",&PileupInfo_NumInteractions_nm1);
+   output_tree->Branch("PileupInfo_NumInteractions_n0",&PileupInfo_NumInteractions_n0);
+   output_tree->Branch("PileupInfo_NumInteractions_np1",&PileupInfo_NumInteractions_np1);
+   output_tree->Branch("EvtWeight3D",&EvtWeight3D);
+
+   //=============== Track Block ==============
+   output_tree->Branch("Track_p4",&Track_p4);
+   output_tree->Branch("Track_Poca",&Track_Poca);
+   output_tree->Branch("Track_charge",&Track_charge);
+   output_tree->Branch("Track_chi2",&Track_chi2);
+   output_tree->Branch("Track_ndof",&Track_ndof);
+   output_tree->Branch("Track_numberOfLostHits",&Track_numberOfLostHits);
+   output_tree->Branch("Track_numberOfValidHits",&Track_numberOfValidHits);
+   output_tree->Branch("Track_qualityMask",&Track_qualityMask);
+   output_tree->Branch("Track_par",&Track_par);
+   output_tree->Branch("Track_parCov",&Track_parCov);
+
+   //=============== MC Block ==============
+
+   output_tree->Branch("GenEventInfoProduct_signalProcessID",&GenEventInfoProduct_signalProcessID);
+   output_tree->Branch("GenEventInfoProduct_weight",&GenEventInfoProduct_weight);
+   output_tree->Branch("GenEventInfoProduct_weights",&GenEventInfoProduct_weights);
+   output_tree->Branch("GenEventInfoProduct_qScale",&GenEventInfoProduct_qScale);
+   output_tree->Branch("GenEventInfoProduct_alphaQED",&GenEventInfoProduct_alphaQED);
+   output_tree->Branch("GenEventInfoProduct_alphaQCD",&GenEventInfoProduct_alphaQCD);
+
+   if(do_MCComplete_){
+     output_tree->Branch("MC_p4",&MC_p4);
+     output_tree->Branch("MC_pdgid",&MC_pdgid);
+     output_tree->Branch("MC_charge",&MC_charge);
+     output_tree->Branch("MC_midx",&MC_midx);
+   }
+   if(do_MCSummary_){
+     output_tree->Branch("MCSignalParticle_p4",&MCSignalParticle_p4);
+     output_tree->Branch("MCSignalParticle_pdgid",&MCSignalParticle_pdgid);
+     output_tree->Branch("MCSignalParticle_charge",&MCSignalParticle_charge);
+     output_tree->Branch("MCSignalParticle_Poca",&MCSignalParticle_Poca);
+     output_tree->Branch("MCSignalParticle_Tauidx",&MCSignalParticle_Tauidx);
+     output_tree->Branch("MCTauandProd_p4",&MCTauandProd_p4);
+     output_tree->Branch("MCTauandProd_pdgid",&MCTauandProd_pdgid);
+     output_tree->Branch("MCTauandProd_midx",&MCTauandProd_midx);
+     output_tree->Branch("MCTauandProd_charge",&MCTauandProd_charge);
+     output_tree->Branch("MCTau_JAK",&MCTau_JAK);   
+     output_tree->Branch("MCTau_DecayBitMask",&MCTau_DecayBitMask); 
+   }
+
+   //================= Trigger Block ===============
+   output_tree->Branch("HTLTriggerName",&HTLTriggerName);
+   output_tree->Branch("TriggerAccept",&TriggerAccept);
+   output_tree->Branch("TriggerError",&TriggerError);
+   output_tree->Branch("TriggerWasRun",&TriggerWasRun);
+   output_tree->Branch("HLTPrescale",&HLTPrescale);
+   output_tree->Branch("NHLTL1GTSeeds",&NHLTL1GTSeeds);
+   output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
+   output_tree->Branch("L1SEEDInvalidPrescale",&L1SEEDInvalidPrescale);
+   output_tree->Branch("MuonTriggerMatch",&MuonTriggerMatch);
+   output_tree->Branch("ElectronTriggerMatch",&ElectronTriggerMatch);
+   output_tree->Branch("JetTriggerMatch",&JetTriggerMatch);
+   output_tree->Branch("TauTriggerMatch",&TauTriggerMatch);
+
+ } 
+
+
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // std::vector<bool> TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef)
+ //
+ // checks that tau candidate pass kinematic fit and KinFit quality criteria 
+ // returns vector of bool variables, first variable true/false if tau candidate pass/fail kinematic fit
+ // second variable is true/false if  refitted tau candidate pass/fail quality requirements
+ std::vector<bool>
+ TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef){
+   std::vector<bool> output_pair;
+   bool discriminateByKinFit = false;
+   bool discriminateByKinQC  = false;
+   int iDiscr =0;
+   for (std::vector<edm::Handle<reco::PFTauDiscriminator> >::const_iterator discr = tauDiscriminators.begin(); discr!=tauDiscriminators.end(); ++discr) {
+       iDiscr = iDiscr + (**discr)[tauRef];
+     }
+   if(iDiscr == 1 )discriminateByKinFit=true;
+   if(iDiscr == 2 ){discriminateByKinFit=true;discriminateByKinQC=true;}
+     output_pair.push_back(discriminateByKinFit);
+     output_pair.push_back(discriminateByKinQC);
+
+     return output_pair;
+ }
+
+
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
+ //
+ // finds HPS tau candidate for a given KinFit tau candidate
+ // the closest by deltaR HPS candidate is accepted
+ reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &UnmodifiedTau, unsigned int &match){
+   TLorentzVector TauVisible;
+   TauVisible.SetE(UnmodifiedTau.at(0));
+   TauVisible.SetPx(UnmodifiedTau.at(1));
+   TauVisible.SetPy(UnmodifiedTau.at(2));
+   TauVisible.SetPz(UnmodifiedTau.at(3));
+   reco::PFTauRef MatchedHPSTau;
+   double deltaR = 999;
+   match=0;
+    for ( unsigned int iTau = 0; iTau < HPStaus->size(); ++iTau ) {
+     reco::PFTauRef HPStauCandidate(HPStaus, iTau);
+     double dr=sqrt( pow(DeltaPhi(HPStauCandidate->p4().Phi(),TauVisible.Phi()),2) + pow(HPStauCandidate->p4().Eta() - TauVisible.Eta(),2));
+     if(dr < deltaR){
+       deltaR = dr;
+       match=iTau;
+       MatchedHPSTau = HPStauCandidate;
+     }
+
+   }
+   return MatchedHPSTau;
+ }
+
+
+
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
+ //
+ // finds HPS tau candidate for a given KinFit tau candidate
+ // the closest by deltaR HPS candidate is accepted
+ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>   &Jet, unsigned int &match){
+   TLorentzVector Jetp4;;
+   Jetp4.SetE(Jet.at(0));
+   Jetp4.SetPx(Jet.at(1));
+   Jetp4.SetPy(Jet.at(2));
+   Jetp4.SetPz(Jet.at(3));
+
+   reco::PFTauRef MatchedHPSTau;
+   double deltaR = 999;
+   match=0;
+    for ( unsigned int iTau = 0; iTau < HPStaus->size(); ++iTau ) {
+     reco::PFTauRef HPStauCandidate(HPStaus, iTau);
+     double dr=sqrt( pow(DeltaPhi(HPStauCandidate->p4().Phi(),Jetp4.Phi()),2) + pow(HPStauCandidate->p4().Eta() - Jetp4.Eta(),2));
+     if(dr < deltaR){
+       deltaR = dr;
+       match=iTau;
+       MatchedHPSTau = HPStauCandidate;
+     }
+
+   }
+   return MatchedHPSTau;
+ }
+
+
+
+
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match)
+ //
+ // finds track match for a given TrackRef
+ // returns true  if the matching track is found in the collection and sets match to the index of the found track
+ // retruns false if on match is found in the collection and match is set to -1.
+ bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match){
+   match=-1;
+   for(unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
+     reco::TrackRef Track(trackCollection, iTrack);
+     if(refTrack==Track){
+       match=iTrack;
+       return true;  
+     }
+   }
+   return false;
+ }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

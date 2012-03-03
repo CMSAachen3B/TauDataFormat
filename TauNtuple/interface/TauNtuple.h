@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.12 2012/02/24 17:33:27 inugent Exp $
+// $Id: TauNtuple.h,v 1.13 2012/03/01 15:17:02 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -188,7 +188,6 @@ class TauNtuple : public edm::EDProducer {
   reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &Jet, unsigned int &match);
 
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match);
-  bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRefVector &refTracks, std::vector<int> &matches,std::vector<bool> &found); 	
   double DeltaPhi(double phi1, double phi2);
   void ClearEvent();
 
