@@ -89,15 +89,15 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //  std::cout<<" filKinTaus 1"<<std::endl;
   // Get trackcollection for matching to objects
   edm::Handle< std::vector<reco::Track>  > trackCollection;
-  iEvent_->getByLabel(generalTracks_,  trackCollection);
-  fillPrimeVertex(iEvent, iSetup,trackCollection);
-  fillMuons(iEvent, iSetup,trackCollection);
-  fillPFTaus(iEvent, iSetup,trackCollection);
-  fillPFJets(iEvent, iSetup,trackCollection);
-  fillKinFitTaus(iEvent, iSetup,trackCollection); 
+  iEvent_->getByLabel(generalTracks_,trackCollection);
+  fillPrimeVertex(iEvent,iSetup,trackCollection);
+  fillMuons(iEvent,iSetup,trackCollection);
+  fillPFTaus(iEvent,iSetup,trackCollection);
+  fillPFJets(iEvent,iSetup,trackCollection);
+  fillKinFitTaus(iEvent,iSetup,trackCollection); 
   fillTracks(trackCollection);
-  fillMCTruth(iEvent, iSetup);
-  fillTriggerInfo(iEvent, iSetup);
+  fillMCTruth(iEvent,iSetup);
+  fillTriggerInfo(iEvent,iSetup);
   output_tree->Fill();
 }      
 
@@ -666,13 +666,12 @@ void
    iEvent.getByLabel(TriggerEvent_,triggerEvent);
    edm::Handle<edm::TriggerResults> triggerResults;
    iEvent.getByLabel(TriggerResults_, triggerResults);
-
    edm::Handle<std::vector<std::string> > MyTriggerInfoNames;
-   iEvent_->getByLabel(TriggerInfoName_, MyTriggerInfoNames);
-   for(unsigned int i=0; i<HTLTriggerName.size();i++){
+   iEvent.getByLabel(TriggerInfoName_, MyTriggerInfoNames);
+   for(unsigned int i=0; i<MyTriggerInfoNames->size();i++){
      HTLTriggerName.push_back(MyTriggerInfoNames->at(i));
-     unsigned int triggerIndex = hltConfig_.triggerIndex(HTLTriggerName.at(i));  
-     TriggerAccept.push_back(triggerResults->accept(triggerIndex)); 
+     unsigned int triggerIndex = hltConfig_.triggerIndex(HTLTriggerName.at(i));
+     TriggerAccept.push_back(triggerResults->accept(triggerIndex));
      TriggerError.push_back(triggerResults->error(triggerIndex));
      TriggerWasRun.push_back(triggerResults->wasrun(triggerIndex));
      ////////////////////////////////////////////
@@ -682,23 +681,22 @@ void
      L1GtUtils l1GtUtils;
      l1GtUtils.retrieveL1EventSetup(iSetup);
      if(level1Seeds.size() == 1){
-       std::vector< std::string > l1SeedPaths_;
-       std::stringstream ss( level1Seeds.at( 0 ).second );
-       std::string       buf;
-       while(ss.good() && ! ss.eof()){
-	 ss >> buf;
-	 if ( buf[0] == '('  || buf[ buf.size() - 1 ] == ')' || buf == "AND" || buf == "NOT" ){
-	   l1SeedPaths_.clear();
-	   break;
+       std::vector<std::string> myl1SeedPaths;
+       std::stringstream ss(level1Seeds.at(0).second);
+       TString       buffer=level1Seeds.at(0).second;
+       myl1SeedPaths.clear();
+       if(!(buffer.Contains("(") || buffer.Contains(")") || buffer.Contains("AND") || buffer.Contains("NOT") )){
+	 while(ss.good() && ! ss.eof()){
+	   ss >> buffer;
+	   if(!buffer.Contains("OR")) myl1SeedPaths.push_back(buffer.Data());
 	 }
-	 else if(buf != "OR")l1SeedPaths_.push_back( buf );
        }
-       if (l1SeedPaths_.empty()){
-	 for(unsigned j=0; j<l1SeedPaths_.size(); j++){
+       if(!myl1SeedPaths.empty()){
+	 for(unsigned j=0; j<myl1SeedPaths.size(); j++){
 	   int l1TempPrescale(-1);
 	   int errorCode(0);
 	   if(level1Seeds.at(0).first) { // technical triggers
-	     unsigned int techBit(atoi(l1SeedPaths_.at(j).c_str()));
+	     unsigned int techBit(atoi(myl1SeedPaths.at(j).c_str()));
 	     const std::string techName(*(triggerMenuLite_->gtTechTrigName(techBit, errorCode)));
 	     if(errorCode != 0) continue;
 	     if(!l1GtUtils.decision(iEvent,techName,errorCode)) continue;
@@ -707,9 +705,9 @@ void
 	     if (errorCode != 0) continue; 
 	   }
 	   else{ // algorithmic triggers
-	     if(!l1GtUtils.decision(iEvent,l1SeedPaths_.at(j),errorCode)) continue;
+	     if(!l1GtUtils.decision(iEvent,myl1SeedPaths.at(j),errorCode)) continue;
 	     if(errorCode != 0) continue;
-	     l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,l1SeedPaths_.at(j),errorCode);
+	     l1TempPrescale = l1GtUtils.prescaleFactor(iEvent,myl1SeedPaths.at(j),errorCode);
 	     if (errorCode != 0) continue;
 	   }
 	   if(l1TempPrescale > 0){
@@ -731,25 +729,46 @@ void
      ////////////////////////////////////
      // Now get Trigger matching
      if(triggerResults->accept(triggerIndex)){
+       std::string filterName_="";
+       edm::InputTag filterTag;
+       std::vector<std::string> filters = hltConfig_.moduleLabels(HTLTriggerName.at(i));
+       for(std::vector<std::string>::iterator filter =
+	     filters.begin(); filter!= filters.end(); ++filter ) {
+	 edm::InputTag testTag(*filter,"","HLT");
+	 int testindex = triggerEvent->filterIndex(testTag);
+	 if ( !(testindex >= triggerEvent->sizeFilters()) ) {
+	   filterName_ = *filter;
+	   filterTag=testTag;
+	 }
+       }       
+       
+       unsigned int index=triggerEvent->filterIndex(filterTag);
+       /*std::cout << "TrgPath: " << HTLTriggerName.at(i) << " hltTag_.label(): "  
+		 << filterTag.label() << "   filter name: "   
+		 << filterName_ << "  sizeFilters: "   
+		 << triggerEvent->sizeFilters() << std::endl;*/
+       
+       
+       
        std::vector<float> match;
-
        // Muons
        edm::Handle< reco::MuonCollection > muonCollection;
        iEvent_->getByLabel(muonsTag_,muonCollection);
-       TriggerMatch(triggerEvent,triggerIndex,muonCollection,TriggerMuonMatchingdr_,match);
+       TriggerMatch(triggerEvent,index,muonCollection,TriggerMuonMatchingdr_,match);
        MuonTriggerMatch.push_back(match);
-
+       match.clear();
        // Jets 
        edm::Handle<reco::PFJetCollection> JetCollection;
        iEvent_->getByLabel(pfjetsTag_,  JetCollection);
-       TriggerMatch(triggerEvent,triggerIndex,JetCollection,TriggerJetMatchingdr_,match);
+       TriggerMatch(triggerEvent,index,JetCollection,TriggerJetMatchingdr_,match);
        JetTriggerMatch.push_back(match);
-
+       match.clear();
        // Taus
        edm::Handle<reco::PFTauCollection> tauCollection;
        iEvent.getByLabel(kinTausTag_, tauCollection);
-       TriggerMatch(triggerEvent,triggerIndex,tauCollection,TriggerTauMatchingdr_,match);
+       TriggerMatch(triggerEvent,index,tauCollection,TriggerTauMatchingdr_,match);
        TauTriggerMatch.push_back(match);
+       match.clear();
      }
      else{
        MuonTriggerMatch.push_back(std::vector<float>());
@@ -765,11 +784,14 @@ void
    match=std::vector<float>(obj->size(),999);
    std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
    const trigger::Keys& KEYS(triggerEvent->filterKeys(triggerIndex));
-   for(unsigned int ipart=0; ipart!=KEYS.size();ipart++){
+   for(unsigned int ipart=0; ipart<KEYS.size();ipart++){
      for(unsigned int i=0; i< obj->size(); ++i ){
        double dr = reco::deltaR(trgobjs.at(KEYS.at(ipart)).eta(),trgobjs.at(KEYS.at(ipart)).phi(),obj->at(i).eta(),obj->at(i).phi());
        if(dr<drmax){
-	 match.at(i)=true;
+	 match.at(i)=dr;
+	 /*	 std::cout << "Found Trigger Match " << i << " " << dr << " " << drmax << " Trigger Obj: " << trgobjs.at(KEYS.at(ipart)).eta()
+		   << " " << trgobjs.at(KEYS.at(ipart)).phi() << " " <<  trgobjs.at(KEYS.at(ipart)).energy() 
+		   << " obj: " <<  obj->at(i).eta() << " " << obj->at(i).phi() << " " << obj->at(i).energy() << std::endl;*/
        }
      }
    }
@@ -1177,6 +1199,7 @@ void TauNtuple::beginRun(edm::Run& Run, edm::EventSetup const& Setup){
     TriggerOK=false;
   }
   if(!Run.getByLabel(l1GtTriggerMenuLite_.label(), triggerMenuLite_)){
+    std::cout << " l1GtTrigger config extraction failure "  << std::endl;
     TriggerOK=false;
   }
 } 
