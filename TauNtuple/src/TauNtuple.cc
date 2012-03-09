@@ -15,7 +15,10 @@
 #include <dirent.h>
 #include "DataFormats/Math/interface/deltaR.h"
 
-
+#include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
+#include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   primVtxTag_( iConfig.getParameter<edm::InputTag>( "primVtx" ) ),
@@ -32,6 +35,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   kinTausTag_( iConfig.getParameter<edm::InputTag>( "kinematicTaus" ) ),
   KinFitAdvanced_( iConfig.getParameter<edm::InputTag>( "kinematicTausAdvanced" ) ),
   pfjetsTag_( iConfig.getParameter<edm::InputTag>( "pfjets" ) ),
+  PFElectronTag_( iConfig.getParameter<edm::InputTag>( "pfelectrons" ) ),
   generalTracks_(iConfig.getParameter<edm::InputTag>( "generalTracks" )),
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
@@ -78,7 +82,6 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if( (cnt_%500)==0) std::cout<<"Proccess event number ======>>> "<< cnt_ <<std::endl;
   ClearEvent();
   using namespace edm;
-  iEvent_=&iEvent;
   DataMCType DMT;
   DataMC_Type_idx=DMT.GetType();
   if(iEvent.isRealData()){
@@ -89,9 +92,10 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   //  std::cout<<" filKinTaus 1"<<std::endl;
   // Get trackcollection for matching to objects
   edm::Handle< std::vector<reco::Track>  > trackCollection;
-  iEvent_->getByLabel(generalTracks_,trackCollection);
+  iEvent.getByLabel(generalTracks_,trackCollection);
   fillPrimeVertex(iEvent,iSetup,trackCollection);
   fillMuons(iEvent,iSetup,trackCollection);
+  fillElectrons(iEvent,iSetup,trackCollection);
   fillPFTaus(iEvent,iSetup,trackCollection);
   fillPFJets(iEvent,iSetup,trackCollection);
   fillKinFitTaus(iEvent,iSetup,trackCollection); 
@@ -107,7 +111,7 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if(!iEvent.isRealData()){
     TauDecay_CMSSW myTauDecay;
     edm::Handle<reco::GenParticleCollection> genParticles;
-    iEvent_->getByLabel(gensrc_, genParticles);
+    iEvent.getByLabel(gensrc_, genParticles);
     myTauDecay.CheckForSignal(DataMC_Type_idx,genParticles);
 
 
@@ -215,13 +219,13 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 void
 TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
   edm::Handle<reco::VertexCollection> primVtxs;
-  iEvent_->getByLabel( primVtxTag_, primVtxs);
+  iEvent.getByLabel( primVtxTag_, primVtxs);
 
   float nVtxs=primVtxs->size();
   int ndim=3;
   nVtxs = primVtxs->size();
   for(int i=0;i<nVtxs;i++){
-    const reco::Vertex &pv = (*primVtxs)[i];
+    const reco::Vertex &pv = primVtxs->at(i);
     Vtx_isFake.push_back(pv.isFake());
     Vtx_chi2.push_back(pv.chi2());
     Vtx_ndof.push_back(pv.ndof());
@@ -252,7 +256,7 @@ TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
 void 
 TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
   edm::Handle< reco::MuonCollection > muonCollection;
-  iEvent_->getByLabel(muonsTag_,  muonCollection);
+  iEvent.getByLabel(muonsTag_,  muonCollection);
   int Muon_index =0;
   for(reco::MuonCollection::const_iterator iMuon = muonCollection->begin(); iMuon!= muonCollection->end(); ++iMuon, Muon_index++){
     reco::MuonRef RefMuon(muonCollection, Muon_index);
@@ -394,26 +398,32 @@ void
  void 
  TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
    edm::Handle<std::vector<reco::PFTau> > HPStaus;
-   iEvent_->getByLabel(hpsTauProducer_, HPStaus);
+   iEvent.getByLabel(hpsTauProducer_, HPStaus);
 
    edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByTightIsolation_, HPSTightIsoDiscr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByTightIsolation_, HPSTightIsoDiscr);
    edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByMediumIsolation_, HPSMediumIsoDiscr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByMediumIsolation_, HPSMediumIsoDiscr);
    edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByLooseIsolation_, HPSLooseIsoDiscr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByLooseIsolation_, HPSLooseIsoDiscr);
    edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscrDBSumPtCorr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_, HPSTightIsoDiscrDBSumPtCorr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_, HPSTightIsoDiscrDBSumPtCorr);
    edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscrDBSumPtCorr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_, HPSMediumIsoDiscrDBSumPtCorr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_, HPSMediumIsoDiscrDBSumPtCorr);
    edm::Handle<reco::PFTauDiscriminator> HPSLooseIsoDiscrDBSumPtCorr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_, HPSLooseIsoDiscrDBSumPtCorr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_, HPSLooseIsoDiscrDBSumPtCorr);
    edm::Handle<reco::PFTauDiscriminator> HPSVLooseIsoDiscrDBSumPtCorr;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
+   iEvent.getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
 
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
 
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
+     std::vector<double> iPFTau_Poca;
+     iPFTau_Poca.push_back(HPStauCandidate->vx());
+     iPFTau_Poca.push_back(HPStauCandidate->vy());
+     iPFTau_Poca.push_back(HPStauCandidate->vz());
+     PFTau_Poca.push_back(iPFTau_Poca);
+
      std::vector<float> iPFTau_p4;
      iPFTau_p4.push_back(HPStauCandidate->p4().E());
      iPFTau_p4.push_back(HPStauCandidate->p4().Px());
@@ -461,7 +471,7 @@ void
 
    //========= HPS taus for matching issues
    edm::Handle<std::vector<reco::PFTau> > HPStaus;
-   iEvent_->getByLabel(hpsTauProducer_, HPStaus);
+   iEvent.getByLabel(hpsTauProducer_, HPStaus);
    //========= HPS taus for matching issues
 
    std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators;
@@ -515,7 +525,6 @@ void
      double pz  = iKFTau_TauFit_p4.at(3);
      double e   = iKFTau_TauFit_p4.at(0);
      vecKf.SetPxPyPzE(px,py,pz,e);
-
 
      unsigned int idx =0;
      reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4,idx);
@@ -587,10 +596,16 @@ void
  void 
  TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
    edm::Handle<reco::PFJetCollection> JetCollection;
-   iEvent_->getByLabel(pfjetsTag_,  JetCollection);
+   iEvent.getByLabel(pfjetsTag_,  JetCollection);
 
    for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
      reco::PFJetRef PFJet(JetCollection, iPFJet);
+     std::vector<double> iPFJet_Poca;
+     iPFJet_Poca.push_back(PFJet->vx());
+     iPFJet_Poca.push_back(PFJet->vy());
+     iPFJet_Poca.push_back(PFJet->vz());
+     PFJet_Poca.push_back(iPFJet_Poca);
+
      std::vector<float> iPFJet_p4;
      iPFJet_p4.push_back(PFJet->p4().E());
      iPFJet_p4.push_back(PFJet->p4().Px());
@@ -640,7 +655,7 @@ void
      }
      PFJet_Track_idx.push_back(matches);
      edm::Handle<std::vector<reco::PFTau> > HPStaus;
-     iEvent_->getByLabel(hpsTauProducer_, HPStaus);
+     iEvent.getByLabel(hpsTauProducer_, HPStaus);
      unsigned int idx =0; 
      reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
      PFJet_MatchedHPS_idx.push_back(idx);
@@ -649,7 +664,63 @@ void
  }
 
 
- void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){}
+ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+   edm::Handle<reco::GsfElectronCollection> ElectronCollection;
+   iEvent.getByLabel(PFElectronTag_, ElectronCollection);
+
+   for(reco::PFCandidateCollection::size_type iPFElectron = 0; iPFElectron < ElectronCollection->size(); iPFElectron++) {
+     reco::GsfElectronRef RefElectron(ElectronCollection, iPFElectron);
+     std::vector<double> iElectron_Poca;
+     iElectron_Poca.push_back(RefElectron->vx());
+     iElectron_Poca.push_back(RefElectron->vy());
+     iElectron_Poca.push_back(RefElectron->vz());
+     Electron_Poca.push_back(iElectron_Poca);
+     std::vector<float> iElectron_p4;
+     iElectron_p4.push_back(RefElectron->p4().E());
+     iElectron_p4.push_back(RefElectron->p4().Px());
+     iElectron_p4.push_back(RefElectron->p4().Py());
+     iElectron_p4.push_back(RefElectron->p4().Pz());
+     Electron_p4.push_back(iElectron_p4);
+     Electron_Charge.push_back(RefElectron->charge());
+
+     //     reco::GsfElectronRef refGsfElectron = RefElectron->gsfElectronRef();
+     Electron_Gsf_deltaEtaEleClusterTrackAtCalo.push_back(RefElectron->deltaEtaEleClusterTrackAtCalo());
+     Electron_Gsf_deltaEtaSeedClusterTrackAtCalo.push_back(RefElectron->deltaEtaSeedClusterTrackAtCalo());
+     Electron_Gsf_deltaEtaSuperClusterTrackAtVtx.push_back(RefElectron->deltaEtaSuperClusterTrackAtVtx());
+     Electron_Gsf_deltaPhiEleClusterTrackAtCalo.push_back(RefElectron->deltaPhiEleClusterTrackAtCalo()); 
+     Electron_Gsf_deltaPhiSeedClusterTrackAtCalo.push_back(RefElectron->deltaPhiSeedClusterTrackAtCalo());
+     Electron_Gsf_deltaPhiSuperClusterTrackAtVtx.push_back(RefElectron->deltaPhiSuperClusterTrackAtVtx());
+     Electron_Gsf_dr03EcalRecHitSumE.push_back(RefElectron->dr03EcalRecHitSumEt());
+     Electron_Gsf_dr03HcalDepth1TowerSumEt.push_back(RefElectron->dr03HcalDepth1TowerSumEt());
+     Electron_Gsf_dr03HcalDepth1TowerSumEtBc.push_back(RefElectron->dr03HcalDepth1TowerSumEtBc());
+     Electron_Gsf_dr03HcalDepth2TowerSumEt.push_back(RefElectron->dr03HcalDepth2TowerSumEt());
+     Electron_Gsf_dr03HcalDepth2TowerSumEtBc.push_back(RefElectron->dr03HcalDepth2TowerSumEtBc());
+     Electron_Gsf_dr03HcalTowerSumEt.push_back(RefElectron->dr03HcalTowerSumEt());
+     Electron_Gsf_dr03HcalTowerSumEtBc.push_back(RefElectron->dr03HcalTowerSumEtBc());
+     Electron_Gsf_dr03TkSumPt.push_back(RefElectron->dr03TkSumPt());
+     Electron_Gsf_passingCutBasedPreselection.push_back(RefElectron->passingCutBasedPreselection()); 
+     Electron_Gsf_passingMvaPreselection.push_back(RefElectron->passingMvaPreselection());
+     
+     reco::GsfTrackRef    refGsfTrack = RefElectron->gsfTrack();
+     Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits.push_back(refGsfTrack->trackerExpectedHitsInner().numberOfLostHits());
+     
+     reco::SuperClusterRef refSuperCluster = refSuperCluster=RefElectron->superCluster();
+     Electron_supercluster_e.push_back(refSuperCluster->energy());
+     Electron_supercluster_phi.push_back(refSuperCluster->phi());
+     Electron_supercluster_eta.push_back(refSuperCluster->eta()); 
+     Electron_supercluster_centroid_x.push_back(refSuperCluster->x());
+     Electron_supercluster_centroid_y.push_back(refSuperCluster->y());
+     Electron_supercluster_centroid_z.push_back(refSuperCluster->z());
+       
+     //reco::TrackRef refTrack=static_cast<reco::TrackRef>(refGsfTrack);//RefElectron->trackRef();
+     //int match;
+     //getTrackMatch(trackCollection,refTrack,match);
+     Electron_Track_idx.push_back(-1);
+   }
+ }
+
+//todo
+//Add verted to jet and tau
 
  void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
@@ -753,13 +824,13 @@ void
        std::vector<float> match;
        // Muons
        edm::Handle< reco::MuonCollection > muonCollection;
-       iEvent_->getByLabel(muonsTag_,muonCollection);
+       iEvent.getByLabel(muonsTag_,muonCollection);
        TriggerMatch(triggerEvent,index,muonCollection,TriggerMuonMatchingdr_,match);
        MuonTriggerMatch.push_back(match);
        match.clear();
        // Jets 
        edm::Handle<reco::PFJetCollection> JetCollection;
-       iEvent_->getByLabel(pfjetsTag_,  JetCollection);
+       iEvent.getByLabel(pfjetsTag_,  JetCollection);
        TriggerMatch(triggerEvent,index,JetCollection,TriggerJetMatchingdr_,match);
        JetTriggerMatch.push_back(match);
        match.clear();
@@ -896,8 +967,38 @@ void
    output_tree->Branch("Muon_Charge",&Muon_Charge);
    output_tree->Branch("Muon_numberOfChambers",&Muon_numberOfChambers);
 
+   //================ Electron block ========
+   output_tree->Branch("Electron_p4",&Electron_p4);
+   output_tree->Branch("Electron_Poca",&Electron_Poca);
+   output_tree->Branch("Electron_Charge",&Electron_Charge);
+   output_tree->Branch("Electron_Gsf_deltaEtaEleClusterTrackAtCalo",&Electron_Gsf_deltaEtaEleClusterTrackAtCalo);
+   output_tree->Branch("Electron_Gsf_deltaEtaSeedClusterTrackAtCalo",&Electron_Gsf_deltaEtaSeedClusterTrackAtCalo);
+   output_tree->Branch("Electron_Gsf_deltaEtaSuperClusterTrackAtVtx",&Electron_Gsf_deltaEtaSuperClusterTrackAtVtx);
+   output_tree->Branch("Electron_Gsf_deltaPhiEleClusterTrackAtCalo",&Electron_Gsf_deltaPhiEleClusterTrackAtCalo);
+   output_tree->Branch("Electron_Gsf_deltaPhiSeedClusterTrackAtCalo",&Electron_Gsf_deltaPhiSeedClusterTrackAtCalo);
+   output_tree->Branch("Electron_Gsf_deltaPhiSuperClusterTrackAtVtx",&Electron_Gsf_deltaPhiSuperClusterTrackAtVtx);
+   output_tree->Branch("Electron_Gsf_dr03EcalRecHitSumE",&Electron_Gsf_dr03EcalRecHitSumE);
+   output_tree->Branch("Electron_Gsf_dr03HcalDepth1TowerSumEt",&Electron_Gsf_dr03HcalDepth1TowerSumEt);
+   output_tree->Branch("Electron_Gsf_dr03HcalDepth1TowerSumEtBc",&Electron_Gsf_dr03HcalDepth1TowerSumEtBc);
+   output_tree->Branch("Electron_Gsf_dr03HcalDepth2TowerSumEt",&Electron_Gsf_dr03HcalDepth2TowerSumEt);
+   output_tree->Branch("Electron_Gsf_dr03HcalDepth2TowerSumEtBc",&Electron_Gsf_dr03HcalDepth2TowerSumEtBc);
+   output_tree->Branch("Electron_Gsf_dr03HcalTowerSumEt",&Electron_Gsf_dr03HcalTowerSumEt);
+   output_tree->Branch("Electron_Gsf_dr03HcalTowerSumEtBc",&Electron_Gsf_dr03HcalTowerSumEtBc);
+   output_tree->Branch("Electron_Gsf_dr03TkSumPt",&Electron_Gsf_dr03TkSumPt);
+   output_tree->Branch("Electron_Gsf_passingCutBasedPreselection",&Electron_Gsf_passingCutBasedPreselection);
+   output_tree->Branch("Electron_Gsf_passingMvaPreselection",&Electron_Gsf_passingMvaPreselection);
+   output_tree->Branch("Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits",&Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits);
+   output_tree->Branch("Electron_supercluster_e",&Electron_supercluster_e);
+   output_tree->Branch("Electron_supercluster_phi",&Electron_supercluster_phi);
+   output_tree->Branch("Electron_supercluster_eta",&Electron_supercluster_eta);
+   output_tree->Branch("Electron_supercluster_centroid_x",&Electron_supercluster_centroid_x);
+   output_tree->Branch("Electron_supercluster_centroid_y",&Electron_supercluster_centroid_y);
+   output_tree->Branch("Electron_supercluster_centroid_z",&Electron_supercluster_centroid_z);
+   output_tree->Branch("Electron_Track_idx",&Electron_Track_idx);
+
    //================  PFTau block ==========
    output_tree->Branch("PFTau_p4",&PFTau_p4);
+   output_tree->Branch("PFTau_Poca",&PFTau_Poca);
    output_tree->Branch("PFTau_isTightIsolation",&PFTau_isTightIsolation);
    output_tree->Branch("PFTau_isMediumIsolation",&PFTau_isMediumIsolation);
    output_tree->Branch("PFTau_isLooseIsolation",&PFTau_isLooseIsolation);
@@ -943,6 +1044,7 @@ void
 
   //=======  PFJets ===
    output_tree->Branch("PFJet_p4",&PFJet_p4);
+   output_tree->Branch("PFJet_Poca",&PFJet_Poca);
    output_tree->Branch("PFJet_chargedEmEnergy",&PFJet_chargedEmEnergy);
    output_tree->Branch("PFJet_chargedHadronEnergy",&PFJet_chargedHadronEnergy);
    output_tree->Branch("PFJet_chargedHadronMultiplicity",&PFJet_chargedHadronMultiplicity);
@@ -1065,7 +1167,7 @@ void
    bool discriminateByKinQC  = false;
    int iDiscr =0;
    for (std::vector<edm::Handle<reco::PFTauDiscriminator> >::const_iterator discr = tauDiscriminators.begin(); discr!=tauDiscriminators.end(); ++discr) {
-       iDiscr = iDiscr + (**discr)[tauRef];
+     iDiscr = iDiscr + (**discr)[tauRef];
      }
    if(iDiscr == 1 )discriminateByKinFit=true;
    if(iDiscr == 2 ){discriminateByKinFit=true;discriminateByKinQC=true;}
@@ -1287,6 +1389,7 @@ TauNtuple::ClearEvent(){
 
   //======= PFTaus ===
   PFTau_p4.clear();
+  PFTau_Poca.clear();
   PFTau_isTightIsolation.clear();
   PFTau_isMediumIsolation.clear();
   PFTau_isLooseIsolation.clear();
@@ -1329,9 +1432,37 @@ TauNtuple::ClearEvent(){
 
 
   //=======  Electrons ===
+  Electron_p4.clear();
+  Electron_Poca.clear();
+  Electron_Charge.clear();
+  Electron_Gsf_deltaEtaEleClusterTrackAtCalo.clear();
+  Electron_Gsf_deltaEtaSeedClusterTrackAtCalo.clear();
+  Electron_Gsf_deltaEtaSuperClusterTrackAtVtx.clear();
+  Electron_Gsf_deltaPhiEleClusterTrackAtCalo.clear();
+  Electron_Gsf_deltaPhiSeedClusterTrackAtCalo.clear();
+  Electron_Gsf_deltaPhiSuperClusterTrackAtVtx.clear();
+  Electron_Gsf_dr03EcalRecHitSumE.clear();
+  Electron_Gsf_dr03HcalDepth1TowerSumEt.clear();
+  Electron_Gsf_dr03HcalDepth1TowerSumEtBc.clear();
+  Electron_Gsf_dr03HcalDepth2TowerSumEt.clear();
+  Electron_Gsf_dr03HcalDepth2TowerSumEtBc.clear();
+  Electron_Gsf_dr03HcalTowerSumEt.clear();
+  Electron_Gsf_dr03HcalTowerSumEtBc.clear();
+  Electron_Gsf_dr03TkSumPt.clear();
+  Electron_Gsf_passingCutBasedPreselection.clear();
+  Electron_Gsf_passingMvaPreselection.clear();
+  Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits.clear();
+  Electron_supercluster_e.clear();
+  Electron_supercluster_phi.clear();
+  Electron_supercluster_eta.clear();
+  Electron_supercluster_centroid_x.clear();
+  Electron_supercluster_centroid_y.clear();
+  Electron_supercluster_centroid_z.clear();
+  Electron_Track_idx.clear();
 
   //=======  PFJets ===
    PFJet_p4.clear();
+   PFJet_Poca.clear();
    PFJet_chargedEmEnergy.clear();
    PFJet_chargedHadronEnergy.clear();
    PFJet_chargedHadronMultiplicity.clear();

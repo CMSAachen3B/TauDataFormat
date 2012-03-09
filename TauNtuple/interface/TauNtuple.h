@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.13 2012/03/01 15:17:02 inugent Exp $
+// $Id: TauNtuple.h,v 1.14 2012/03/03 15:51:08 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -31,7 +31,7 @@
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
+#include <stdint.h>
 
 //  ROOT 
 #include "TTree.h"
@@ -43,7 +43,7 @@
 // system include files
 #include <memory>
 #include <iostream>
-
+#include <stdint.h>
 // user include files
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
@@ -92,7 +92,6 @@
 #include <DataFormats/MuonReco/interface/MuonFwd.h>
 #include <DataFormats/Candidate/interface/Candidate.h>
 #include <DataFormats/MuonReco/interface/MuonIsolation.h>
-
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"//VertexCollection
@@ -193,8 +192,6 @@ class TauNtuple : public edm::EDProducer {
 
 
 
-
-  edm::Event * iEvent_;
   edm::InputTag primVtxTag_;
   edm::InputTag muonsTag_;
   edm::InputTag hpsTauProducer_;
@@ -212,6 +209,7 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag kinTausTag_;
   edm::InputTag KinFitAdvanced_;
   edm::InputTag pfjetsTag_;
+  edm::InputTag PFElectronTag_;
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
@@ -305,7 +303,7 @@ class TauNtuple : public edm::EDProducer {
   //======= PFTaus ===
 
   std::vector<std::vector<float> > PFTau_p4;
-  //std::vector<std::vector<double > > PFTau_vertex;  // preserve for any vtx info
+  std::vector<std::vector<double > > PFTau_Poca;
   std::vector<bool> PFTau_isTightIsolation;
   std::vector<bool> PFTau_isMediumIsolation;
   std::vector<bool> PFTau_isLooseIsolation;
@@ -322,7 +320,6 @@ class TauNtuple : public edm::EDProducer {
 
   // to include: HPS discriminators against muon and electron
   //======= KinFitTaus ===
-
   std::vector<bool> KFTau_discriminatorByKFit;
   std::vector<bool> KFTau_discriminatorByQC;
   int  KFTau_nKinTaus;
@@ -350,12 +347,38 @@ class TauNtuple : public edm::EDProducer {
 
 
   //=======  Electrons ===
-
-
+  std::vector<std::vector<float> > Electron_p4;
+  std::vector<std::vector<double > > Electron_Poca;
+  std::vector<float> Electron_Charge;
+  std::vector<float> Electron_Gsf_deltaEtaEleClusterTrackAtCalo;
+  std::vector<float> Electron_Gsf_deltaEtaSeedClusterTrackAtCalo;
+  std::vector<float> Electron_Gsf_deltaEtaSuperClusterTrackAtVtx;
+  std::vector<float> Electron_Gsf_deltaPhiEleClusterTrackAtCalo;
+  std::vector<float> Electron_Gsf_deltaPhiSeedClusterTrackAtCalo;
+  std::vector<float> Electron_Gsf_deltaPhiSuperClusterTrackAtVtx;
+  std::vector<float> Electron_Gsf_dr03EcalRecHitSumE;
+  std::vector<float> Electron_Gsf_dr03HcalDepth1TowerSumEt;
+  std::vector<float> Electron_Gsf_dr03HcalDepth1TowerSumEtBc;
+  std::vector<float> Electron_Gsf_dr03HcalDepth2TowerSumEt;
+  std::vector<float> Electron_Gsf_dr03HcalDepth2TowerSumEtBc;
+  std::vector<float> Electron_Gsf_dr03HcalTowerSumEt;
+  std::vector<float> Electron_Gsf_dr03HcalTowerSumEtBc;
+  std::vector<float> Electron_Gsf_dr03TkSumPt;
+  std::vector<bool>  Electron_Gsf_passingCutBasedPreselection;
+  std::vector<bool>  Electron_Gsf_passingMvaPreselection;
+  std::vector<int>   Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits;
+  std::vector<float> Electron_supercluster_e;
+  std::vector<float> Electron_supercluster_phi;
+  std::vector<float> Electron_supercluster_eta;
+  std::vector<float> Electron_supercluster_centroid_x;
+  std::vector<float> Electron_supercluster_centroid_y;
+  std::vector<float> Electron_supercluster_centroid_z;
+  std::vector<unsigned int> Electron_Track_idx;
 
 
   //=======  PFJets ===
   std::vector<std::vector<float> > PFJet_p4;
+  std::vector<std::vector<double > > PFJet_Poca;
   std::vector<float> PFJet_chargedEmEnergy;
   std::vector<float> PFJet_chargedHadronEnergy;
   std::vector<float> PFJet_chargedHadronMultiplicity;
