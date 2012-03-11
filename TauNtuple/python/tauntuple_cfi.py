@@ -15,7 +15,6 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr =cms.InputTag("hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr"), 
                              hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr=cms.InputTag("hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr"),
                              hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr =cms.InputTag("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr"),
-                             
                              hpsPFTauDiscriminationAgainstElectronLoose=cms.InputTag("hpsPFTauDiscriminationAgainstElectronLoose"),
                              hpsPFTauDiscriminationAgainstElectronMedium=cms.InputTag("hpsPFTauDiscriminationAgainstElectronMedium"),
                              hpsPFTauDiscriminationAgainstElectronTight=cms.InputTag("hpsPFTauDiscriminationAgainstElectronTight"),
