@@ -31,6 +31,12 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr" ) ),
   hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr" ) ),
   hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr" ) ),
+  hpsPFTauDiscriminationAgainstElectronLoose_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstElectronLoose" ) ),
+  hpsPFTauDiscriminationAgainstElectronMedium_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstElectronMedium" ) ),
+  hpsPFTauDiscriminationAgainstElectronTight_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstElectronTight" ) ),
+  hpsPFTauDiscriminationAgainstMuonLoose_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstMuonLoose" ) ),
+  hpsPFTauDiscriminationAgainstMuonTight_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstMuonTight" ) ),
+  hpsPFTauDiscriminationByDecayModeFinding_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByDecayModeFinding" ) ),
   pfMETTag_( iConfig.getParameter<edm::InputTag>( "pfMet" ) ),
   kinTausTag_( iConfig.getParameter<edm::InputTag>( "kinematicTaus" ) ),
   KinFitAdvanced_( iConfig.getParameter<edm::InputTag>( "kinematicTausAdvanced" ) ),
@@ -415,6 +421,20 @@ void
    edm::Handle<reco::PFTauDiscriminator> HPSVLooseIsoDiscrDBSumPtCorr;
    iEvent.getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
 
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsLoose;
+   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstElectronLoose_, HPSAgainstElectronsLoose);
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsMedium;
+   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstElectronMedium_, HPSAgainstElectronsMedium);
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsTight;
+   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstElectronTight_, HPSAgainstElectronsTight);
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonLoose;
+   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstMuonLoose_, HPSAgainstMuonLoose);
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonTight;
+   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstMuonTight_, HPSAgainstMuonTight);
+   edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
+   iEvent_->getByLabel(hpsPFTauDiscriminationByDecayModeFinding_, HPSByDecayModeFinding);
+  
+
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
 
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
@@ -441,6 +461,13 @@ void
      PFTau_isMediumIsolationDBSumPtCorr.push_back((*HPSMediumIsoDiscrDBSumPtCorr)[HPStauCandidate]);
      PFTau_isLooseIsolationDBSumPtCorr.push_back((*HPSLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
      PFTau_isVLooseIsolationDBSumPtCorr.push_back((*HPSVLooseIsoDiscrDBSumPtCorr)[HPStauCandidate]);
+
+     PFTau_isHPSAgainstElectronsLoose.push_back((*HPSAgainstElectronsLoose)[HPStauCandidate]);
+     PFTau_isHPSAgainstElectronsMedium.push_back((*HPSAgainstElectronsMedium)[HPStauCandidate]);
+     PFTau_isHPSAgainstElectronsTight.push_back((*HPSAgainstElectronsTight)[HPStauCandidate]);
+     PFTau_isHPSAgainstMuonLoose.push_back((*HPSAgainstMuonLoose)[HPStauCandidate]);
+     PFTau_isHPSAgainstMuonTight.push_back((*HPSAgainstMuonTight)[HPStauCandidate]);
+     PFTau_isHPSByDecayModeFinding.push_back((*HPSByDecayModeFinding)[HPStauCandidate]);
 
 
      PFTau_hpsDecayMode.push_back(HPStauCandidate->decayMode());
@@ -1008,6 +1035,12 @@ void
    output_tree->Branch("PFTau_isLooseIsolationDBSumPtCorr",&PFTau_isLooseIsolationDBSumPtCorr); 
    output_tree->Branch("PFTau_isVLooseIsolationDBSumPtCorr",&PFTau_isVLooseIsolationDBSumPtCorr);
 
+   output_tree->Branch("PFTau_isHPSAgainstElectronsLoose",&PFTau_isHPSAgainstElectronsLoose); 
+   output_tree->Branch("PFTau_isHPSAgainstElectronsMedium",&PFTau_isHPSAgainstElectronsMedium);
+   output_tree->Branch("PFTau_isHPSAgainstElectronsTight",&PFTau_isHPSAgainstElectronsTight); 
+   output_tree->Branch("PFTau_isHPSAgainstMuonLoose",&PFTau_isHPSAgainstMuonLoose);      
+   output_tree->Branch("PFTau_isHPSAgainstMuonTight",&PFTau_isHPSAgainstMuonTight);      
+   output_tree->Branch("PFTau_isHPSByDecayModeFinding",&PFTau_isHPSByDecayModeFinding);    
 
 
    output_tree->Branch("PFTau_hpsDecayMode",&PFTau_hpsDecayMode);
@@ -1398,6 +1431,15 @@ TauNtuple::ClearEvent(){
   PFTau_isMediumIsolationDBSumPtCorr.clear();
   PFTau_isLooseIsolationDBSumPtCorr.clear(); 
   PFTau_isVLooseIsolationDBSumPtCorr.clear();
+
+  PFTau_isHPSAgainstElectronsLoose.clear(); 
+  PFTau_isHPSAgainstElectronsMedium.clear();
+  PFTau_isHPSAgainstElectronsTight.clear(); 
+  PFTau_isHPSAgainstMuonLoose.clear();      
+  PFTau_isHPSAgainstMuonTight.clear();      
+  PFTau_isHPSByDecayModeFinding.clear();    
+
+
 
   PFTau_hpsDecayMode.clear();   
   PFTau_Charge.clear();
