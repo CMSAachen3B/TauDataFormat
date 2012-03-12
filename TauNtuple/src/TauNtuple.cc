@@ -422,17 +422,17 @@ void
    iEvent.getByLabel(hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_, HPSVLooseIsoDiscrDBSumPtCorr);
 
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsLoose;
-   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstElectronLoose_, HPSAgainstElectronsLoose);
+   iEvent.getByLabel(hpsPFTauDiscriminationAgainstElectronLoose_, HPSAgainstElectronsLoose);
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsMedium;
-   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstElectronMedium_, HPSAgainstElectronsMedium);
+   iEvent.getByLabel(hpsPFTauDiscriminationAgainstElectronMedium_, HPSAgainstElectronsMedium);
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsTight;
-   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstElectronTight_, HPSAgainstElectronsTight);
+   iEvent.getByLabel(hpsPFTauDiscriminationAgainstElectronTight_, HPSAgainstElectronsTight);
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonLoose;
-   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstMuonLoose_, HPSAgainstMuonLoose);
+   iEvent.getByLabel(hpsPFTauDiscriminationAgainstMuonLoose_, HPSAgainstMuonLoose);
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonTight;
-   iEvent_->getByLabel(hpsPFTauDiscriminationAgainstMuonTight_, HPSAgainstMuonTight);
+   iEvent.getByLabel(hpsPFTauDiscriminationAgainstMuonTight_, HPSAgainstMuonTight);
    edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
-   iEvent_->getByLabel(hpsPFTauDiscriminationByDecayModeFinding_, HPSByDecayModeFinding);
+   iEvent.getByLabel(hpsPFTauDiscriminationByDecayModeFinding_, HPSByDecayModeFinding);
   
 
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {

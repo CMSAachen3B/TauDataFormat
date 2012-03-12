@@ -71,6 +71,9 @@ process.load("RecoTauTag.KinematicTau.ThreeProngInputSelector_cff")
 process.load("RecoTauTag.KinematicTau.kinematictau_cfi")
 process.load("RecoTauTag.KinematicTau.kinematictauAdvanced_cfi")
 ############################ KinematicFit 3pi decay mode; 4pi come soon  ###############################
+process.load("TriggerFilter.Filter.triggerFilter_cfi")
+
+
 
 process.EvntCounterA = cms.EDAnalyzer('EventCounter',
                                       CounterType    = cms.untracked.string("AllEvents"),
@@ -90,7 +93,7 @@ process.EvntCounterB = cms.EDAnalyzer('EventCounter',
 
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(numberOfEvents) )
 
-process.p = cms.Path(process.EvntCounterA*process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.KinematicTauProducer*process.EvntCounterB*process.NtupleMaker)
+process.p = cms.Path(process.EvntCounterA*process.TrigFilter*process.TrigFilterInfo*process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.KinematicTauProducer*process.EvntCounterB*process.NtupleMaker)
 
 #process.p = cms.Path(process.NtupleMaker)
 
