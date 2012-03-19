@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.15 2012/03/09 20:19:43 inugent Exp $
+// $Id: TauNtuple.h,v 1.16 2012/03/11 21:48:22 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -247,12 +247,37 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag TriggerEvent_;
   edm::InputTag TriggerResults_;
   edm::InputTag l1GtTriggerMenuLite_;
-  double TriggerJetMatchingdr_;
-  double TriggerMuonMatchingdr_;
-  double TriggerElectronMatchingdr_;
-  double TriggerTauMatchingdr_;
-  double TriggerMETMatchingdr_;
+  float TriggerJetMatchingdr_;
+  float TriggerMuonMatchingdr_;
+  float TriggerElectronMatchingdr_;
+  float TriggerTauMatchingdr_;
+  float TriggerMETMatchingdr_;
   edm::Handle< L1GtTriggerMenuLite > triggerMenuLite_;
+
+
+  // Control flags
+  bool doBJets_;
+  bool doPFJets_;
+  bool doMuons_;
+  bool doElectrons_;
+  bool doPFTaus_;
+  bool doTracks_;
+  bool doKinFitTaus_;
+  bool doTrigger_;
+  bool doPrimeVertex_;
+  bool doMET_;
+  bool doMC_;
+  bool doPatJets_;
+  bool doPatElectrons_;
+  bool doPatMuons_;
+  bool doPatMET_;
+
+  // Pat objects
+  std::string srcPatJets_;
+  std::string PatJetScale_;
+  std::string BTagAlgorithim_;
+  std::string srcPatMET_;
+
   // outputfile
   TFile *output;
   TTree *output_tree;
@@ -272,7 +297,7 @@ class TauNtuple : public edm::EDProducer {
 
   //=======  Muons ===
   std::vector<std::vector<float> > Muon_p4;
-  std::vector<std::vector<double > > Muon_Poca;
+  std::vector<std::vector<float > > Muon_Poca;
   std::vector<bool> Muon_isGlobalMuon;
   std::vector<bool> Muon_isStandAloneMuon;
   std::vector<bool> Muon_isTrackerMuon;
@@ -312,9 +337,8 @@ class TauNtuple : public edm::EDProducer {
 
 
   //======= PFTaus ===
-
   std::vector<std::vector<float> > PFTau_p4;
-  std::vector<std::vector<double > > PFTau_Poca;
+  std::vector<std::vector<float > > PFTau_Poca;
   std::vector<bool> PFTau_isTightIsolation;
   std::vector<bool> PFTau_isMediumIsolation;
   std::vector<bool> PFTau_isLooseIsolation;
@@ -355,19 +379,19 @@ class TauNtuple : public edm::EDProducer {
   std::vector<int>	KFTau_Fit_charge;
   std::vector<int>	KFTau_Fit_csum;     
   std::vector<int>      KFTau_Fit_iterations;
-  std::vector<int> KFTau_Fit_IndexToPrimVertexVector;
+  std::vector<int> KFTau_Fit_IndexToPrimeVertice;
   std::vector<std::vector<float> > KFTau_Fit_TauPrimVtx;
 
-  std::vector<double> KFTau_Fit_TauEnergyFraction;
-  std::vector<double> KFTau_Fit_RefitVisibleMass;
-  std::vector<double> KFTau_Fit_Chi2;
-  std::vector<double> KFTau_Fit_PV_PV_significance;
-  std::vector<double> KFTau_Fit_SV_PV_significance;
+  std::vector<float> KFTau_Fit_TauEnergyFraction;
+  std::vector<float> KFTau_Fit_RefitVisibleMass;
+  std::vector<float> KFTau_Fit_Chi2;
+  std::vector<float> KFTau_Fit_PV_PV_significance;
+  std::vector<float> KFTau_Fit_SV_PV_significance;
 
 
   //=======  Electrons ===
   std::vector<std::vector<float> > Electron_p4;
-  std::vector<std::vector<double > > Electron_Poca;
+  std::vector<std::vector<float > > Electron_Poca;
   std::vector<float> Electron_Charge;
   std::vector<float> Electron_Gsf_deltaEtaEleClusterTrackAtCalo;
   std::vector<float> Electron_Gsf_deltaEtaSeedClusterTrackAtCalo;
@@ -397,7 +421,7 @@ class TauNtuple : public edm::EDProducer {
 
   //=======  PFJets ===
   std::vector<std::vector<float> > PFJet_p4;
-  std::vector<std::vector<double > > PFJet_Poca;
+  std::vector<std::vector<float > > PFJet_Poca;
   std::vector<float> PFJet_chargedEmEnergy;
   std::vector<float> PFJet_chargedHadronEnergy;
   std::vector<float> PFJet_chargedHadronMultiplicity;
@@ -429,16 +453,28 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> PFJet_chargedEmEnergyFraction;
   std::vector<float> PFJet_chargedHadronEnergyFraction;
   std::vector<float> PFJet_neutralHadronEnergyFraction;
-  std::vector<float> PFJet_PFJet_neutralEmEnergyFraction;
+  std::vector<float> PFJet_neutralEmEnergyFraction;
+
+  std::vector<float>   PFJet_partonFlavour;
+  std::vector<float>   PFJet_bDiscriminator;
+  std::vector<std::vector<float> >   PFJet_BTagWeight;
+
+
 
   //=======  MET ===
   // now only PFMET
-  double MET_et;
-  double MET_phi;
-  double MET_sumET;
+  float MET_et;
+  float MET_phi;
+  float MET_sumET;
+  float MET_metSignificance;
+  float MET_MuonEtFraction;
+  float MET_NeutralEMFraction;
+  float MET_NeutralHadEtFraction;
+  float MET_Type6EtFraction;
+  float MET_Type7EtFraction;
+
 
   //=======  Event ===
-
   int EventNumber;
   unsigned int DataMC_Type_idx;
   unsigned int  Event_EventNumber;	 
@@ -450,12 +486,12 @@ class TauNtuple : public edm::EDProducer {
   int PileupInfo_NumInteractions_nm1;
   int PileupInfo_NumInteractions_n0;
   int PileupInfo_NumInteractions_np1;
-  double EvtWeight3D;
+  float EvtWeight3D;
 
 
   //====== Tracks ======= 
   std::vector<std::vector<float> > Track_p4;
-  std::vector<std::vector<double > > Track_Poca;
+  std::vector<std::vector<float > > Track_Poca;
   std::vector<int> Track_charge;
   std::vector<float> Track_chi2;
   std::vector<float> Track_ndof;
@@ -500,7 +536,7 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> > MCSignalParticle_p4;
   std::vector<int> MCSignalParticle_pdgid;
   std::vector<int> MCSignalParticle_charge;
-  std::vector<std::vector<double > > MCSignalParticle_Poca;
+  std::vector<std::vector<float > > MCSignalParticle_Poca;
   std::vector<std::vector<unsigned int> > MCSignalParticle_Tauidx;
 
   // MC Tau Info
@@ -514,12 +550,12 @@ class TauNtuple : public edm::EDProducer {
 
   // Object Truth
   /*std::vector<std::vector<float> > MCJet_p4;
-  double MET_et;
-  double MET_phi;
-  double MET_sumET;
-  double MET_et;
-  double MET_phi;
-  double MET_sumET;
+  float MET_et;
+  float MET_phi;
+  float MET_sumET;
+  float MET_et;
+  float MET_phi;
+  float MET_sumET;
   */
 
 

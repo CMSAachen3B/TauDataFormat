@@ -20,6 +20,10 @@
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
 
+
+#include <DataFormats/PatCandidates/interface/Jet.h>
+#include <DataFormats/PatCandidates/interface/MET.h>
+
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   primVtxTag_( iConfig.getParameter<edm::InputTag>( "primVtx" ) ),
   muonsTag_(iConfig.getParameter<edm::InputTag>( "muons" )),
@@ -61,12 +65,31 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   TriggerJetMatchingdr_(iConfig.getUntrackedParameter("TriggerJetMatchingdr",(double)0.3)),
   TriggerMuonMatchingdr_(iConfig.getUntrackedParameter("TriggerMuonMatchingdr",(double)0.3)),
   TriggerElectronMatchingdr_(iConfig.getUntrackedParameter("TriggerElectronMatchingdr",(double)0.3)),
-  TriggerTauMatchingdr_(iConfig.getUntrackedParameter("TriggerTauMatchingdr",(double)0.3))
+  TriggerTauMatchingdr_(iConfig.getUntrackedParameter("TriggerTauMatchingdr",(double)0.3)),
+  doBJets_(iConfig.getUntrackedParameter("doBJets",(bool)(false))),
+  doPFJets_(iConfig.getUntrackedParameter("doPFJets",(bool)(true))),
+  doMuons_(iConfig.getUntrackedParameter("doMuons",(bool)(true))),
+  doElectrons_(iConfig.getUntrackedParameter("doElectrons",(bool)(true))),
+  doPFTaus_(iConfig.getUntrackedParameter("doPFTaus",(bool)(true))),
+  doTracks_(iConfig.getUntrackedParameter("doTrack",(bool)(true))),
+  doKinFitTaus_(iConfig.getUntrackedParameter("doKinFitTaus",(bool)(true))),
+  doTrigger_(iConfig.getUntrackedParameter("doTrigger",(bool)(true))),
+  doPrimeVertex_(iConfig.getUntrackedParameter("doPrimeVertex",(bool)(true))),
+  doMET_(iConfig.getUntrackedParameter("doMET",(bool)(true))),
+  doMC_(iConfig.getUntrackedParameter("doMC",(bool)(true))),
+  doPatJets_(iConfig.getUntrackedParameter("doPatJets",(bool)(false))),
+  doPatElectrons_(iConfig.getUntrackedParameter("doPatElectrons",(bool)(false))),
+  doPatMuons_(iConfig.getUntrackedParameter("doPatMuons",(bool)(false))),
+  doPatMET_(iConfig.getUntrackedParameter("doPatMET",(bool)(false))),
+  srcPatJets_(iConfig.getUntrackedParameter("srcPatJets",(std::string)"selectedPatJets")),
+  PatJetScale_(iConfig.getUntrackedParameter("PatJetScale",(std::string)"L3Absolute")),
+  BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackcountingHighBJetTags")),
+  srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF"))
 {   
 
   LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_,PUOutputFile_);
   LumiWeights_.weight3D_init(1);
-  
+    
 } 
 
 
@@ -94,22 +117,21 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
     DataMC_Type_idx=DataMCType::Data;
   }
   fillEventInfo(iEvent, iSetup);
-  fillMET(iEvent, iSetup);
-  //  std::cout<<" filKinTaus 1"<<std::endl;
-  // Get trackcollection for matching to objects
+  if(doMET_)fillMET(iEvent, iSetup);
   edm::Handle< std::vector<reco::Track>  > trackCollection;
   iEvent.getByLabel(generalTracks_,trackCollection);
-  fillPrimeVertex(iEvent,iSetup,trackCollection);
-  fillMuons(iEvent,iSetup,trackCollection);
-  fillElectrons(iEvent,iSetup,trackCollection);
-  fillPFTaus(iEvent,iSetup,trackCollection);
-  fillPFJets(iEvent,iSetup,trackCollection);
-  fillKinFitTaus(iEvent,iSetup,trackCollection); 
-  fillTracks(trackCollection);
-  fillMCTruth(iEvent,iSetup);
-  fillTriggerInfo(iEvent,iSetup);
+  if(doPrimeVertex_)fillPrimeVertex(iEvent,iSetup,trackCollection);
+  if(doMuons_)fillMuons(iEvent,iSetup,trackCollection);
+  if(doElectrons_)fillElectrons(iEvent,iSetup,trackCollection);
+  if(doPFTaus_)fillPFTaus(iEvent,iSetup,trackCollection);
+  if(doPFJets_)fillPFJets(iEvent,iSetup,trackCollection);
+  if(doKinFitTaus_)fillKinFitTaus(iEvent,iSetup,trackCollection); 
+  if(doTracks_)fillTracks(trackCollection);
+  if(doMC_)fillMCTruth(iEvent,iSetup);
+  if(doTrigger_)fillTriggerInfo(iEvent,iSetup);
   output_tree->Fill();
 }      
+
 
 // ------------ method called once each job just before starting event loop  ------------
                           
@@ -173,7 +195,7 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		MCSignalParticle_pdgid.push_back(itr->pdgId());
 		MCSignalParticle_charge.push_back(itr->charge());
 		MCSignalParticle_Tauidx.push_back(std::vector<unsigned int>());
-		std::vector<double> iSig_Poca;
+		std::vector<float> iSig_Poca;
 		iSig_Poca.push_back(itr->vx());
 		iSig_Poca.push_back(itr->vy());
 		iSig_Poca.push_back(itr->vz());
@@ -266,7 +288,7 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
   int Muon_index =0;
   for(reco::MuonCollection::const_iterator iMuon = muonCollection->begin(); iMuon!= muonCollection->end(); ++iMuon, Muon_index++){
     reco::MuonRef RefMuon(muonCollection, Muon_index);
-    std::vector<double> iMuon_Poca;
+    std::vector<float> iMuon_Poca;
     iMuon_Poca.push_back(RefMuon->vx());
     iMuon_Poca.push_back(RefMuon->vy());
     iMuon_Poca.push_back(RefMuon->vz());
@@ -371,7 +393,7 @@ void
      iTrack_p4.push_back(Track->py());
      iTrack_p4.push_back(Track->pz());
      Track_p4.push_back(iTrack_p4);
-     std::vector<double> iTrack_Poca;
+     std::vector<float> iTrack_Poca;
 
      iTrack_Poca.push_back(Track->vx());
      iTrack_Poca.push_back(Track->vy());
@@ -438,7 +460,7 @@ void
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
 
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
-     std::vector<double> iPFTau_Poca;
+     std::vector<float> iPFTau_Poca;
      iPFTau_Poca.push_back(HPStauCandidate->vx());
      iPFTau_Poca.push_back(HPStauCandidate->vy());
      iPFTau_Poca.push_back(HPStauCandidate->vz());
@@ -606,7 +628,7 @@ void
 	 iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Y());
 	 iKFTau_Fit_TauPrimVtx.push_back(iParticle->vertex().Z());
 	 KFTau_Fit_TauPrimVtx.push_back(iKFTau_Fit_TauPrimVtx);
-	 KFTau_Fit_IndexToPrimVertexVector.push_back(PrimaryVertexIndex);
+	 KFTau_Fit_IndexToPrimeVertice.push_back(PrimaryVertexIndex);
 	 KFTau_Fit_chi2.push_back(decay->chi2());
 	 KFTau_Fit_ndf.push_back(decay->ndf());
 	 KFTau_Fit_ambiguity.push_back(iParticle->ambiguity());
@@ -620,75 +642,154 @@ void
    }
  }
 
- void 
- TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
-   edm::Handle<reco::PFJetCollection> JetCollection;
-   iEvent.getByLabel(pfjetsTag_,  JetCollection);
+void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+  if(!doPatJets_){
+    edm::Handle<reco::PFJetCollection> JetCollection;
+    iEvent.getByLabel(pfjetsTag_,  JetCollection);
+    for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
+      reco::PFJetRef PFJet(JetCollection, iPFJet);
+      std::vector<float> iPFJet_Poca;
+      iPFJet_Poca.push_back(PFJet->vx());
+      iPFJet_Poca.push_back(PFJet->vy());
+      iPFJet_Poca.push_back(PFJet->vz());
+      PFJet_Poca.push_back(iPFJet_Poca);
+      
+      std::vector<float> iPFJet_p4;
+      iPFJet_p4.push_back(PFJet->p4().E());
+      iPFJet_p4.push_back(PFJet->p4().Px());
+      iPFJet_p4.push_back(PFJet->p4().Py());
+      iPFJet_p4.push_back(PFJet->p4().Pz());
+      PFJet_p4.push_back(iPFJet_p4);
+      PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
+      PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
+      PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
+      PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
+      PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
+      PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
+      PFJet_chargedHadronEnergy.push_back(PFJet->chargedHadronEnergy());
+      PFJet_chargedHadronMultiplicity.push_back(PFJet->chargedHadronMultiplicity());
+      PFJet_chargedMuEnergy.push_back(PFJet->chargedMuEnergy());
+      PFJet_chargedMultiplicity.push_back(PFJet->chargedMultiplicity());
+      PFJet_electronEnergy.push_back(PFJet->electronEnergy());
+      PFJet_electronMultiplicity.push_back(PFJet->electronMultiplicity());
+      PFJet_HFEMEnergy.push_back(PFJet->HFEMEnergy());
+      PFJet_HFEMMultiplicity.push_back(PFJet->HFEMMultiplicity());
+      PFJet_HFHadronEnergy.push_back(PFJet->HFHadronEnergy());
+      PFJet_HFHadronMultiplicity.push_back(PFJet->HFHadronMultiplicity());
+      PFJet_muonEnergy.push_back(PFJet->muonEnergy());
+      PFJet_muonMultiplicity.push_back(PFJet->muonMultiplicity());
+      PFJet_neutralEmEnergy.push_back(PFJet->neutralEmEnergy());
+      PFJet_neutralHadronEnergy.push_back(PFJet->neutralHadronEnergy());
+      PFJet_neutralHadronMultiplicity.push_back(PFJet->neutralHadronMultiplicity());
+      PFJet_photonEnergy.push_back(PFJet->photonEnergy());
+      PFJet_photonMultiplicity.push_back(PFJet->photonMultiplicity());
+      PFJet_jetArea.push_back(PFJet->jetArea()); 
+      PFJet_maxDistance.push_back(PFJet->maxDistance());
+      PFJet_nConstituents.push_back(PFJet->nConstituents());
+      PFJet_pileup.push_back(PFJet->pileup());  
+      PFJet_etaetaMoment.push_back(PFJet->etaetaMoment());
+      PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
+      std::vector<int> matches;
+      const edm::ProductID &TrID = trackCollection.id();
+      for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
+	const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
+	reco::TrackRef trackref = pfcand->trackRef();
+	if( trackref.isNonnull() ) {
+	  if(trackref.id() != TrID) continue;
+	  int match(-1);
+	  getTrackMatch(trackCollection,trackref,match);
+	  if(match>=0)matches.push_back(match);
+	}
+      }
+      PFJet_Track_idx.push_back(matches);
+      edm::Handle<std::vector<reco::PFTau> > HPStaus;
+      iEvent.getByLabel(hpsTauProducer_, HPStaus);
+      unsigned int idx =0; 
+      reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
+      PFJet_MatchedHPS_idx.push_back(idx);
+      
+    }
+  }
+  else{
+    edm::Handle<pat::JetCollection> jets;
+    edm::InputTag labelJets(srcPatJets_);
+    iEvent.getByLabel(labelJets, jets);   
+    
+    for(pat::JetCollection::size_type iPatJet = 0; iPatJet < jets->size(); iPatJet++) {
+      pat::JetRef PatJet(jets, iPatJet);
+      std::vector<float> iPatJet_Poca;
+      iPatJet_Poca.push_back(PatJet->vx());
+      iPatJet_Poca.push_back(PatJet->vy());
+      iPatJet_Poca.push_back(PatJet->vz());
+      PFJet_Poca.push_back(iPatJet_Poca);
+ 
+      std::vector<float> iPatJet_p4;
+      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).E());
+      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Px());
+      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Py());
+      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Pz());
+      PFJet_p4.push_back(iPatJet_p4);
+      PFJet_numberOfDaughters.push_back(PatJet->numberOfDaughters());
+      PFJet_chargedEmEnergyFraction.push_back(PatJet->chargedEmEnergyFraction());
+      PFJet_chargedHadronEnergyFraction.push_back(PatJet->chargedHadronEnergyFraction());
+      PFJet_neutralHadronEnergyFraction.push_back(PatJet->neutralHadronEnergyFraction());
+      PFJet_neutralEmEnergyFraction.push_back(PatJet->neutralEmEnergyFraction());
+      PFJet_chargedEmEnergy.push_back(PatJet->chargedEmEnergy());
+      PFJet_chargedHadronEnergy.push_back(PatJet->chargedHadronEnergy());
+      PFJet_chargedHadronMultiplicity.push_back(PatJet->chargedHadronMultiplicity());
+      PFJet_chargedMuEnergy.push_back(PatJet->chargedMuEnergy());
+      PFJet_chargedMultiplicity.push_back(PatJet->chargedMultiplicity());
+      PFJet_electronEnergy.push_back(PatJet->electronEnergy());
+      PFJet_electronMultiplicity.push_back(PatJet->electronMultiplicity());
+      PFJet_HFEMEnergy.push_back(PatJet->HFEMEnergy());
+      PFJet_HFEMMultiplicity.push_back(PatJet->HFEMMultiplicity());
+      PFJet_HFHadronEnergy.push_back(PatJet->HFHadronEnergy());
+      PFJet_HFHadronMultiplicity.push_back(PatJet->HFHadronMultiplicity());
+      PFJet_muonEnergy.push_back(PatJet->muonEnergy());
+      PFJet_muonMultiplicity.push_back(PatJet->muonMultiplicity());
+      PFJet_neutralEmEnergy.push_back(PatJet->neutralEmEnergy());
+      PFJet_neutralHadronEnergy.push_back(PatJet->neutralHadronEnergy());
+      PFJet_neutralHadronMultiplicity.push_back(PatJet->neutralHadronMultiplicity());
+      PFJet_photonEnergy.push_back(PatJet->photonEnergy());
+      PFJet_photonMultiplicity.push_back(PatJet->photonMultiplicity());
+      PFJet_jetArea.push_back(PatJet->jetArea());
+      PFJet_maxDistance.push_back(PatJet->maxDistance());
+      PFJet_nConstituents.push_back(PatJet->nConstituents());
+      PFJet_pileup.push_back(PatJet->pileup());
+      PFJet_etaetaMoment.push_back(PatJet->etaetaMoment());
+      PFJet_etaphiMoment.push_back(PatJet->etaphiMoment());
+      std::vector<int> matches;
+      const edm::ProductID &TrID = trackCollection.id();
+      for (unsigned i = 0;  i <  PatJet->numberOfDaughters (); i++) {
+	const reco::PFCandidatePtr pfcand = PatJet->getPFConstituent(i);
+	reco::TrackRef trackref = pfcand->trackRef();
+	if( trackref.isNonnull() ) {
+	  if(trackref.id() != TrID) continue;
+	  int match(-1);
+	  getTrackMatch(trackCollection,trackref,match);
+	  if(match>=0)matches.push_back(match);
+	}
+      }
+      PFJet_Track_idx.push_back(matches);
+      edm::Handle<std::vector<reco::PFTau> > HPStaus;
+      iEvent.getByLabel(hpsTauProducer_, HPStaus);
+      unsigned int idx =0;
+      reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPatJet_p4,idx);
+      PFJet_MatchedHPS_idx.push_back(idx);
+    
+      ///////////////////////////////////////////////
+      //
+      // B-Tagging
+      //
+      PFJet_partonFlavour.push_back(PatJet->partonFlavour());
+      PFJet_bDiscriminator.push_back(PatJet->bDiscriminator(BTagAlgorithim_));
+      std::vector<float> BTagWeights(0);
+      PFJet_BTagWeight.push_back(BTagWeights);
 
-   for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
-     reco::PFJetRef PFJet(JetCollection, iPFJet);
-     std::vector<double> iPFJet_Poca;
-     iPFJet_Poca.push_back(PFJet->vx());
-     iPFJet_Poca.push_back(PFJet->vy());
-     iPFJet_Poca.push_back(PFJet->vz());
-     PFJet_Poca.push_back(iPFJet_Poca);
+    }
+  }
+}
 
-     std::vector<float> iPFJet_p4;
-     iPFJet_p4.push_back(PFJet->p4().E());
-     iPFJet_p4.push_back(PFJet->p4().Px());
-     iPFJet_p4.push_back(PFJet->p4().Py());
-     iPFJet_p4.push_back(PFJet->p4().Pz());
-     PFJet_p4.push_back(iPFJet_p4);
-     PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
-     PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
-     PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
-     PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
-     PFJet_PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
-     PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
-     PFJet_chargedHadronEnergy.push_back(PFJet->chargedHadronEnergy());
-     PFJet_chargedHadronMultiplicity.push_back(PFJet->chargedHadronMultiplicity());
-     PFJet_chargedMuEnergy.push_back(PFJet->chargedMuEnergy());
-     PFJet_chargedMultiplicity.push_back(PFJet->chargedMultiplicity());
-     PFJet_electronEnergy.push_back(PFJet->electronEnergy());
-     PFJet_electronMultiplicity.push_back(PFJet->electronMultiplicity());
-     PFJet_HFEMEnergy.push_back(PFJet->HFEMEnergy());
-     PFJet_HFEMMultiplicity.push_back(PFJet->HFEMMultiplicity());
-     PFJet_HFHadronEnergy.push_back(PFJet->HFHadronEnergy());
-     PFJet_HFHadronMultiplicity.push_back(PFJet->HFHadronMultiplicity());
-     PFJet_muonEnergy.push_back(PFJet->muonEnergy());
-     PFJet_muonMultiplicity.push_back(PFJet->muonMultiplicity());
-     PFJet_neutralEmEnergy.push_back(PFJet->neutralEmEnergy());
-     PFJet_neutralHadronEnergy.push_back(PFJet->neutralHadronEnergy());
-     PFJet_neutralHadronMultiplicity.push_back(PFJet->neutralHadronMultiplicity());
-     PFJet_photonEnergy.push_back(PFJet->photonEnergy());
-     PFJet_photonMultiplicity.push_back(PFJet->photonMultiplicity());
-     PFJet_jetArea.push_back(PFJet->jetArea()); 
-     PFJet_maxDistance.push_back(PFJet->maxDistance());
-     PFJet_nConstituents.push_back(PFJet->nConstituents());
-     PFJet_pileup.push_back(PFJet->pileup());  
-     PFJet_etaetaMoment.push_back(PFJet->etaetaMoment());
-     PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
-     std::vector<int> matches;
-     const edm::ProductID &TrID = trackCollection.id();
-     for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
-       const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
-       reco::TrackRef trackref = pfcand->trackRef();
-       if( trackref.isNonnull() ) {
-	 if(trackref.id() != TrID) continue;
-	 int match(-1);
-	 getTrackMatch(trackCollection,trackref,match);
-	 if(match>=0)matches.push_back(match);
-       }
-     }
-     PFJet_Track_idx.push_back(matches);
-     edm::Handle<std::vector<reco::PFTau> > HPStaus;
-     iEvent.getByLabel(hpsTauProducer_, HPStaus);
-     unsigned int idx =0; 
-     reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
-     PFJet_MatchedHPS_idx.push_back(idx);
-
-   }
- }
 
 
  void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
@@ -697,7 +798,7 @@ void
 
    for(reco::PFCandidateCollection::size_type iPFElectron = 0; iPFElectron < ElectronCollection->size(); iPFElectron++) {
      reco::GsfElectronRef RefElectron(ElectronCollection, iPFElectron);
-     std::vector<double> iElectron_Poca;
+     std::vector<float> iElectron_Poca;
      iElectron_Poca.push_back(RefElectron->vx());
      iElectron_Poca.push_back(RefElectron->vy());
      iElectron_Poca.push_back(RefElectron->vz());
@@ -746,17 +847,35 @@ void
    }
  }
 
-//todo
-//Add verted to jet and tau
-
- void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
-
-   edm::Handle< edm::View<reco::PFMET> > pfMEThandle;
-   iEvent.getByLabel(pfMETTag_, pfMEThandle);
-   MET_et=pfMEThandle->front().et();
-   MET_phi=pfMEThandle->front().phi();
-   MET_sumET=pfMEThandle->front().sumEt();
- }
+void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
+  if(!doPatMET_){
+    edm::Handle<edm::View<reco::PFMET> > pfMEThandle;
+    iEvent.getByLabel(pfMETTag_, pfMEThandle);
+    MET_et=pfMEThandle->front().et();
+    MET_phi=pfMEThandle->front().phi();
+    MET_sumET=pfMEThandle->front().sumEt();
+    MET_metSignificance=-1;
+    MET_MuonEtFraction=-1;
+    MET_NeutralEMFraction=-1;
+    MET_NeutralHadEtFraction=-1;
+    MET_Type6EtFraction=-1;
+    MET_Type7EtFraction=-1;
+  }
+  else{
+    edm::Handle<pat::MET> PatMET;
+    edm::InputTag labelMET(srcPatMET_);
+    iEvent.getByLabel(labelMET, PatMET);
+    MET_et=PatMET->et();
+    MET_phi=PatMET->phi();
+    MET_sumET=PatMET->sumEt();
+    MET_metSignificance=PatMET->metSignificance();
+    MET_MuonEtFraction=PatMET->MuonEtFraction();
+    MET_NeutralEMFraction=PatMET->NeutralEMFraction();
+    MET_NeutralHadEtFraction=PatMET->NeutralHadEtFraction();
+    MET_Type6EtFraction=PatMET->Type6EtFraction();
+    MET_Type7EtFraction=PatMET->Type7EtFraction();
+  }
+}
 
  void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
    if(!TriggerOK) return;
@@ -959,6 +1078,7 @@ void
    output_tree->Branch("Vtx_isFake",&Vtx_isFake);
 
    //=============  Muon Block ====
+   output_tree->Branch("isPatMuon",&doPatMuons_);
    output_tree->Branch("Muon_p4",&Muon_p4);		       
    output_tree->Branch("Muon_Poca",&Muon_Poca);	       
    output_tree->Branch("Muon_isGlobalMuon",&Muon_isGlobalMuon);      
@@ -995,6 +1115,7 @@ void
    output_tree->Branch("Muon_numberOfChambers",&Muon_numberOfChambers);
 
    //================ Electron block ========
+   output_tree->Branch("isPatElectron",&doPatElectrons_);
    output_tree->Branch("Electron_p4",&Electron_p4);
    output_tree->Branch("Electron_Poca",&Electron_Poca);
    output_tree->Branch("Electron_Charge",&Electron_Charge);
@@ -1059,7 +1180,7 @@ void
    output_tree->Branch("KFTau_indexOfFitInfo",&KFTau_indexOfFitInfo);
 
    output_tree->Branch("KFTau_Fit_TauPrimVtx",&KFTau_Fit_TauPrimVtx);
-   output_tree->Branch("KFTau_Fit_IndexToPrimVertexVector",&KFTau_Fit_IndexToPrimVertexVector);
+   output_tree->Branch("KFTau_Fit_IndexToPrimeVertice",&KFTau_Fit_IndexToPrimeVertice);
    output_tree->Branch("KFTau_Fit_chi2",&KFTau_Fit_chi2);
    output_tree->Branch("KFTau_Fit_ndf",&KFTau_Fit_ndf);
    output_tree->Branch("KFTau_Fit_ambiguity",&KFTau_Fit_ambiguity);
@@ -1076,6 +1197,7 @@ void
 
 
   //=======  PFJets ===
+   output_tree->Branch("isPatJet",&doPatJets_);
    output_tree->Branch("PFJet_p4",&PFJet_p4);
    output_tree->Branch("PFJet_Poca",&PFJet_Poca);
    output_tree->Branch("PFJet_chargedEmEnergy",&PFJet_chargedEmEnergy);
@@ -1108,12 +1230,23 @@ void
    output_tree->Branch("PFJet_chargedEmEnergyFraction",&PFJet_chargedEmEnergyFraction);
    output_tree->Branch("PFJet_chargedHadronEnergyFraction",&PFJet_chargedHadronEnergyFraction);
    output_tree->Branch("PFJet_neutralHadronEnergyFraction",&PFJet_neutralHadronEnergyFraction);
-   output_tree->Branch("PFJet_PFJet_neutralEmEnergyFraction",&PFJet_PFJet_neutralEmEnergyFraction);
+   output_tree->Branch("PFJet_neutralEmEnergyFraction",&PFJet_neutralEmEnergyFraction);
+
+   output_tree->Branch("PFJet_partonFlavour",&PFJet_partonFlavour);
+   output_tree->Branch("PFJet_bDiscriminator",&PFJet_bDiscriminator);
+   output_tree->Branch("PFJet_BTagWeight",&PFJet_BTagWeight);
 
    //================  MET block ==========
+   output_tree->Branch("isPatMET",&doPatMET_);
    output_tree->Branch("MET_et",&MET_et);
    output_tree->Branch("MET_phi",&MET_phi);
    output_tree->Branch("MET_sumET",&MET_sumET);
+   output_tree->Branch("MET_metSignificance",&MET_metSignificance);
+   output_tree->Branch("MET_MuonEtFraction",&MET_MuonEtFraction);
+   output_tree->Branch("MET_NeutralEMFraction",&MET_NeutralEMFraction);
+   output_tree->Branch("MET_NeutralHadEtFraction",&MET_NeutralHadEtFraction);
+   output_tree->Branch("MET_Type6EtFraction",&MET_Type6EtFraction);
+   output_tree->Branch("MET_Type7EtFraction",&MET_Type7EtFraction);
 
    //=============== Event Block ==============
    output_tree->Branch("Event_EventNumber",&Event_EventNumber);
@@ -1461,7 +1594,7 @@ TauNtuple::ClearEvent(){
   KFTau_Fit_charge.clear();   
   KFTau_Fit_csum.clear();     
   KFTau_Fit_iterations.clear();
-  KFTau_Fit_IndexToPrimVertexVector.clear();
+  KFTau_Fit_IndexToPrimeVertice.clear();
   KFTau_Fit_TauPrimVtx.clear();
 
 
@@ -1536,7 +1669,11 @@ TauNtuple::ClearEvent(){
    PFJet_chargedEmEnergyFraction.clear();
    PFJet_chargedHadronEnergyFraction.clear();
    PFJet_neutralHadronEnergyFraction.clear();
-   PFJet_PFJet_neutralEmEnergyFraction.clear();
+   PFJet_neutralEmEnergyFraction.clear();
+
+   PFJet_partonFlavour.clear();
+   PFJet_bDiscriminator.clear();
+   PFJet_BTagWeight.clear();
 
 
    //=============== Track Block ==============
