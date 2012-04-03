@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.16 2012/03/11 21:48:22 cherepan Exp $
+// $Id: TauNtuple.h,v 1.17 2012/03/19 21:58:23 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -219,6 +219,7 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag pfMETTag_;
   edm::InputTag kinTausTag_;
   edm::InputTag KinFitAdvanced_;
+  edm::InputTag tauPrimaryVtx_;
   edm::InputTag pfjetsTag_;
   edm::InputTag PFElectronTag_;
   edm::InputTag generalTracks_;
@@ -379,7 +380,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<int>	KFTau_Fit_charge;
   std::vector<int>	KFTau_Fit_csum;     
   std::vector<int>      KFTau_Fit_iterations;
-  std::vector<int> KFTau_Fit_IndexToPrimeVertice;
   std::vector<std::vector<float> > KFTau_Fit_TauPrimVtx;
 
   std::vector<float> KFTau_Fit_TauEnergyFraction;
@@ -388,6 +388,24 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> KFTau_Fit_PV_PV_significance;
   std::vector<float> KFTau_Fit_SV_PV_significance;
 
+  std::vector<std::vector<int> > KFTau_Daughter_pdgid;
+  std::vector<std::vector<int> > KFTau_Daughter_charge;
+  std::vector<std::vector<float> > KFTau_Daughter_ambiguity;
+
+  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_par;
+  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_parCov;
+  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_inputpar;
+  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_inputparCov;
+
+  std::vector<float> ReducedVtx_chi2;
+  std::vector<float> ReducedVtx_nTrk;
+  std::vector<float> ReducedVtx_ndof;
+  std::vector<float> ReducedVtx_y;
+  std::vector<float> ReducedVtx_x;
+  std::vector<float> ReducedVtx_z;
+  std::vector<std::vector<std::vector<float> > >  ReducedVtx_Cov;
+  std::vector<std::vector<int> >    ReducedVtx_Track_idx;
+  std::vector<float> ReducedVtx_isFake;
 
   //=======  Electrons ===
   std::vector<std::vector<float> > Electron_p4;
