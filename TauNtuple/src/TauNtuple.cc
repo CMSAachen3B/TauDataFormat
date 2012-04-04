@@ -557,24 +557,26 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.getByLabel(hpsTauProducer_, HPStaus);
   //========= HPS taus for matching issues       
   
+
+  //========= Get Tau Discriminators =========//
+  std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators;
+  for(std::vector<std::string>::const_iterator discr=discriminators_.begin(); discr!=discriminators_.end(); ++discr) {
+    edm::Handle<reco::PFTauDiscriminator> tmpHandle;
+    iEvent.getByLabel("KinematicTauBasicProducer", *discr, tmpHandle);
+    tauDiscriminators.push_back(tmpHandle);
+  }
+
+
+  //======== Get Tau Collection =====//
+  edm::Handle<reco::PFTauCollection> tauCollection;
+  iEvent.getByLabel(kinTausTag_, tauCollection);
+
+
   //================== KinematicFit Info ===================
   edm::Handle<SelectedKinematicDecayCollection> selected;
   iEvent.getByLabel(KinFitAdvanced_, selected);
   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay){
-    
-    std::vector<bool> discriminatorPair;
-    for(unsigned int i=0; i<discriminators_.size();i++){
-      if(decay->discriminators().count(discriminators_.at(i))){
-	discriminatorPair.push_back(decay->discriminators().find(discriminators_.at(i))->second);
-      }
-      else{
-	discriminatorPair.push_back(false);
-      }
-    }
-    
-    KFTau_discriminatorByKFit.push_back(discriminatorPair.at(0));
-    KFTau_discriminatorByQC.push_back(discriminatorPair.at(1));
-    
+
     KFTau_Fit_chi2.push_back(decay->chi2());
     KFTau_Fit_ndf.push_back(decay->ndf());
     KFTau_Fit_csum.push_back(decay->csum());
@@ -658,7 +660,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
       std::vector<float>  iKFTau_Daughter_inputparCov;
       for(int j=0;j<iParticle->matrix().GetNrows();j++){
 	iKFTau_Daughter_par.push_back(iParticle->parameters()(j));
-	iKFTau_Daughter_inputpar.push_back(iParticle->parameters()(j));
+	iKFTau_Daughter_inputpar.push_back(iParticle->input_parameters()(j));
 	for(int k=0;k<=j;k++){
 	  iKFTau_Daughter_parCov.push_back(iParticle->matrix()(j,k));
 	  iKFTau_Daughter_inputparCov.push_back(iParticle->input_matrix()(j,k));
@@ -674,7 +676,37 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
     KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
     KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
     KFTau_Fit_TauPrimVtx.push_back(iKFTau_Fit_TauPrimVtx);
-    
+    //Match to tau collection to find discriminants
+    unsigned int index = 0;
+    bool discriminatorByKFit(false),discriminatorByQC(false);
+    TLorentzVector FitTau(iKFTau_TauFit_p4.at(1),iKFTau_TauFit_p4.at(2),iKFTau_TauFit_p4.at(3),iKFTau_TauFit_p4.at(0));
+    double dP=0.01;
+    double E(0);
+    for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
+      reco::PFTauRef tauRef(tauCollection, index);
+      TLorentzVector CollTau(tauRef->alternatLorentzVect().Px(),tauRef->alternatLorentzVect().Py(),tauRef->alternatLorentzVect().Pz(),tauRef->alternatLorentzVect().E());
+      double deltaP=sqrt(pow(CollTau.Px()-FitTau.Px(),2.0)+pow(CollTau.Py()-FitTau.Py(),2.0)+pow(CollTau.Pz()-FitTau.Pz(),2.0));
+      if(deltaP<dP){
+	dP=deltaP;
+	std::vector<bool> discriminatorPair = CheckTauDiscriminators(tauDiscriminators,tauRef);
+	discriminatorByKFit=discriminatorPair.at(0);
+	discriminatorByQC=discriminatorPair.at(1);
+	E=tauRef->alternatLorentzVect().E();
+      }
+    }
+    /*std::cout << "drmatch " << dP << " " << (int)discriminatorByKFit << " " << (int)discriminatorByQC 
+			 << "iKFTau_TauFit_p4 E: " << iKFTau_TauFit_p4.at(0) 
+			 << "iKFTau_Neutrino_p4 E: " << iKFTau_Neutrino_p4.at(0) 
+			 << "iKFTau_TauVis_p4 E: " << iKFTau_TauVis_p4.at(0) 
+			 << "tauRef->alternatLorentzVect().E()" << E << std::endl;*/
+    if(dP<0.001){
+      KFTau_discriminatorByKFit.push_back(discriminatorByKFit);
+      KFTau_discriminatorByQC.push_back(discriminatorByQC);
+    }
+    else{
+      KFTau_discriminatorByKFit.push_back(false);
+      KFTau_discriminatorByQC.push_back(false);
+    }
     unsigned int idx =0;
     reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4,idx);
     KFTau_MatchedHPS_idx.push_back(idx);
@@ -1382,8 +1414,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
  // checks that tau candidate pass kinematic fit and KinFit quality criteria 
  // returns vector of bool variables, first variable true/false if tau candidate pass/fail kinematic fit
  // second variable is true/false if  refitted tau candidate pass/fail quality requirements
- std::vector<bool>
- TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef){
+ std::vector<bool>  TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef){
    std::vector<bool> output_pair;
    bool discriminateByKinFit = false;
    bool discriminateByKinQC  = false;

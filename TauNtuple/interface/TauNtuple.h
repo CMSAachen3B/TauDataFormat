@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.17 2012/03/19 21:58:23 inugent Exp $
+// $Id: TauNtuple.h,v 1.18 2012/04/03 00:05:39 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -182,7 +182,7 @@ class TauNtuple : public edm::EDProducer {
   template <class T>
   void TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,double drmax,std::vector<float> &match);
   void fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup);
-  std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, reco::PFTauRef tauRef);
+  std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef);
   reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &UnmodifiedTau, unsigned int &match);
   reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &Jet, unsigned int &match);
 
