@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.18 2012/04/03 00:05:39 inugent Exp $
+// $Id: TauNtuple.h,v 1.19 2012/04/04 12:17:39 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -528,10 +528,14 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool>         TriggerAccept;
   std::vector<bool>         TriggerWasRun;
   std::vector<bool>         TriggerError;
-  std::vector<std::vector<float> >        MuonTriggerMatch;
-  std::vector<std::vector<float> >        ElectronTriggerMatch;
-  std::vector<std::vector<float> >        JetTriggerMatch;
-  std::vector<std::vector<float> >        TauTriggerMatch;
+  std::vector<std::vector<float> > MuonTriggerMatch;
+  std::vector<std::vector<float> > ElectronTriggerMatch;
+  std::vector<std::vector<float> > JetTriggerMatch;
+  std::vector<std::vector<float> > TauTriggerMatch;
+  std::vector<std::vector<float> > HLTTrigger_objs_E;
+  std::vector<std::vector<float> > HLTTrigger_objs_Eta;
+  std::vector<std::vector<float> > HLTTrigger_objs_Phi;
+
   bool TriggerOK;
 
   //====== MCTruth =======

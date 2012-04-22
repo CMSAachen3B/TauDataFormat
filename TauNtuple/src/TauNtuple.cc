@@ -85,7 +85,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   doPatMET_(iConfig.getUntrackedParameter("doPatMET",(bool)(false))),
   srcPatJets_(iConfig.getUntrackedParameter("srcPatJets",(std::string)"selectedPatJets")),
   PatJetScale_(iConfig.getUntrackedParameter("PatJetScale",(std::string)"L3Absolute")),
-  BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackcountingHighBJetTags")),
+  BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackCountingHighEffBJetTags")),
   srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF"))
 {   
 
@@ -1057,11 +1057,29 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
        TriggerMatch(triggerEvent,index,tauCollection,TriggerTauMatchingdr_,match);
        TauTriggerMatch.push_back(match);
        match.clear();
+
+       // Save trigger objects
+       std::vector<float> TriggerObj_E;
+       std::vector<float> TriggerObj_Eta;
+       std::vector<float>  TriggerObj_Phi;
+       std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
+       const trigger::Keys& KEYS(triggerEvent->filterKeys(triggerIndex));
+       for(unsigned int ipart=0; ipart<KEYS.size();ipart++){
+	 TriggerObj_E.push_back(trgobjs.at(KEYS.at(ipart)).energy());
+	 TriggerObj_Eta.push_back(trgobjs.at(KEYS.at(ipart)).eta());
+	 TriggerObj_Phi.push_back(trgobjs.at(KEYS.at(ipart)).phi());
+       }       
+       HLTTrigger_objs_E.push_back(TriggerObj_E);
+       HLTTrigger_objs_Eta.push_back(TriggerObj_Eta);
+       HLTTrigger_objs_Phi.push_back(TriggerObj_Phi);
      }
      else{
        MuonTriggerMatch.push_back(std::vector<float>());
        JetTriggerMatch.push_back(std::vector<float>());
        TauTriggerMatch.push_back(std::vector<float>());
+       HLTTrigger_objs_E.push_back(std::vector<float>());
+       HLTTrigger_objs_Eta.push_back(std::vector<float>());
+       HLTTrigger_objs_Phi.push_back(std::vector<float>());
      }
    }
  }
@@ -1403,7 +1421,9 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
    output_tree->Branch("ElectronTriggerMatch",&ElectronTriggerMatch);
    output_tree->Branch("JetTriggerMatch",&JetTriggerMatch);
    output_tree->Branch("TauTriggerMatch",&TauTriggerMatch);
-
+   output_tree->Branch("HLTTrigger_objs_E",&HLTTrigger_objs_E);
+   output_tree->Branch("HLTTrigger_objs_Eta",&HLTTrigger_objs_Eta);
+   output_tree->Branch("HLTTrigger_objs_Phi",&HLTTrigger_objs_Phi);
  } 
 
 
@@ -1839,6 +1859,10 @@ TauNtuple::ClearEvent(){
   TauTriggerMatch.clear();
   TriggerError.clear();
   TriggerWasRun.clear();
+  HLTTrigger_objs_E.clear();
+  HLTTrigger_objs_Eta.clear();
+  HLTTrigger_objs_Phi.clear();
+
 }
 
 

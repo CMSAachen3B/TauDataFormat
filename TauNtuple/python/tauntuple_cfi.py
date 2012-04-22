@@ -47,6 +47,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              TriggerJetMatchingdr = cms.untracked.double(0.3),
                              TriggerMuonMatchingdr = cms.untracked.double(0.3),
                              TriggerElectronMatchingdr = cms.untracked.double(0.3),
-                             TriggerTauMatchingdr = cms.untracked.double(0.3)
+                             TriggerTauMatchingdr = cms.untracked.double(0.3),
+                             BTagAlgorithim = cms.untracked.string("trackCountingHighEffBJetTags")
                              )                                                                   
  
