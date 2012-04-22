@@ -127,7 +127,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(doElectrons_)fillElectrons(iEvent,iSetup,trackCollection);
   if(doPFTaus_)fillPFTaus(iEvent,iSetup,trackCollection);
   if(doPFJets_)fillPFJets(iEvent,iSetup,trackCollection);
-  if(doKinFitTaus_)fillKinFitTaus(iEvent,iSetup,trackCollection); 
+  if(doKinFitTaus_)fillKinFitTaus(iEvent,iSetup,trackCollection);
   if(doTracks_)fillTracks(trackCollection);
   if(doMC_)fillMCTruth(iEvent,iSetup);
   if(doTrigger_)fillTriggerInfo(iEvent,iSetup);
@@ -1063,7 +1063,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
        std::vector<float> TriggerObj_Eta;
        std::vector<float>  TriggerObj_Phi;
        std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
-       const trigger::Keys& KEYS(triggerEvent->filterKeys(triggerIndex));
+       const trigger::Keys& KEYS(triggerEvent->filterKeys(index));
        for(unsigned int ipart=0; ipart<KEYS.size();ipart++){
 	 TriggerObj_E.push_back(trgobjs.at(KEYS.at(ipart)).energy());
 	 TriggerObj_Eta.push_back(trgobjs.at(KEYS.at(ipart)).eta());
