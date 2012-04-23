@@ -22,7 +22,8 @@ class DataMCType{
 	     QCD=60, 
 	     ttbar=70,
 	     unknown=999,
-	     DY_Signal=10230530, //Extra Flags for Ntuple Analysis  
+	     DY_ll_Signal=10230530, //Extra Flags for Ntuple Analysis  
+	     DY_tautau_Signal=10230533, //Extra Flags for Ntuple Analysis  
 	     Signal=998
   };
 
