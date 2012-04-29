@@ -24,7 +24,9 @@ class DataMCType{
 	     unknown=999,
 	     DY_ll_Signal=10230530, //Extra Flags for Ntuple Analysis  
 	     DY_tautau_Signal=10230533, //Extra Flags for Ntuple Analysis  
-	     Signal=998
+	     Signal=998,
+	     DY_ll_tautau=97,
+	     DY_ll_mmee=96
   };
 
   DataMCType();
