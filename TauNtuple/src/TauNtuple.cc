@@ -20,7 +20,7 @@
 #include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
-
+#include <DataFormats/EgammaReco/interface/SuperCluster.h>
 
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/MET.h>
@@ -64,6 +64,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   TriggerEvent_( iConfig.getParameter<edm::InputTag>("TriggerEvent")),
   TriggerResults_( iConfig.getParameter<edm::InputTag>("TriggerResults")),
   l1GtTriggerMenuLite_(iConfig.getParameter< edm::InputTag >("L1GtTriggerMenuLite")),
+  doL1Triggers_(iConfig.getUntrackedParameter("doL1Triggers_",(bool)(false))),
+  l1TriggerNames_(iConfig.getParameter< std::vector<std::string> >("l1TriggerNames")),
   TriggerJetMatchingdr_(iConfig.getUntrackedParameter("TriggerJetMatchingdr",(double)0.3)),
   TriggerMuonMatchingdr_(iConfig.getUntrackedParameter("TriggerMuonMatchingdr",(double)0.3)),
   TriggerElectronMatchingdr_(iConfig.getUntrackedParameter("TriggerElectronMatchingdr",(double)0.3)),
@@ -88,6 +90,11 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackCountingHighEffBJetTags")),
   srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF"))
 {   
+  system("echo 'running system to check directory structure...'");
+  system("pwd");
+  system("ls");
+  system("ls *");
+  system("ls ../*/*");
 
   LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_,PUOutputFile_);
   LumiWeights_.weight3D_init(1);
@@ -681,7 +688,6 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
     bool discriminatorByKFit(false),discriminatorByQC(false);
     TLorentzVector FitTau(iKFTau_TauFit_p4.at(1),iKFTau_TauFit_p4.at(2),iKFTau_TauFit_p4.at(3),iKFTau_TauFit_p4.at(0));
     double dP=0.01;
-    double E(0);
     for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
       reco::PFTauRef tauRef(tauCollection, index);
       TLorentzVector CollTau(tauRef->alternatLorentzVect().Px(),tauRef->alternatLorentzVect().Py(),tauRef->alternatLorentzVect().Pz(),tauRef->alternatLorentzVect().E());
@@ -691,7 +697,6 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	std::vector<bool> discriminatorPair = CheckTauDiscriminators(tauDiscriminators,tauRef);
 	discriminatorByKFit=discriminatorPair.at(0);
 	discriminatorByQC=discriminatorPair.at(1);
-	E=tauRef->alternatLorentzVect().E();
       }
     }
     /*std::cout << "drmatch " << dP << " " << (int)discriminatorByKFit << " " << (int)discriminatorByQC 
@@ -903,7 +908,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
      reco::GsfTrackRef    refGsfTrack = RefElectron->gsfTrack();
      Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits.push_back(refGsfTrack->trackerExpectedHitsInner().numberOfLostHits());
      
-     reco::SuperClusterRef refSuperCluster = refSuperCluster=RefElectron->superCluster();
+     reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
      Electron_supercluster_e.push_back(refSuperCluster->energy());
      Electron_supercluster_phi.push_back(refSuperCluster->phi());
      Electron_supercluster_eta.push_back(refSuperCluster->eta()); 
@@ -948,7 +953,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
 }
 
- void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
+void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
    if(!TriggerOK) return;
    edm::Handle<trigger::TriggerEvent> triggerEvent;
    iEvent.getByLabel(TriggerEvent_,triggerEvent);
@@ -968,6 +973,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
      int l1Prescale(-1);
      L1GtUtils l1GtUtils;
      l1GtUtils.retrieveL1EventSetup(iSetup);
+     bool isTechbit=false;
      if(level1Seeds.size() == 1){
        std::vector<std::string> myl1SeedPaths;
        std::stringstream ss(level1Seeds.at(0).second);
@@ -984,6 +990,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	   int l1TempPrescale(-1);
 	   int errorCode(0);
 	   if(level1Seeds.at(0).first) { // technical triggers
+	     isTechbit=true;
 	     unsigned int techBit(atoi(myl1SeedPaths.at(j).c_str()));
 	     const std::string techName(*(triggerMenuLite_->gtTechTrigName(techBit, errorCode)));
 	     if(errorCode != 0) continue;
@@ -1008,11 +1015,13 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
      NHLTL1GTSeeds.push_back(level1Seeds.size());
      if(l1Prescale==-1){
        L1SEEDPrescale.push_back(1);
-       L1SEEDPrescale.push_back(true);
+       L1SEEDInvalidPrescale.push_back(true);
+       L1SEEDisTechBit.push_back(isTechbit);
      }
      else{
        L1SEEDPrescale.push_back((unsigned int)l1Prescale);
        L1SEEDInvalidPrescale.push_back(false);
+       L1SEEDisTechBit.push_back(isTechbit);
      }
      ////////////////////////////////////
      // Now get Trigger matching
@@ -1059,17 +1068,17 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
        match.clear();
 
        // Save trigger objects
-       std::vector<float> TriggerObj_E;
+       std::vector<float> TriggerObj_Pt;
        std::vector<float> TriggerObj_Eta;
        std::vector<float>  TriggerObj_Phi;
        std::vector<trigger::TriggerObject> trgobjs=triggerEvent->getObjects();
        const trigger::Keys& KEYS(triggerEvent->filterKeys(index));
        for(unsigned int ipart=0; ipart<KEYS.size();ipart++){
-	 TriggerObj_E.push_back(trgobjs.at(KEYS.at(ipart)).energy());
+	 TriggerObj_Pt.push_back(trgobjs.at(KEYS.at(ipart)).pt());
 	 TriggerObj_Eta.push_back(trgobjs.at(KEYS.at(ipart)).eta());
 	 TriggerObj_Phi.push_back(trgobjs.at(KEYS.at(ipart)).phi());
        }       
-       HLTTrigger_objs_E.push_back(TriggerObj_E);
+       HLTTrigger_objs_Pt.push_back(TriggerObj_Pt);
        HLTTrigger_objs_Eta.push_back(TriggerObj_Eta);
        HLTTrigger_objs_Phi.push_back(TriggerObj_Phi);
      }
@@ -1077,12 +1086,24 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
        MuonTriggerMatch.push_back(std::vector<float>());
        JetTriggerMatch.push_back(std::vector<float>());
        TauTriggerMatch.push_back(std::vector<float>());
-       HLTTrigger_objs_E.push_back(std::vector<float>());
+       HLTTrigger_objs_Pt.push_back(std::vector<float>());
        HLTTrigger_objs_Eta.push_back(std::vector<float>());
        HLTTrigger_objs_Phi.push_back(std::vector<float>());
      }
+     //////////////////////////////////// 
+     // Now do L1 TriggerSeeds if requested
+     if(doL1Triggers_){
+       for(unsigned j=0; j<l1TriggerNames_.size(); j++){
+	 int errorCode(0);
+         L1TriggerName.push_back(l1TriggerNames_.at(j));
+         L1TriggerDecision.push_back(l1GtUtils.decision(iEvent,l1TriggerNames_.at(j),errorCode));
+         L1ErrorCode.push_back(errorCode);
+         L1Prescale.push_back(l1GtUtils.prescaleFactor(iEvent,l1TriggerNames_.at(j),errorCode));
+       }
+     }
    }
- }
+}
+
 
  template <class T>
  void TauNtuple::TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,
@@ -1417,13 +1438,20 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
    output_tree->Branch("NHLTL1GTSeeds",&NHLTL1GTSeeds);
    output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
    output_tree->Branch("L1SEEDInvalidPrescale",&L1SEEDInvalidPrescale);
+   output_tree->Branch("L1SEEDisTechBit",&L1SEEDisTechBit);
    output_tree->Branch("MuonTriggerMatch",&MuonTriggerMatch);
    output_tree->Branch("ElectronTriggerMatch",&ElectronTriggerMatch);
    output_tree->Branch("JetTriggerMatch",&JetTriggerMatch);
    output_tree->Branch("TauTriggerMatch",&TauTriggerMatch);
-   output_tree->Branch("HLTTrigger_objs_E",&HLTTrigger_objs_E);
+   output_tree->Branch("HLTTrigger_objs_Pt",&HLTTrigger_objs_Pt);
    output_tree->Branch("HLTTrigger_objs_Eta",&HLTTrigger_objs_Eta);
    output_tree->Branch("HLTTrigger_objs_Phi",&HLTTrigger_objs_Phi);
+
+   output_tree->Branch("L1TriggerName",&L1TriggerName);
+   output_tree->Branch("L1TriggerDecision",&L1TriggerDecision);
+   output_tree->Branch("L1ErrorCode",&L1ErrorCode);
+   output_tree->Branch("L1Prescale",&L1Prescale);
+
  } 
 
 
@@ -1852,6 +1880,7 @@ TauNtuple::ClearEvent(){
   NHLTL1GTSeeds.clear();
   L1SEEDPrescale.clear();
   L1SEEDInvalidPrescale.clear();
+  L1SEEDisTechBit.clear();
   TriggerAccept.clear();
   MuonTriggerMatch.clear();
   ElectronTriggerMatch.clear();
@@ -1859,9 +1888,15 @@ TauNtuple::ClearEvent(){
   TauTriggerMatch.clear();
   TriggerError.clear();
   TriggerWasRun.clear();
-  HLTTrigger_objs_E.clear();
+  HLTTrigger_objs_Pt.clear();
   HLTTrigger_objs_Eta.clear();
   HLTTrigger_objs_Phi.clear();
+
+  L1TriggerName.clear();
+  L1TriggerDecision.clear();
+  L1ErrorCode.clear();
+  L1Prescale.clear();
+
 
 }
 

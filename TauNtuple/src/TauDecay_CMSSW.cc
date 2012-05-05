@@ -83,6 +83,8 @@ void TauDecay_CMSSW::CheckForSignal(unsigned int &type,edm::Handle<reco::GenPart
       for(unsigned int i = 0; i <itr->numberOfDaughters(); i++){
 	const reco::Candidate *dau=itr->daughter(i);
 	if(abs(dau->pdgId())==PdtPdgMini::tau_minus){
+	  if(type==DataMCType::DY_ll) type=DataMCType::DY_tautau;
+	  if(type==DataMCType::W_lnu) type=DataMCType::W_taunu;
 	  unsigned int JAK_ID,TauBitMask;
 	  AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
 	  if(JAK_ID1==0){

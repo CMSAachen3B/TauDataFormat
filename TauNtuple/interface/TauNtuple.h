@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.19 2012/04/04 12:17:39 inugent Exp $
+// $Id: TauNtuple.h,v 1.20 2012/04/22 13:53:44 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -248,13 +248,15 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag TriggerEvent_;
   edm::InputTag TriggerResults_;
   edm::InputTag l1GtTriggerMenuLite_;
+  edm::Handle< L1GtTriggerMenuLite > triggerMenuLite_;
+  bool doL1Triggers_;
+  std::vector<std::string> l1TriggerNames_;
+
   float TriggerJetMatchingdr_;
   float TriggerMuonMatchingdr_;
   float TriggerElectronMatchingdr_;
   float TriggerTauMatchingdr_;
   float TriggerMETMatchingdr_;
-  edm::Handle< L1GtTriggerMenuLite > triggerMenuLite_;
-
 
   // Control flags
   bool doBJets_;
@@ -477,8 +479,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float>   PFJet_bDiscriminator;
   std::vector<std::vector<float> >   PFJet_BTagWeight;
 
-
-
   //=======  MET ===
   // now only PFMET
   float MET_et;
@@ -524,6 +524,7 @@ class TauNtuple : public edm::EDProducer {
   std::vector<unsigned int> HLTPrescale;
   std::vector<unsigned int> NHLTL1GTSeeds;
   std::vector<unsigned int> L1SEEDPrescale;
+  std::vector<unsigned int> L1SEEDisTechBit;
   std::vector<bool>         L1SEEDInvalidPrescale;
   std::vector<bool>         TriggerAccept;
   std::vector<bool>         TriggerWasRun;
@@ -532,9 +533,14 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> > ElectronTriggerMatch;
   std::vector<std::vector<float> > JetTriggerMatch;
   std::vector<std::vector<float> > TauTriggerMatch;
-  std::vector<std::vector<float> > HLTTrigger_objs_E;
+  std::vector<std::vector<float> > HLTTrigger_objs_Pt;
   std::vector<std::vector<float> > HLTTrigger_objs_Eta;
   std::vector<std::vector<float> > HLTTrigger_objs_Phi;
+
+  std::vector<std::string>  L1TriggerName;
+  std::vector<bool>         L1TriggerDecision;
+  std::vector<int>          L1ErrorCode;
+  std::vector<unsigned int> L1Prescale;
 
   bool TriggerOK;
 
