@@ -192,38 +192,31 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
       DataMCType DMT;
       for(reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr!= genParticles->end(); ++itr){
 	if(DMT.isSignalParticle(itr->pdgId())){
-	  // flag to only select particles that has a daughter tau
-	  bool hastaudaughter=false;
+	  MC_childpdgid.push_back(std::vector<int>());
+	  MCSignalParticle_pdgid.push_back(itr->pdgId());
+	  MCSignalParticle_charge.push_back(itr->charge());
+	  MCSignalParticle_Tauidx.push_back(std::vector<unsigned int>());
+	  std::vector<float> iSig_Poca;
+	  iSig_Poca.push_back(itr->vx());
+	  iSig_Poca.push_back(itr->vy());
+	  iSig_Poca.push_back(itr->vz());
+	  MCSignalParticle_Poca.push_back(iSig_Poca);
+
+	  std::vector<float> iSig_p4;
+	  iSig_p4.push_back(itr->p4().E());
+	  iSig_p4.push_back(itr->p4().Px());
+	  iSig_p4.push_back(itr->p4().Py());
+	  iSig_p4.push_back(itr->p4().Pz());
+	  MCSignalParticle_p4.push_back(iSig_p4);
 	  // look for daughter tau
 	  for(unsigned int i = 0; i <itr->numberOfDaughters(); i++){
 	    const reco::Candidate *dau=itr->daughter(i);
+	    MC_childpdgid.at(MC_childpdgid.size()-1).push_back(dau->pdgId());
 	    if(abs(dau->pdgId())==PdtPdgMini::tau_minus){
-	      if(!hastaudaughter){
-		hastaudaughter=true;
-		//Fill information as signal particle
-		MCSignalParticle_pdgid.push_back(itr->pdgId());
-		MCSignalParticle_charge.push_back(itr->charge());
-		MCSignalParticle_Tauidx.push_back(std::vector<unsigned int>());
-		std::vector<float> iSig_Poca;
-		iSig_Poca.push_back(itr->vx());
-		iSig_Poca.push_back(itr->vy());
-		iSig_Poca.push_back(itr->vz());
-		MCSignalParticle_Poca.push_back(iSig_Poca);
-		
-		std::vector<float> iSig_p4;
-		iSig_p4.push_back(itr->p4().E());
-		iSig_p4.push_back(itr->p4().Px());
-		iSig_p4.push_back(itr->p4().Py());
-		iSig_p4.push_back(itr->p4().Pz());
-		MCSignalParticle_p4.push_back(iSig_p4);
-	      }
 	      unsigned int tauidx=MCTauandProd_p4.size();
 	      MCSignalParticle_Tauidx.at(MCSignalParticle_Tauidx.size()-1).push_back(tauidx);
 	      // Analysis the tau decay
 	      unsigned int JAK_ID,TauBitMask;
-	      //MCTauandProd_p4.push_back(std::vector<std::vector<float> >());
-	      //MCTauandProd_pdgid.push_back(std::vector<int>());
-	      //MCTauandProd_charge.push_back(std::vector<int>());
 	      myTauDecay.AnalyzeTau(static_cast<const reco::GenParticle*>(dau),JAK_ID,TauBitMask);
 	      std::vector<const reco::GenParticle* > TauDecayProducts=myTauDecay.Get_TauDecayProducts();
 	      MCTauandProd_midx.push_back(myTauDecay.Get_MotherIdx());
@@ -236,13 +229,12 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	      for(unsigned int i=0;i<TauDecayProducts.size();i++){
 		MCTauandProd_pdgid.at(tauidx).push_back(TauDecayProducts.at(i)->pdgId());
 		MCTauandProd_charge.at(tauidx).push_back(TauDecayProducts.at(i)->charge());
+		
 		std::vector<float > iTauandProd_p4;
-
 		iTauandProd_p4.push_back(TauDecayProducts.at(i)->p4().E());
 		iTauandProd_p4.push_back(TauDecayProducts.at(i)->p4().Px());
 		iTauandProd_p4.push_back(TauDecayProducts.at(i)->p4().Py());
 		iTauandProd_p4.push_back(TauDecayProducts.at(i)->p4().Pz());
-	
 		MCTauandProd_p4.at(tauidx).push_back(iTauandProd_p4);
 	      }
 	    }	
@@ -1414,6 +1406,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
      output_tree->Branch("MC_pdgid",&MC_pdgid);
      output_tree->Branch("MC_charge",&MC_charge);
      output_tree->Branch("MC_midx",&MC_midx);
+     output_tree->Branch("MC_childpdgid",&MC_childpdgid);
    }
    if(do_MCSummary_){
      output_tree->Branch("MCSignalParticle_p4",&MCSignalParticle_p4);
@@ -1872,6 +1865,7 @@ TauNtuple::ClearEvent(){
   MCTauandProd_charge.clear();
   MCTau_JAK.clear();   
   MCTau_DecayBitMask.clear(); 
+  MC_childpdgid.clear();
   }
 
   //======================Trigger Block ======================

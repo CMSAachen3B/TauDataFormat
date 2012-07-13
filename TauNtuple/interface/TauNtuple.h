@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.20 2012/04/22 13:53:44 inugent Exp $
+// $Id: TauNtuple.h,v 1.21 2012/05/05 14:46:00 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -556,6 +556,7 @@ class TauNtuple : public edm::EDProducer {
   //do All
   std::vector<std::vector<float> > MC_p4;
   std::vector<int> MC_pdgid;
+  std::vector<std::vector<int> > MC_childpdgid;
   std::vector<int> MC_charge;
   std::vector<unsigned int> MC_midx;
 
