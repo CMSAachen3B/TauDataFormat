@@ -1053,12 +1053,13 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
        JetTriggerMatch.push_back(match);
        match.clear();
        // Taus
-       edm::Handle<reco::PFTauCollection> tauCollection;
-       iEvent.getByLabel(kinTausTag_, tauCollection);
-       TriggerMatch(triggerEvent,index,tauCollection,TriggerTauMatchingdr_,match);
-       TauTriggerMatch.push_back(match);
-       match.clear();
-
+       if(doKinFitTaus_){
+	 edm::Handle<reco::PFTauCollection> tauCollection;
+	 iEvent.getByLabel(kinTausTag_, tauCollection);
+	 TriggerMatch(triggerEvent,index,tauCollection,TriggerTauMatchingdr_,match);
+	 TauTriggerMatch.push_back(match);
+	 match.clear();
+       }
        // Save trigger objects
        std::vector<float> TriggerObj_Pt;
        std::vector<float> TriggerObj_Eta;
