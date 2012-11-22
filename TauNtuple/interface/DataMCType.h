@@ -26,7 +26,10 @@ class DataMCType{
 	     DY_tautau_Signal=10230533, 
 	     Signal=998,
 	     DY_ll_tautau=97,
-	     DY_ll_mmee=96
+	     DY_ll_mmee=96,
+	     DY_emu=40,
+	     DY_mutau=41,
+	     DY_etau=42
   };
 
   DataMCType();

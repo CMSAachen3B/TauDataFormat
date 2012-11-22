@@ -10,7 +10,8 @@ process.MessageLogger.cerr = cms.untracked.PSet(
     )
 
 #process.GlobalTag.globaltag = 'START42_V11::All'
-process.GlobalTag.globaltag = 'FT_R_44_V9::All'
+#process.GlobalTag.globaltag = 'FT_R_44_V9::All'
+process.GlobalTag.globaltag = 'START52_V9::All'
 
 numberOfEvents = 1000
 

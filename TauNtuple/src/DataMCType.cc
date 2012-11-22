@@ -32,6 +32,9 @@ unsigned int DataMCType::GetType(TString name){
   if(name=="WW")        return WW;
   if(name=="WZ")        return WZ;
   if(name=="qcd")       return QCD;
+  if(name=="dy_emu")    return DY_emu;
+  if(name=="dy_mutau")  return DY_mutau;
+  if(name=="dy_etau")   return DY_etau;
   std::cout << "ERROR: Data/MC Type UNKNOWN!!!! " << std::endl;
   return unknown;
 }
