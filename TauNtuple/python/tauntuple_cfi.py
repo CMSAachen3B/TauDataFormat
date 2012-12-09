@@ -23,9 +23,11 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              hpsPFTauDiscriminationByDecayModeFinding =cms.InputTag("hpsPFTauDiscriminationByDecayModeFinding"),
                              pfMet = cms.InputTag('pfMet'),
                              muons   = cms.InputTag('muons'),
-                             kinematicTaus  = cms.InputTag("KinematicTauBasicProducer"),
-                             kinematicTausAdvanced = cms.InputTag("KinematicTauProducer","SelectedKinematicDecays"),
-                             tauPrimaryVtx  = cms.InputTag("ThreeProngInputSelectorStep2","primVtx"),
+#                             kinematicTaus  = cms.InputTag("KinematicTauBasicProducer"),
+                             kinematicTausAdvanced = cms.InputTag("KinematicTauProducer","KinematicFitTau"),
+#                             kinematicTausAdvanced = cms.InputTag("KinematicTauProducer","SelectedKinematicDecays"),
+#                             tauPrimaryVtx  = cms.InputTag("ThreeProngInputSelectorStep2","primVtx"),
+                             tauPrimaryVtx  = cms.InputTag("offlinePrimaryVertices"),
                              pfjets         = cms.InputTag("ak5PFJets"),
                              pfelectrons =  cms.InputTag("gsfElectrons"),#"pfElectrons"),#,"electrons","RECO"),
                              generalTracks  = cms.InputTag("generalTracks"),
@@ -52,3 +54,4 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              BTagAlgorithim = cms.untracked.string("trackCountingHighEffBJetTags")
                              )                                                                   
  
+

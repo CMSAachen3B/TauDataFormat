@@ -16,6 +16,7 @@
 <use name="DataFormats/PatCandidates"/>
 <use name="DataFormats/HepMCCandidate"/>
 <use name="SimGeneral/HepPDTRecord"/>
+<use name="RecoEgamma/EgammaTools"/>
 <use name="root"/>
 <use name="rootmath"/>
 <flags EDM_PLUGIN="1"/>

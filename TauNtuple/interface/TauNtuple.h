@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.21 2012/05/05 14:46:00 inugent Exp $
+// $Id: TauNtuple.h,v 1.22 2012/07/13 19:04:03 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -86,7 +86,7 @@
 #include "DataFormats/METReco/interface/METFwd.h"
 #include "DataFormats/METReco/interface/PFMET.h"
 #include "DataFormats/METReco/interface/PFMETFwd.h"
-
+#include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
 #include <DataFormats/MuonReco/interface/Muon.h>
 #include <DataFormats/MuonReco/interface/MuonFwd.h>
@@ -125,8 +125,8 @@
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
 //
-
-
+#include <DataFormats/EgammaCandidates/interface/GsfElectron.h>
+#include <RecoEgamma/EgammaTools/interface/ConversionTools.h>
 
 
 //  Trigger 
@@ -308,24 +308,47 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> Muon_isIsolationValid;
   std::vector<bool> Muon_isQualityValid;
   std::vector<bool> Muon_isTimeValid;
+  std::vector<bool> Muon_isPFMuon;   
 
-  std::vector<float>	Muon_emEt03          ;
-  std::vector<float>	Muon_emVetoEt03      ;
-  std::vector<float>	Muon_hadEt03         ;
-  std::vector<float>	Muon_hadVetoEt03     ;
-  std::vector<float>	Muon_nJets03         ;
-  std::vector<float>	Muon_nTracks03       ;
-  std::vector<float>	Muon_sumPt03         ;
-  std::vector<float>	Muon_trackerVetoPt03 ;
+  std::vector<float>	Muon_emEt03;
+  std::vector<float>	Muon_emVetoEt03;
+  std::vector<float>	Muon_hadEt03;
+  std::vector<float>	Muon_hadVetoEt03;
+  std::vector<float>	Muon_nJets03;
+  std::vector<float>	Muon_nTracks03;
+  std::vector<float>	Muon_sumPt03;
+  std::vector<float>	Muon_trackerVetoPt03;
   
-  std::vector<float>	Muon_emEt05          ;
-  std::vector<float>	Muon_emVetoEt05      ;
-  std::vector<float>	Muon_hadEt05         ;
-  std::vector<float>	Muon_hadVetoEt05     ;
-  std::vector<float>	Muon_nJets05         ;
-  std::vector<float>	Muon_nTracks05       ;
-  std::vector<float>	Muon_sumPt05         ;
+  std::vector<float>	Muon_emEt05;
+  std::vector<float>	Muon_emVetoEt05;
+  std::vector<float>	Muon_hadEt05;
+  std::vector<float>	Muon_hadVetoEt05;
+  std::vector<float>	Muon_nJets05;
+  std::vector<float>	Muon_nTracks05;
+  std::vector<float>	Muon_sumPt05;
   std::vector<float>	Muon_trackerVetoPt05 ;
+
+
+  std::vector<float> 	Muon_sumChargedHadronPt03;              // sum-pt of charged Hadron
+  std::vector<float> 	Muon_sumChargedParticlePt03;            // sum-pt of charged Particles(inludes e/mu)
+  std::vector<float> 	Muon_sumNeutralHadronEt03;              // sum pt of neutral hadrons
+  std::vector<float> 	Muon_sumNeutralHadronEtHighThreshold03; // sum pt of neutral hadrons with a higher threshold
+  std::vector<float> 	Muon_sumPhotonEt03;                     // sum pt of PF photons
+  std::vector<float> 	Muon_sumPhotonEtHighThreshold03;        // sum pt of PF photons with a higher threshold
+  std::vector<float> 	Muon_sumPUPt03;                         // sum pt of charged Particles not from PV (for Pu corrections) 
+
+  std::vector<float> 	Muon_sumChargedHadronPt04;              // sum-pt of charged Hadron
+  std::vector<float> 	Muon_sumChargedParticlePt04;            // sum-pt of charged Particles(inludes e/mu)
+  std::vector<float> 	Muon_sumNeutralHadronEt04;              // sum pt of neutral hadrons
+  std::vector<float> 	Muon_sumNeutralHadronEtHighThreshold04; // sum pt of neutral hadrons with a higher threshold
+  std::vector<float> 	Muon_sumPhotonEt04;                     // sum pt of PF photons
+  std::vector<float> 	Muon_sumPhotonEtHighThreshold04;        // sum pt of PF photons with a higher threshold
+  std::vector<float> 	Muon_sumPUPt04;                         // sum pt of charged Particles not from PV (for Pu corrections) 
+
+
+
+
+						       
 
   std::vector<int>      Muon_numberOfChambers;
   std::vector<int>      Muon_Charge;
@@ -336,9 +359,10 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> Muon_normChi2;
   std::vector<float> Muon_hitPattern_numberOfValidMuonHits;
   std::vector<float> Muon_innerTrack_numberofValidHits;
+  std::vector<int>   Muon_numberofValidPixelHits;
   std::vector<float> Muon_numberOfMatches;
-
-
+  std::vector<int>   Muon_trackerLayersWithMeasurement;
+                     
   //======= PFTaus ===
   std::vector<std::vector<float> > PFTau_p4;
   std::vector<std::vector<float > > PFTau_Poca;
@@ -359,6 +383,22 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> PFTau_isHPSByDecayModeFinding;     
 
 
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMVA3LooseElectronRejection;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMVA3MediumElectronRejection;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMVA3TightElectronRejection;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMVA3VTightElectronRejection;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA;
+  std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA;                      
+
+
+
+
+
 
   std::vector<int>  PFTau_hpsDecayMode;   
   std::vector<int>  PFTau_Charge;
@@ -369,26 +409,38 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> KFTau_discriminatorByKFit;
   std::vector<bool> KFTau_discriminatorByQC;
   int  KFTau_nKinTaus;
-  std::vector<std::vector<float> > KFTau_TauVis_p4;
-  std::vector<std::vector<float> > KFTau_TauFit_p4;
-  std::vector<std::vector<float> > KFTau_Neutrino_p4;
+  // std::vector<int> KFTau_Fit_TauCharge;
+  std::vector<std::vector<std::vector<float> > > KFTau_TauVis_p4;
+  std::vector<std::vector<std::vector<float> > > KFTau_TauFit_p4;
+  std::vector<std::vector<std::vector<float> > > KFTau_TauFitInitial_p4;
+  std::vector<std::vector<std::vector<float> > > KFTau_Neutrino_p4;
+  std::vector<std::vector<std::vector<float> > > KFTau_NeutrinoInitial_p4;
+  std::vector<std::vector<float> >  KFTau_a1Initial_p4;
   std::vector<unsigned int> KFTau_MatchedHPS_idx;
   std::vector<std::vector<int> > KFTau_Track_idx;
   std::vector<int> KFTau_indexOfFitInfo;
-
-  std::vector<float>	KFTau_Fit_chi2;
-  std::vector<float>	KFTau_Fit_ndf;
-  std::vector<int>	KFTau_Fit_ambiguity;
+  std::vector<std::vector<float> >	KFTau_Fit_ndf;
+  // std::vector<int>	KFTau_Fit_ambiguity;
   std::vector<int>	KFTau_Fit_charge;
-  std::vector<int>	KFTau_Fit_csum;     
-  std::vector<int>      KFTau_Fit_iterations;
+  std::vector<std::vector<int> >	KFTau_Fit_csum;     
+  std::vector<std::vector<int> >     KFTau_Fit_iterations;
   std::vector<std::vector<float> > KFTau_Fit_TauPrimVtx;
 
-  std::vector<float> KFTau_Fit_TauEnergyFraction;
-  std::vector<float> KFTau_Fit_RefitVisibleMass;
-  std::vector<float> KFTau_Fit_Chi2;
-  std::vector<float> KFTau_Fit_PV_PV_significance;
-  std::vector<float> KFTau_Fit_SV_PV_significance;
+
+  std::vector<std::vector<float> > KFTau_Fit_PrimaryVertex;
+  std::vector<std::vector<float> > KFTau_Fit_InitialPrimaryVertex;
+
+  std::vector<std::vector<std::vector<float> > >  KFTau_Fit_SecondaryVertex;
+  std::vector<std::vector<float> >  KFTau_Fit_InitialSecondaryVertex;
+
+
+  std::vector<std::vector<float> > KFTau_Fit_TauEnergyFraction;
+  std::vector<std::vector<float> > KFTau_Fit_RefitVisibleMass;
+  std::vector<std::vector<float> > KFTau_Fit_Chi2Prob;
+  std::vector<std::vector<float> > KFTau_Fit_chi2;
+  std::vector<std::vector<float> > KFTau_Fit_BDTVal;
+  std::vector<std::vector<float> > KFTau_Fit_PV_PV_significance;
+  std::vector<std::vector<float> > KFTau_Fit_SV_PV_significance;
 
   std::vector<std::vector<int> > KFTau_Daughter_pdgid;
   std::vector<std::vector<int> > KFTau_Daughter_charge;
@@ -438,6 +490,33 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> Electron_supercluster_centroid_z;
   std::vector<unsigned int> Electron_Track_idx;
 
+  std::vector<float> 	Electron_ecalRecHitSumEt03;
+  std::vector<float> 	Electron_hcalDepth1TowerSumEt03;
+  std::vector<float> 	Electron_hcalDepth1TowerSumEtBc03;
+  std::vector<float> 	Electron_hcalDepth2TowerSumEt03;
+  std::vector<float> 	Electron_hcalDepth2TowerSumEtBc03;
+  std::vector<float> 	Electron_tkSumPt03;
+  std::vector<float> 	Electron_ecalRecHitSumEt04;
+  std::vector<float> 	Electron_hcalDepth1TowerSumEt04;
+  std::vector<float> 	Electron_hcalDepth1TowerSumEtBc04;
+  std::vector<float> 	Electron_hcalDepth2TowerSumEt04;
+  std::vector<float> 	Electron_hcalDepth2TowerSumEtBc04;
+  std::vector<float> 	Electron_tkSumPt04;
+
+
+  std::vector<float> 	Electron_chargedHadronIso;
+  std::vector<float> 	Electron_neutralHadronIso;
+  std::vector<float> 	Electron_photonIso;                
+
+
+  std::vector<float> Electron_sigmaIetaIeta;
+  std::vector<float> Electron_hadronicOverEm;
+  std::vector<float> Electron_fbrem;
+  std::vector<float> Electron_eSuperClusterOverP;
+  std::vector<float> Electron_ecalEnergy;
+  std::vector<float> Electron_trackMomentumAtVtx;
+  std::vector<float> Electron_numberOfMissedHits;  //number of missing hits conversion rejection 
+  std::vector<bool>  Electron_HasMatchedConversions;
 
   //=======  PFJets ===
   std::vector<std::vector<float> > PFJet_p4;
@@ -570,6 +649,7 @@ class TauNtuple : public edm::EDProducer {
 
   // MC Tau Info
   std::vector<std::vector<std::vector<float> > > MCTauandProd_p4;
+  std::vector<std::vector<std::vector<float> > > MCTauandProd_Vertex;
   std::vector<std::vector<int> > MCTauandProd_pdgid;
   std::vector<std::vector<unsigned int> > MCTauandProd_midx;
   std::vector<std::vector<int> > MCTauandProd_charge;
