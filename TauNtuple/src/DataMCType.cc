@@ -28,11 +28,12 @@ unsigned int DataMCType::GetType(TString name){
   if(name=="dy_ee")     return DY_ee;
   if(name=="dy_mumu")   return DY_mumu;
   if(name=="dy_tautau") return DY_tautau;
-  if(name=="ZZ")        return ZZ;
-  if(name=="WW")        return WW;
-  if(name=="WZ")        return WZ;
+  if(name=="zz")        return ZZ;
+  if(name=="ww")        return WW;
+  if(name=="wz")        return WZ;
   if(name=="qcd")       return QCD;
   if(name=="dy_emu")    return DY_emu;
+  if(name=="dy_mue")    return DY_emu;
   if(name=="dy_mutau")  return DY_mutau;
   if(name=="dy_etau")   return DY_etau;
   std::cout << "ERROR: Data/MC Type UNKNOWN!!!! " << std::endl;
