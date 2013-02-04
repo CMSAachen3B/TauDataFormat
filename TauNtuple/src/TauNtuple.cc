@@ -40,6 +40,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   hpsPFTauDiscriminationAgainstElectronMedium_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstElectronMedium" ) ),
   hpsPFTauDiscriminationAgainstElectronTight_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstElectronTight" ) ),
   hpsPFTauDiscriminationAgainstMuonLoose_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstMuonLoose" ) ),
+  hpsPFTauDiscriminationAgainstMuonMedium_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstMuonMedium" ) ),
   hpsPFTauDiscriminationAgainstMuonTight_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationAgainstMuonTight" ) ),
   hpsPFTauDiscriminationByDecayModeFinding_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByDecayModeFinding" ) ),
   pfMETTag_( iConfig.getParameter<edm::InputTag>( "pfMet" ) ),
@@ -48,6 +49,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   tauPrimaryVtx_( iConfig.getParameter<edm::InputTag>( "tauPrimaryVtx" ) ),
   pfjetsTag_( iConfig.getParameter<edm::InputTag>( "pfjets" ) ),
   PFElectronTag_( iConfig.getParameter<edm::InputTag>( "pfelectrons" ) ),
+  rhoIsolAllInputTag_( iConfig.getParameter<edm::InputTag>( "RhoIsolAllInputTag" ) ),
   generalTracks_(iConfig.getParameter<edm::InputTag>( "generalTracks" )),
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
@@ -278,14 +280,17 @@ TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     }
     Vtx_Cov.push_back(iVtx_Cov);
     std::vector<int> matches;
+    std::vector<float> TrackWeights;
     for(reco::Vertex::trackRef_iterator iTrack=pv.tracks_begin(); iTrack<pv.tracks_end();iTrack++){
       int match(-1);
       reco::TrackRef refTrack=iTrack->castTo<reco::TrackRef>();
       if( refTrack.isNonnull() ) {
 	getTrackMatch(trackCollection,refTrack,match);
 	matches.push_back(match);
+	TrackWeights.push_back(pv.trackWeight(refTrack));
       }
     }
+    Vtx_Track_Weights.push_back(TrackWeights);
     Vtx_Track_idx.push_back(matches);
   }
 }
@@ -514,35 +519,97 @@ void
    iEvent.getByLabel(hpsPFTauDiscriminationAgainstElectronMedium_, HPSAgainstElectronsMedium);
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstElectronsTight;
    iEvent.getByLabel(hpsPFTauDiscriminationAgainstElectronTight_, HPSAgainstElectronsTight);
+
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonLoose;
    iEvent.getByLabel(hpsPFTauDiscriminationAgainstMuonLoose_, HPSAgainstMuonLoose);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonMedium;
+   iEvent.getByLabel(hpsPFTauDiscriminationAgainstMuonMedium_, HPSAgainstMuonMedium);
+
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonTight;
    iEvent.getByLabel(hpsPFTauDiscriminationAgainstMuonTight_, HPSAgainstMuonTight);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonLoose2;
+   iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonLoose2);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonMedium2;
+   iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonMedium2);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonTight2;
+   iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonTight2);
+
+
+
+
+
    edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
    iEvent.getByLabel(hpsPFTauDiscriminationByDecayModeFinding_, HPSByDecayModeFinding);
-   edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3rawElectronRejection;
-   iEvent.getByLabel("hpsPFTauDiscriminationByMVA3rawElectronRejection", HPSPFTauDiscriminationByMVA3rawElectronRejection);
+
+
+
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3rawElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3rawElectronRejection", HPSPFTauDiscriminationByMVA3rawElectronRejection);
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3LooseElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3LooseElectronRejection", HPSPFTauDiscriminationByMVA3LooseElectronRejection);
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3MediumElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3MediumElectronRejection", HPSPFTauDiscriminationByMVA3MediumElectronRejection);
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3TightElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3TightElectronRejection", HPSPFTauDiscriminationByMVA3TightElectronRejection);
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3VTightElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3VTightElectronRejection", HPSPFTauDiscriminationByMVA3VTightElectronRejection);
+
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3rawElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3rawElectronRejection", HPSPFTauDiscriminationByMVA3rawElectronRejection);
+ 
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3LooseElectronRejection;
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3LooseElectronRejection", HPSPFTauDiscriminationByMVA3LooseElectronRejection);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3MediumElectronRejection;
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3MediumElectronRejection", HPSPFTauDiscriminationByMVA3MediumElectronRejection);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3TightElectronRejection;
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3TightElectronRejection", HPSPFTauDiscriminationByMVA3TightElectronRejection);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3VTightElectronRejection;
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3VTightElectronRejection", HPSPFTauDiscriminationByMVA3VTightElectronRejection);
-   edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByDeadECALElectronRejection;
-   iEvent.getByLabel("hpsPFTauDiscriminationByDeadECALElectronRejection", HPSPFTauDiscriminationByDeadECALElectronRejection);
+
+//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByDeadECALElectronRejection;
+//    iEvent.getByLabel("hpsPFTauDiscriminationByDeadECALElectronRejection", HPSPFTauDiscriminationByDeadECALElectronRejection);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits;
    iEvent.getByLabel("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits", HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits;
    iEvent.getByLabel("hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits", HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits;
    iEvent.getByLabel("hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits", HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByLooseIsolationMVA;
    iEvent.getByLabel("hpsPFTauDiscriminationByLooseIsolationMVA", HPSPFTauDiscriminationByLooseIsolationMVA);
+
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMediumIsolationMVA;
    iEvent.getByLabel("hpsPFTauDiscriminationByMediumIsolationMVA", HPSPFTauDiscriminationByMediumIsolationMVA);
 
+
+   edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByTightIsolationMVA;
+   iEvent.getByLabel("hpsPFTauDiscriminationByTightIsolationMVA", HPSPFTauDiscriminationByTightIsolationMVA);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByLooseIsolationMVA2;
+   iEvent.getByLabel("hpsPFTauDiscriminationByLooseIsolationMVA2", HPSPFTauDiscriminationByLooseIsolationMVA2);
+
+   edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMediumIsolationMVA2;
+   iEvent.getByLabel("hpsPFTauDiscriminationByMediumIsolationMVA2", HPSPFTauDiscriminationByMediumIsolationMVA2);
+
+
+   edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByTightIsolationMVA2;
+   iEvent.getByLabel("hpsPFTauDiscriminationByTightIsolationMVA2", HPSPFTauDiscriminationByTightIsolationMVA2);
 
 
    //hpsPFTauDiscriminationByLooseIsolationMVA
@@ -580,23 +647,33 @@ void
      PFTau_isHPSAgainstElectronsMedium.push_back((*HPSAgainstElectronsMedium)[HPStauCandidate]);
      PFTau_isHPSAgainstElectronsTight.push_back((*HPSAgainstElectronsTight)[HPStauCandidate]);
      PFTau_isHPSAgainstMuonLoose.push_back((*HPSAgainstMuonLoose)[HPStauCandidate]);
+     PFTau_isHPSAgainstMuonMedium.push_back((*HPSAgainstMuonMedium)[HPStauCandidate]);
      PFTau_isHPSAgainstMuonTight.push_back((*HPSAgainstMuonTight)[HPStauCandidate]);
+
+     PFTau_isHPSAgainstMuonLoose2.push_back((*HPSAgainstMuonLoose2)[HPStauCandidate]);
+     PFTau_isHPSAgainstMuonMedium2.push_back((*HPSAgainstMuonMedium2)[HPStauCandidate]);
+     PFTau_isHPSAgainstMuonTight2.push_back((*HPSAgainstMuonTight2)[HPStauCandidate]);
+
+
      PFTau_isHPSByDecayModeFinding.push_back((*HPSByDecayModeFinding)[HPStauCandidate]);
 
 
-     PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection.push_back((*HPSPFTauDiscriminationByMVA3rawElectronRejection)[HPStauCandidate]);
+     //    PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection.push_back((*HPSPFTauDiscriminationByMVA3rawElectronRejection)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMVA3LooseElectronRejection.push_back((*HPSPFTauDiscriminationByMVA3LooseElectronRejection)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMVA3MediumElectronRejection.push_back((*HPSPFTauDiscriminationByMVA3MediumElectronRejection)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMVA3TightElectronRejection.push_back((*HPSPFTauDiscriminationByMVA3TightElectronRejection)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMVA3VTightElectronRejection.push_back((*HPSPFTauDiscriminationByMVA3VTightElectronRejection)[HPStauCandidate]);
-     PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection.push_back((*HPSPFTauDiscriminationByDeadECALElectronRejection)[HPStauCandidate]);
+     //    PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection.push_back((*HPSPFTauDiscriminationByDeadECALElectronRejection)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByLooseIsolationMVA.push_back((*HPSPFTauDiscriminationByLooseIsolationMVA)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.push_back((*HPSPFTauDiscriminationByMediumIsolationMVA)[HPStauCandidate]);
-     
+     PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.push_back((*HPSPFTauDiscriminationByTightIsolationMVA)[HPStauCandidate]);    
 
+     PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2.push_back((*HPSPFTauDiscriminationByLooseIsolationMVA2)[HPStauCandidate]);
+     PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2.push_back((*HPSPFTauDiscriminationByMediumIsolationMVA2)[HPStauCandidate]);
+     PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2.push_back((*HPSPFTauDiscriminationByTightIsolationMVA2)[HPStauCandidate]);    
 
 
 
@@ -684,7 +761,8 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.getByLabel(KinFitAdvanced_, selected);
 
   //start loop over KinFit decays 
-  for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay){
+  unsigned int tauindex=0;
+  for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay, tauindex++){
     SelectedKinematicDecay KFTau=(*decay);
 
       std::vector<std::vector<float> > iKFTau_TauVis_p4;
@@ -697,6 +775,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 
       std::vector<float> iKFTau_Fit_PrimaryVertex;
       std::vector<float> iKFTau_Fit_InitialPrimaryVertex;
+      std::vector<float> iKFTau_Fit_InitialPrimaryVertexReFit;
       std::vector<float> iKFTau_Fit_InitialSecondaryVertex;
       std::vector<std::vector<float> > iKFTau_Fit_SecondaryVertex;
       std::vector<float> iKFTau_Fit_TauPrimVtx;
@@ -711,9 +790,14 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
       iKFTau_Fit_PrimaryVertex.push_back(KFTau.PrimaryVertexReFitAndRotated().position().y());
       iKFTau_Fit_PrimaryVertex.push_back(KFTau.PrimaryVertexReFitAndRotated().position().z());
       
-      iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertexReFitAndRotated().position().x());
-      iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertexReFitAndRotated().position().y());
-      iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertexReFitAndRotated().position().z());
+      iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertex().position().x());
+      iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertex().position().y());
+      iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertex().position().z());
+
+      iKFTau_Fit_InitialPrimaryVertexReFit.push_back(KFTau.InitialPrimaryVertexReFit().position().x());
+      iKFTau_Fit_InitialPrimaryVertexReFit.push_back(KFTau.InitialPrimaryVertexReFit().position().y());
+      iKFTau_Fit_InitialPrimaryVertexReFit.push_back(KFTau.InitialPrimaryVertexReFit().position().z());
+
       
       iKFTau_Fit_InitialSecondaryVertex.push_back(KFTau.InitialSecondaryVertex().position().x());
       iKFTau_Fit_InitialSecondaryVertex.push_back(KFTau.InitialSecondaryVertex().position().y());
@@ -730,23 +814,42 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
       KFTau_Daughter_parCov.push_back(std::vector<std::vector<float>  >());
       KFTau_Daughter_inputpar.push_back(std::vector<std::vector<float> > ());
       KFTau_Daughter_inputparCov.push_back(std::vector<std::vector<float> > ());
-
+    
 
       std::vector<float>   iKFTau_Daughter_par;
       std::vector<float>   iKFTau_Daughter_parCov;
       std::vector<float>   iKFTau_Daughter_inputpar;
       std::vector<float>   iKFTau_Daughter_inputparCov;
+
       
-      
+
+   
+      int taucharge;
       //    Start loop over ambiguity points.
-      for(unsigned int ambiguity=0; ambiguity<SelectedKinematicDecay::NAmbiguity; ambiguity++){
-	
+
+      //   std::vector<float> 
+	KFTau_discriminatorByKFit.push_back(std::vector<int>());
+	KFTau_discriminatorByQC.push_back(std::vector<int>());
+
 	KFTau_Fit_Chi2Prob.push_back(std::vector<float>());
 	KFTau_Fit_BDTVal.push_back(std::vector<float>());
 	KFTau_Fit_ndf.push_back(std::vector<float>());
 	KFTau_Fit_csum.push_back(std::vector<int>());
 	KFTau_Fit_iterations.push_back(std::vector<int>());
+
+	KFTau_Fit_TauEnergyFraction.push_back(std::vector<float>());
+	KFTau_Fit_RefitVisibleMass.push_back(std::vector<float>());
+	KFTau_Fit_chi2.push_back(std::vector<float>());
+	KFTau_Fit_PV_PV_significance.push_back(std::vector<float>());
+	KFTau_Fit_SV_PV_significance.push_back(std::vector<float>());
+
+
+      for(unsigned int ambiguity=0; ambiguity<SelectedKinematicDecay::NAmbiguity; ambiguity++){
 	
+
+
+
+
 	iKFTau_TauVis_p4.push_back(std::vector<float>());
 	iKFTau_TauFit_p4.push_back(std::vector<float>());
 	iKFTau_Neutrino_p4.push_back(std::vector<float>());
@@ -755,24 +858,22 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	iKFTau_Fit_SecondaryVertex.push_back(std::vector<float>());
 	
 	
-	KFTau_Fit_TauEnergyFraction.push_back(std::vector<float>());
-	KFTau_Fit_RefitVisibleMass.push_back(std::vector<float>());
-	KFTau_Fit_chi2.push_back(std::vector<float>());
-	KFTau_Fit_PV_PV_significance.push_back(std::vector<float>());
-	KFTau_Fit_SV_PV_significance.push_back(std::vector<float>());
 	
 	
-	KFTau_Fit_chi2.at(ambiguity).push_back(KFTau.chi2(ambiguity));
-	KFTau_Fit_ndf.at(ambiguity).push_back(KFTau.ndf(ambiguity));
-	KFTau_Fit_csum.at(ambiguity).push_back(KFTau.csum(ambiguity));
-	KFTau_Fit_iterations.at(ambiguity).push_back(KFTau.iterations(ambiguity));
-	KFTau_Fit_BDTVal.at(ambiguity).push_back(KFTau.BDTVal(ambiguity));
+
+
+
+	KFTau_Fit_chi2.at(tauindex).push_back(KFTau.chi2(ambiguity));
+	KFTau_Fit_ndf.at(tauindex).push_back(KFTau.ndf(ambiguity));
+	KFTau_Fit_csum.at(tauindex).push_back(KFTau.csum(ambiguity));
+	KFTau_Fit_iterations.at(tauindex).push_back(KFTau.iterations(ambiguity));
+	KFTau_Fit_BDTVal.at(tauindex).push_back(KFTau.BDTVal(ambiguity));
 	
-	KFTau_Fit_TauEnergyFraction.at(ambiguity).push_back(KFTau.energyTFraction(ambiguity));
-	KFTau_Fit_RefitVisibleMass.at(ambiguity).push_back(KFTau.a1Mass(ambiguity));
-	KFTau_Fit_Chi2Prob.at(ambiguity).push_back(KFTau.chi2prob(ambiguity));
-	KFTau_Fit_PV_PV_significance.at(ambiguity).push_back(KFTau.vtxSignPVRotPVRed(ambiguity));
-	KFTau_Fit_SV_PV_significance.at(ambiguity).push_back(KFTau.vtxSignPVRotSV(ambiguity));
+	KFTau_Fit_TauEnergyFraction.at(tauindex).push_back(KFTau.energyTFraction(ambiguity));
+	KFTau_Fit_RefitVisibleMass.at(tauindex).push_back(KFTau.a1Mass(ambiguity));
+	KFTau_Fit_Chi2Prob.at(tauindex).push_back(KFTau.chi2prob(ambiguity));
+	KFTau_Fit_PV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotPVRed(ambiguity));
+	KFTau_Fit_SV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotSV(ambiguity));
 	
 	
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).E());
@@ -780,7 +881,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Py());
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Pz());
 	
-	
+
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).E());
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Px());
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Py());
@@ -797,27 +898,38 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Py());
 	iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Pz());
 	
-	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).E());
-	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Px());
-	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Py());
-	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Pz());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).E());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Px());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Py());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Pz());
 	
 	
 	iKFTau_Fit_SecondaryVertex.at(ambiguity).push_back(KFTau.SecondaryVertex(ambiguity).position().x());
 	iKFTau_Fit_SecondaryVertex.at(ambiguity).push_back(KFTau.SecondaryVertex(ambiguity).position().y());
 	iKFTau_Fit_SecondaryVertex.at(ambiguity).push_back(KFTau.SecondaryVertex(ambiguity).position().z());
+	
 
 
+	if(KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFit")->second) KFTau_discriminatorByKFit.at(tauindex).push_back(1);
+	else KFTau_discriminatorByKFit.at(tauindex).push_back(0);
+	
+	if(KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFitQuality")->second){ KFTau_discriminatorByQC.at(tauindex).push_back(1); }
+	else{ KFTau_discriminatorByQC.at(tauindex).push_back(0); }
+	
+
+	//	std::cout<<"ambiguity "<< ambiguity << "  ByKfit  "<<KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFit")->second<<	"  byQC  "<< KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFitQuality")->second<<" vector size   " <<KFTau_discriminatorByQC.at(ambiguity).size() <<"check ambig size  " << KFTau_Fit_chi2.at(ambiguity).size() <<std::endl;
 
 	const SelectedKinematicParticleCollection& Particles =decay->particles(ambiguity);
 	
 	for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
+
 	  if(ambiguity == 0){ // supposed to  be the same for all ambuguity points
+
 	    //First Store Tau's
 	    if(iParticle->name()=="tau"){
-	      KFTau_Fit_charge.push_back(iParticle->charge());
+	      taucharge = iParticle->charge();
 	    }
-	    
+
 	    int d_pdgid=0;
 	    if(iParticle->name()=="neutrino")                              d_pdgid=PdtPdgMini::nu_tau;
 	    else if(iParticle->name()=="tau"  && iParticle->charge()==1)   d_pdgid=PdtPdgMini::tau_plus;
@@ -829,7 +941,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	    
 	    KFTau_Daughter_pdgid.at(ntaus).push_back(d_pdgid);
 	    KFTau_Daughter_charge.at(ntaus).push_back(iParticle->charge());
-	    
+
 	    
 	  }
 	  
@@ -845,37 +957,43 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	  }
 	  
 	}
-	
-      }
 
-      
+      }
+	
+      // std::cout<<"Size of QC disc ================= "<<KFTau_discriminatorByQC.at(0).size()<<std::end;
+
+     
+
       KFTau_Daughter_par.at(ntaus).push_back(iKFTau_Daughter_par);
       KFTau_Daughter_parCov.at(ntaus).push_back(iKFTau_Daughter_parCov);
       KFTau_Daughter_inputpar.at(ntaus).push_back(iKFTau_Daughter_inputpar);
       KFTau_Daughter_inputparCov.at(ntaus).push_back(iKFTau_Daughter_inputparCov);
-      
       
       KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
       KFTau_TauFit_p4.push_back(iKFTau_TauFit_p4);
       KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
       KFTau_TauFitInitial_p4.push_back(iKFTau_TauFitInitial_p4);
       KFTau_NeutrinoInitial_p4.push_back(iKFTau_NeutrinoInitial_p4);
-      
+
+      KFTau_Fit_SecondaryVertex.push_back(iKFTau_Fit_SecondaryVertex);
       KFTau_a1Initial_p4.push_back(iKFTau_a1Initial_p4);
-      
       KFTau_Fit_PrimaryVertex.push_back(iKFTau_Fit_PrimaryVertex);
       KFTau_Fit_InitialPrimaryVertex.push_back(iKFTau_Fit_InitialPrimaryVertex);
+      KFTau_Fit_InitialPrimaryVertexReFit.push_back(iKFTau_Fit_InitialPrimaryVertexReFit);
       KFTau_Fit_InitialSecondaryVertex.push_back(iKFTau_Fit_InitialSecondaryVertex);
 
+      KFTau_Fit_charge.push_back(taucharge);
 
+      // std::cout<<" discr  "<<KFTau_discriminatorByQC.size() <<"check ambig size  " << iKFTau_TauVis_p4.at(1).size() <<" taucharge  "<< "taucharge<<taucharge size  " <<KFTau_Fit_charge.size() <<std::endl;
       //-------------------------------------
-      
-      
+
       
       //Match to tau collection to find discriminants
       unsigned int index = 0;
-      bool discriminatorByKFit(false),discriminatorByQC(false);
+      //  bool discriminatorByKFit(false),discriminatorByQC(false);
+
       TLorentzVector FitTau(iKFTau_TauFit_p4.at(0).at(1),iKFTau_TauFit_p4.at(0).at(2),iKFTau_TauFit_p4.at(0).at(3),iKFTau_TauFit_p4.at(0).at(0));
+
       double dP=0.01;
       //     for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
       //       reco::PFTauRef tauRef(tauCollection, index);
@@ -901,11 +1019,13 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
       //       KFTau_discriminatorByKFit.push_back(false);
       //       KFTau_discriminatorByQC.push_back(false);
       //     }
+
       unsigned int idx =0;
       unsigned int convergedTau;
       if(iKFTau_TauVis_p4.at(0).at(0)!=0)convergedTau =0;
       if(iKFTau_TauVis_p4.at(1).at(0)!=0)convergedTau =1;
       if(iKFTau_TauVis_p4.at(2).at(0)!=0)convergedTau =2;
+
       reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4.at(convergedTau),idx);
       KFTau_MatchedHPS_idx.push_back(idx);
   }
@@ -1069,9 +1189,17 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
    edm::Handle<reco::ConversionCollection> hConversions;
    iEvent.getByLabel("allConversions", hConversions);
 
+   edm::Handle<double> RhoIsolation;
+   iEvent.getByLabel(rhoIsolAllInputTag_, RhoIsolation);
+   const double *RhoIsolationRef = RhoIsolation.product();
+
+
+   RhoIsolationAllInputTags  = *(RhoIsolationRef);
+
 
    
  for(reco::PFCandidateCollection::size_type iPFElectron = 0; iPFElectron < ElectronCollection->size(); iPFElectron++) {
+
      reco::GsfElectronRef RefElectron(ElectronCollection, iPFElectron);
      std::vector<float> iElectron_Poca;
      iElectron_Poca.push_back(RefElectron->vx());
@@ -1410,7 +1538,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
  TauNtuple::beginJob()
  {
 
-
+   std::cout<<"----------------------------------- >>>>>>>>>>>>>> TauNtuple begin Job"<<std::endl;
  //-------------------------
  //   TString cmd1="pwd";
  //   TString cmd2="ls";
@@ -1436,6 +1564,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("Vtx_z",&Vtx_z);
    output_tree->Branch("Vtx_Cov",&Vtx_Cov);
    output_tree->Branch("Vtx_Track_idx",&Vtx_Track_idx);
+   output_tree->Branch("Vtx_Track_Weights",&Vtx_Track_Weights);
    output_tree->Branch("Vtx_isFake",&Vtx_isFake);
 
    //=============  Muon Block ====
@@ -1550,6 +1679,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("Electron_trackMomentumAtVtx",&Electron_trackMomentumAtVtx);    
    output_tree->Branch("Electron_numberOfMissedHits",&Electron_numberOfMissedHits);    
    output_tree->Branch("Electron_HasMatchedConversions",&Electron_HasMatchedConversions); 
+   output_tree->Branch("RhoIsolationAllInputTags",&RhoIsolationAllInputTags); 
+
 
 
 
@@ -1571,20 +1702,32 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PFTau_isHPSAgainstElectronsMedium",&PFTau_isHPSAgainstElectronsMedium);
    output_tree->Branch("PFTau_isHPSAgainstElectronsTight",&PFTau_isHPSAgainstElectronsTight); 
    output_tree->Branch("PFTau_isHPSAgainstMuonLoose",&PFTau_isHPSAgainstMuonLoose);      
+   output_tree->Branch("PFTau_isHPSAgainstMuonMedium",&PFTau_isHPSAgainstMuonMedium);    
    output_tree->Branch("PFTau_isHPSAgainstMuonTight",&PFTau_isHPSAgainstMuonTight);      
+
+   output_tree->Branch("PFTau_isHPSAgainstMuonLoose2",&PFTau_isHPSAgainstMuonLoose2);      
+   output_tree->Branch("PFTau_isHPSAgainstMuonMedium2",&PFTau_isHPSAgainstMuonMedium2);    
+   output_tree->Branch("PFTau_isHPSAgainstMuonTight2",&PFTau_isHPSAgainstMuonTight2);      
+
+
    output_tree->Branch("PFTau_isHPSByDecayModeFinding",&PFTau_isHPSByDecayModeFinding);    
 
-   output_tree->Branch("PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection",&PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection);		   
+   //  output_tree->Branch("PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection",&PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection);		   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMVA3LooseElectronRejection",&PFTau_HPSPFTauDiscriminationByMVA3LooseElectronRejection);		   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMVA3MediumElectronRejection",&PFTau_HPSPFTauDiscriminationByMVA3MediumElectronRejection);		   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMVA3TightElectronRejection",&PFTau_HPSPFTauDiscriminationByMVA3TightElectronRejection);		   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMVA3VTightElectronRejection",&PFTau_HPSPFTauDiscriminationByMVA3VTightElectronRejection);		   
-   output_tree->Branch("PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection",&PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection);		   
+   //   output_tree->Branch("PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection",&PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection);		   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits);  
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits); 
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits);  
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByLooseIsolationMVA",&PFTau_HPSPFTauDiscriminationByLooseIsolationMVA);			   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMediumIsolationMVA",&PFTau_HPSPFTauDiscriminationByMediumIsolationMVA);                      
+   output_tree->Branch("PFTau_HPSPFTauDiscriminationByTightIsolationMVA",&PFTau_HPSPFTauDiscriminationByTightIsolationMVA);                      
+
+   output_tree->Branch("PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2",&PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2);			   
+   output_tree->Branch("PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2",&PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2);                      
+   output_tree->Branch("PFTau_HPSPFTauDiscriminationByTightIsolationMVA2",&PFTau_HPSPFTauDiscriminationByTightIsolationMVA2);                      
 
 
 
@@ -1592,7 +1735,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PFTau_hpsDecayMode",&PFTau_hpsDecayMode);
    output_tree->Branch("PFTau_Charge",&PFTau_Charge);
    output_tree->Branch("PFTau_Track_idx",&PFTau_Track_idx);
-
+//       std::cout<<"Size of QC disc  1 ================= "<<KFTau_discriminatorByQC.at(0).size()<<std::end;
+//       std::cout<<"Size of Fit disc 2 ================= "<<KFTau_discriminatorByKFit.at(0).size()<<std::end;
    //================  KinFitTaus block ==========
    output_tree->Branch("KFTau_discriminatorByKFit",&KFTau_discriminatorByKFit);
    output_tree->Branch("KFTau_discriminatorByQC",&KFTau_discriminatorByQC);
@@ -1603,6 +1747,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("KFTau_a1Initial_p4",&KFTau_a1Initial_p4);
    output_tree->Branch("KFTau_Fit_PrimaryVertex",&KFTau_Fit_PrimaryVertex);
    output_tree->Branch("KFTau_Fit_InitialPrimaryVertex",&KFTau_Fit_InitialPrimaryVertex);
+   output_tree->Branch("KFTau_Fit_InitialPrimaryVertexReFit",&KFTau_Fit_InitialPrimaryVertexReFit);
 
    output_tree->Branch("KFTau_Fit_SecondaryVertex",&KFTau_Fit_SecondaryVertex);
    output_tree->Branch("KFTau_Fit_InitialSecondaryVertex",&KFTau_Fit_InitialSecondaryVertex);
@@ -1920,13 +2065,13 @@ void TauNtuple::beginRun(edm::Run& Run, edm::EventSetup const& Setup){
     if (changed) {
       // The HLT config has actually changed wrt the previous Run, hence rebook your
       // histograms or do anything else dependent on the revised HLT config
-      std::cout << "Initalizing HLTConfigProvider"  << std::endl;
+      //     std::cout << "Initalizing HLTConfigProvider"  << std::endl;
     }
   } 
   else{
     // if init returns FALSE, initialisation has NOT succeeded, which indicates a problem
     // with the file and/or code and needs to be investigated!
-    std::cout << " HLT config extraction failure with process name " << processName_ << std::endl;
+    //  std::cout << " HLT config extraction failure with process name " << processName_ << std::endl;
     // In this case, all access methods will return empty values!
     TriggerOK=false;
   }
@@ -1975,6 +2120,7 @@ TauNtuple::ClearEvent(){
   Vtx_z.clear();
   Vtx_Cov.clear();
   Vtx_Track_idx.clear();
+  Vtx_Track_Weights.clear();
   Vtx_isFake.clear();
   
   //=======  Muons ===
@@ -2053,22 +2199,34 @@ TauNtuple::ClearEvent(){
   PFTau_isHPSAgainstElectronsMedium.clear();
   PFTau_isHPSAgainstElectronsTight.clear(); 
   PFTau_isHPSAgainstMuonLoose.clear();      
-  PFTau_isHPSAgainstMuonTight.clear();      
+  PFTau_isHPSAgainstMuonMedium.clear();      
+  PFTau_isHPSAgainstMuonTight.clear();   
+
+  PFTau_isHPSAgainstMuonLoose2.clear();      
+  PFTau_isHPSAgainstMuonMedium2.clear();      
+  PFTau_isHPSAgainstMuonTight2.clear();      
+
   PFTau_isHPSByDecayModeFinding.clear();    
 
 
 
-  PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection.clear();    		   
+  //  PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByMVA3LooseElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByMVA3MediumElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByMVA3TightElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByMVA3VTightElectronRejection.clear();    		   
-  PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection.clear();    		   
+  //  PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits.clear();      
   PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits.clear();     
   PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.clear();      
   PFTau_HPSPFTauDiscriminationByLooseIsolationMVA.clear();    			   
-  PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.clear();                          
+  PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.clear();   
+  PFTau_HPSPFTauDiscriminationByTightIsolationMVA.clear();   
+
+  PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2.clear();    			   
+  PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2.clear();   
+  PFTau_HPSPFTauDiscriminationByTightIsolationMVA2.clear();   
+
   
   PFTau_hpsDecayMode.clear();   
   PFTau_Charge.clear();
@@ -2089,6 +2247,7 @@ TauNtuple::ClearEvent(){
 
   KFTau_Fit_PrimaryVertex.clear();
   KFTau_Fit_InitialPrimaryVertex.clear();
+  KFTau_Fit_InitialPrimaryVertexReFit.clear();
   KFTau_Fit_SecondaryVertex.clear();
   KFTau_Fit_InitialSecondaryVertex.clear();
   KFTau_Fit_BDTVal.clear();
