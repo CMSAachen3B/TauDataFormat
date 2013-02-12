@@ -667,13 +667,14 @@ void
      PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
+
      PFTau_HPSPFTauDiscriminationByLooseIsolationMVA.push_back((*HPSPFTauDiscriminationByLooseIsolationMVA)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.push_back((*HPSPFTauDiscriminationByMediumIsolationMVA)[HPStauCandidate]);
-     PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.push_back((*HPSPFTauDiscriminationByTightIsolationMVA)[HPStauCandidate]);    
+     PFTau_HPSPFTauDiscriminationByTightIsolationMVA.push_back((*HPSPFTauDiscriminationByTightIsolationMVA)[HPStauCandidate]);    
 
      PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2.push_back((*HPSPFTauDiscriminationByLooseIsolationMVA2)[HPStauCandidate]);
      PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2.push_back((*HPSPFTauDiscriminationByMediumIsolationMVA2)[HPStauCandidate]);
-     PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2.push_back((*HPSPFTauDiscriminationByTightIsolationMVA2)[HPStauCandidate]);    
+     PFTau_HPSPFTauDiscriminationByTightIsolationMVA2.push_back((*HPSPFTauDiscriminationByTightIsolationMVA2)[HPStauCandidate]);    
 
 
 
@@ -764,7 +765,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
   unsigned int tauindex=0;
   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay, tauindex++){
     SelectedKinematicDecay KFTau=(*decay);
-
+    
       std::vector<std::vector<float> > iKFTau_TauVis_p4;
       std::vector<float> iKFTau_a1Initial_p4;
       std::vector<std::vector<float> > iKFTau_TauFit_p4;
@@ -881,7 +882,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Py());
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Pz());
 	
-
+	std::cout<<"ambiguity: "<<ambiguity<<"  tauPt  "<<KFTau.Tau(ambiguity).Pt()<<std::endl;
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).E());
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Px());
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Py());
