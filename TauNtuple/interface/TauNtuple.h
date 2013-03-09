@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.23 2012/12/09 17:26:52 cherepan Exp $
+// $Id: TauNtuple.h,v 1.24 2013/02/04 11:25:34 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -582,6 +582,7 @@ class TauNtuple : public edm::EDProducer {
   //=======  MET ===
   // now only PFMET
   float MET_et;
+  float MET_pt;
   float MET_phi;
   float MET_sumET;
   float MET_metSignificance;
@@ -591,6 +592,10 @@ class TauNtuple : public edm::EDProducer {
   float MET_Type6EtFraction;
   float MET_Type7EtFraction;
 
+  float MET_Corr_pt;
+  float MET_Corr_et;
+  float MET_Corr_phi;
+  float MET_Corr_SumET;
 
   //=======  Event ===
   int EventNumber;

@@ -923,22 +923,36 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	const SelectedKinematicParticleCollection& Particles =decay->particles(ambiguity);
 	
 	for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
+	    if(fabs(iParticle->pdgid())==15){
+
+	      taucharge = iParticle->charge();
+
+	      std::cout<<"------------------------------------------ taucharge "<<taucharge<<std::endl;
+	    }
 
 	  if(ambiguity == 0){ // supposed to  be the same for all ambuguity points
 
 	    //First Store Tau's
-	    if(iParticle->name()=="tau"){
-	      taucharge = iParticle->charge();
-	    }
 
 	    int d_pdgid=0;
-	    if(iParticle->name()=="neutrino")                              d_pdgid=PdtPdgMini::nu_tau;
-	    else if(iParticle->name()=="tau"  && iParticle->charge()==1)   d_pdgid=PdtPdgMini::tau_plus;
-	    else if(iParticle->name()=="tau"  && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::tau_minus;
-	    else if(iParticle->name()=="a1"   && iParticle->charge()==1)   d_pdgid=PdtPdgMini::a_1_plus;
-	    else if(iParticle->name()=="a1"   && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::a_1_minus;
-	    else if(iParticle->name()=="pion" && iParticle->charge()==1)   d_pdgid=PdtPdgMini::pi_plus;
-	    else if(iParticle->name()=="pion" && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::pi_minus;
+// 	    if(iParticle->name()=="neutrino")                              d_pdgid=PdtPdgMini::nu_tau;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==1)   d_pdgid=PdtPdgMini::tau_plus;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::tau_minus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==1)   d_pdgid=PdtPdgMini::a_1_plus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::a_1_minus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==1)   d_pdgid=PdtPdgMini::pi_plus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::pi_minus;
+
+	    d_pdgid = iParticle->pdgid();
+// 	    if(iParticle->name()=="neutrino")                              d_pdgid=PdtPdgMini::nu_tau;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==1)   d_pdgid=PdtPdgMini::tau_plus;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::tau_minus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==1)   d_pdgid=PdtPdgMini::a_1_plus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::a_1_minus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==1)   d_pdgid=PdtPdgMini::pi_plus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::pi_minus;
+	    
+
 	    
 	    KFTau_Daughter_pdgid.at(ntaus).push_back(d_pdgid);
 	    KFTau_Daughter_charge.at(ntaus).push_back(iParticle->charge());
@@ -1304,8 +1318,19 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
   if(!doPatMET_){
     edm::Handle<edm::View<reco::PFMET> > pfMEThandle;
     iEvent.getByLabel(pfMETTag_, pfMEThandle);
+
+
+    edm::Handle<std::vector<reco::PFMET>  > CorrectedPFMET;
+    iEvent.getByLabel("pfType1CorrectedMet", CorrectedPFMET);
+//     std::cout<<"-------------------------------------------------------------- >Corrected MET sie"<<CorrectedPFMET->size()<<std::endl;
+    std::cout<<"Corrected  et  pt  and phi "<< CorrectedPFMET->at(0).et() << "  " <<  CorrectedPFMET->at(0).pt()<<"  " <<  CorrectedPFMET->at(0).phi()<<std::endl;
+    std::cout<<"Un Corrected et   pt and phi "<< pfMEThandle->front().et()<< "  " <<  pfMEThandle->front().pt()<< "  " << pfMEThandle->front().phi()<<std::endl;
+
+
+
     MET_et=pfMEThandle->front().et();
-    MET_phi=pfMEThandle->front().phi();
+    MET_pt=pfMEThandle->front().pt();
+    MET_phi=pfMEThandle->front().phi(); 
     MET_sumET=pfMEThandle->front().sumEt();
     MET_metSignificance=-1;
     MET_MuonEtFraction=-1;
@@ -1313,6 +1338,14 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
     MET_NeutralHadEtFraction=-1;
     MET_Type6EtFraction=-1;
     MET_Type7EtFraction=-1;
+
+    MET_Corr_et= CorrectedPFMET->at(0).et();
+    MET_Corr_pt= CorrectedPFMET->at(0).pt();
+    MET_Corr_phi=CorrectedPFMET->at(0).phi();
+    MET_Corr_SumET=CorrectedPFMET->at(0).sumEt();
+
+
+
   }
   else{
     edm::Handle<pat::MET> PatMET;
@@ -1838,6 +1871,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    //================  MET block ==========
    output_tree->Branch("isPatMET",&doPatMET_);
    output_tree->Branch("MET_et",&MET_et);
+   output_tree->Branch("MET_pt",&MET_pt);
    output_tree->Branch("MET_phi",&MET_phi);
    output_tree->Branch("MET_sumET",&MET_sumET);
    output_tree->Branch("MET_metSignificance",&MET_metSignificance);
@@ -1846,6 +1880,11 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("MET_NeutralHadEtFraction",&MET_NeutralHadEtFraction);
    output_tree->Branch("MET_Type6EtFraction",&MET_Type6EtFraction);
    output_tree->Branch("MET_Type7EtFraction",&MET_Type7EtFraction);
+
+   output_tree->Branch("MET_Corr_et",&MET_Corr_et);
+   output_tree->Branch("MET_Corr_pt",&MET_Corr_pt);
+   output_tree->Branch("MET_Corr_phi",&MET_Corr_phi);
+   output_tree->Branch("MET_Corr_SumET",&MET_Corr_SumET);
 
    //=============== Event Block ==============
    output_tree->Branch("Event_EventNumber",&Event_EventNumber);

@@ -44,7 +44,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 ######################################################
 
 
-numberOfEvents = 500
+numberOfEvents = 5000
 
 
 
@@ -76,7 +76,8 @@ nFiles_data=138
 
 process.source = cms.Source("PoolSource",
                             fileNames = cms.untracked.vstring(
-    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/data/Run2012A/TauPlusX/AOD/13Jul2012-v1/0000/187AF3FD-BED9-E111-A974-00259073E3AC.root')
+#    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/data/Run2012A/TauPlusX/AOD/13Jul2012-v1/0000/187AF3FD-BED9-E111-A974-00259073E3AC.root')
+                                'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/data/Run2012A/TauPlusX/AOD/13Jul2012-v1/0000/76C17B7B-98D7-E111-B500-20CF3027A639.root')
 #    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/mc/Summer12/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/AODSIM/PU_S7_START52_V9-v2/0000/C09EAADE-3D97-E111-B32E-001E67396DF1.root',
 #    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/mc/Summer12/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/AODSIM/PU_S7_START52_V9-v2/0000/D2E4D132-3D97-E111-88B2-003048673FC0.root',
 #    'file://dcap://grid-dcap.physik.rwth-aachen.de/pnfs/physik.rwth-aachen.de/cms/store/mc/Summer12/DYJetsToLL_M-50_TuneZ2Star_8TeV-madgraph-tarball/AODSIM/PU_S7_START52_V9-v2/0000/32696749-3E97-E111-BB99-001A647894A0.root',
@@ -150,6 +151,16 @@ process.load("SkimmingTools.EventCounter.countTriggerPassed_cfi")
 process.load("SkimmingTools.EventCounter.countKinFitPassed_cfi")
 process.load("TauDataFormat.TauNtuple.eventCounter_cfi")
 
+process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
+
+process.pfJetMETcorr.jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
+process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
+process.load("JetMETCorrections.Type1MET.pfMETCorrectionType0_cfi")
+process.pfType1CorrectedMet.applyType0Corrections = cms.bool(False)
+process.pfType1CorrectedMet.srcType1Corrections = cms.VInputTag(
+    cms.InputTag('pfMETcorrType0'),
+    cms.InputTag('pfJetMETcorr', 'type1')        
+)
 
 process.dqmSaver.convention = 'Offline'
 process.dqmSaver.saveByRun = cms.untracked.int32(-1)
@@ -172,7 +183,7 @@ process.dqmSaver.workflow = "/KinematicFitSequencewithDQM/VAL/RECO"
 #process.p  = cms.Path(process.EvntCounterA*process.TrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequencewithSkim*process.CountKinFitPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.NtupleMaker)
 
 
-process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.TrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequencewithSkim*process.CountKinFitPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.NtupleMaker)
+process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.TrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequencewithSkim*process.CountKinFitPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.type0PFMEtCorrection*process.producePFMETCorrections*process.NtupleMaker)
 #process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.TrigFilter*process.TrigFilterInfo*process.KinematicFitSequencewithSkim*process.MEtoEDMConverter*process.EDMtoME*process.EvntCounterB*process.recoTauClassicHPSSequence*process.NtupleMaker)
 
 
