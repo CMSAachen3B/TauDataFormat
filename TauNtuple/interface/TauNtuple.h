@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.24 2013/02/04 11:25:34 cherepan Exp $
+// $Id: TauNtuple.h,v 1.25 2013/03/09 19:01:47 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -430,6 +430,9 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<std::vector<float> > > KFTau_Neutrino_p4;
   std::vector<std::vector<std::vector<float> > > KFTau_NeutrinoInitial_p4;
   std::vector<std::vector<float> >  KFTau_a1Initial_p4;
+  std::vector<std::vector<std::vector<float> > > KFTau_pions;
+  std::vector<std::vector<std::vector<float> > > KFTau_Initial_pions;
+
   std::vector<unsigned int> KFTau_MatchedHPS_idx;
   std::vector<std::vector<int> > KFTau_Track_idx;
   std::vector<int> KFTau_indexOfFitInfo;

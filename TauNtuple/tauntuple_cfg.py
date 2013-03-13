@@ -204,5 +204,3 @@ process.schedule = cms.Schedule(process.p)#,process.endjob_step)
 #process.p = cms.Path(process.EvntCounterA*process.TrigFilter*process.TrigFilterInfo*process.PrimVtxSelector*process.InputTrackSelector*process.ThreeProngInputSelector*process.KinematicTauBasicProducer*process.KinematicTauProducer*process.EvntCounterB*process.NtupleMaker)
 
 #process.p = cms.Path(process.NtupleMaker)
-
- 

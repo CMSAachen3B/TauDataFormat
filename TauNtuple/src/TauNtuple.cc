@@ -6,8 +6,9 @@
 #include <map>
 #include "TMatrixT.h"
 
-
-
+//#include "CMGTools/External/plugins/PileupJetIdProducer.cc"
+// #include "CMGTools/External/interface/PileupJetIdentifier.h"
+// #include "CMGTools/External/interface/PileupJetIdAlgo.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
@@ -845,6 +846,10 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	KFTau_Fit_SV_PV_significance.push_back(std::vector<float>());
 
 
+	KFTau_pions.push_back(std::vector<std::vector<float> >());
+	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
+
+
       for(unsigned int ambiguity=0; ambiguity<SelectedKinematicDecay::NAmbiguity; ambiguity++){
 	
 
@@ -960,30 +965,55 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	    
 	  }
 	  
+	
+ 	  for(int j=0;j<iParticle->matrix().GetNrows();j++){
+ 	    iKFTau_Daughter_par.push_back(iParticle->parameters()(j));
 	  
+ 	    iKFTau_Daughter_inputpar.push_back(iParticle->input_parameters()(j));
+ 	    for(int k=0;k<=j;k++){
+ 	      iKFTau_Daughter_parCov.push_back(iParticle->matrix()(j,k));
+ 	      iKFTau_Daughter_inputparCov.push_back(iParticle->input_matrix()(j,k));
+ 	    }
+ 	  }
 	  
-	  for(int j=0;j<iParticle->matrix().GetNrows();j++){
-	    iKFTau_Daughter_par.push_back(iParticle->parameters()(j));
-	    iKFTau_Daughter_inputpar.push_back(iParticle->input_parameters()(j));
-	    for(int k=0;k<=j;k++){
-	      iKFTau_Daughter_parCov.push_back(iParticle->matrix()(j,k));
-	      iKFTau_Daughter_inputparCov.push_back(iParticle->input_matrix()(j,k));
-	    }
-	  }
-	  
+
+
+// 	  KFTau_Daughter_par.at(ntaus).push_back(iKFTau_Daughter_par);
+// 	  KFTau_Daughter_parCov.at(ntaus).push_back(iKFTau_Daughter_parCov);
+// 	  KFTau_Daughter_inputpar.at(ntaus).push_back(iKFTau_Daughter_inputpar);
+// 	  KFTau_Daughter_inputparCov.at(ntaus).push_back(iKFTau_Daughter_inputparCov);
+
+
 	}
 
       }
 	
       // std::cout<<"Size of QC disc ================= "<<KFTau_discriminatorByQC.at(0).size()<<std::end;
 
-     
+	KFTau_pions.push_back(std::vector<std::vector<float> >());
+	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
 
-      KFTau_Daughter_par.at(ntaus).push_back(iKFTau_Daughter_par);
-      KFTau_Daughter_parCov.at(ntaus).push_back(iKFTau_Daughter_parCov);
-      KFTau_Daughter_inputpar.at(ntaus).push_back(iKFTau_Daughter_inputpar);
-      KFTau_Daughter_inputparCov.at(ntaus).push_back(iKFTau_Daughter_inputparCov);
-      
+	for(unsigned int ipion = 0; ipion < KFTau.Pions(1).size(); ipion++){
+	  
+	  std::vector<float > iiKFTau_pions;
+	  std::vector<float > iiKFTau_Initial_pions;
+	  
+	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).E());
+	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).Px());
+	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).Py());
+	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).Pz());
+	    std::cout<<"particle parameters: "<< KFTau.Pions(1).at(ipion).E()<<std::endl;
+	  
+	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).E());
+	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Px());
+	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Py());
+	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Pz());
+	  
+	  KFTau_pions.at(ntaus).push_back(iiKFTau_pions);
+	  KFTau_Initial_pions.at(ntaus).push_back(iiKFTau_Initial_pions);
+
+	}
+
       KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
       KFTau_TauFit_p4.push_back(iKFTau_TauFit_p4);
       KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
@@ -1001,7 +1031,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 
       // std::cout<<" discr  "<<KFTau_discriminatorByQC.size() <<"check ambig size  " << iKFTau_TauVis_p4.at(1).size() <<" taucharge  "<< "taucharge<<taucharge size  " <<KFTau_Fit_charge.size() <<std::endl;
       //-------------------------------------
-
+  
       
       //Match to tau collection to find discriminants
       unsigned int index = 0;
@@ -1779,6 +1809,10 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("KFTau_TauFitInitial_p4",&KFTau_TauFitInitial_p4);
    output_tree->Branch("KFTau_NeutrinoInitial_p4",&KFTau_NeutrinoInitial_p4);
    output_tree->Branch("KFTau_a1Initial_p4",&KFTau_a1Initial_p4);
+   output_tree->Branch("KFTau_pions",&KFTau_pions);
+   output_tree->Branch("KFTau_Initial_pions",&KFTau_Initial_pions);
+
+
    output_tree->Branch("KFTau_Fit_PrimaryVertex",&KFTau_Fit_PrimaryVertex);
    output_tree->Branch("KFTau_Fit_InitialPrimaryVertex",&KFTau_Fit_InitialPrimaryVertex);
    output_tree->Branch("KFTau_Fit_InitialPrimaryVertexReFit",&KFTau_Fit_InitialPrimaryVertexReFit);
@@ -1950,7 +1984,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("TriggerWasRun",&TriggerWasRun);
    output_tree->Branch("HLTPrescale",&HLTPrescale);
    output_tree->Branch("NHLTL1GTSeeds",&NHLTL1GTSeeds);
-   output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
+  output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
    output_tree->Branch("L1SEEDInvalidPrescale",&L1SEEDInvalidPrescale);
    output_tree->Branch("L1SEEDisTechBit",&L1SEEDisTechBit);
    output_tree->Branch("MuonTriggerMatch",&MuonTriggerMatch);
@@ -2284,6 +2318,10 @@ TauNtuple::ClearEvent(){
   KFTau_Track_idx.clear();
   KFTau_indexOfFitInfo.clear();
   KFTau_a1Initial_p4.clear();
+
+
+  KFTau_pions.clear();
+  KFTau_Initial_pions.clear();
 
   KFTau_Fit_PrimaryVertex.clear();
   KFTau_Fit_InitialPrimaryVertex.clear();
