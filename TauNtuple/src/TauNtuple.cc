@@ -764,7 +764,10 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 
   //start loop over KinFit decays 
   unsigned int tauindex=0;
+  unsigned int ntaus=0;
   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay, tauindex++){
+    ntaus = tauindex;
+
     SelectedKinematicDecay KFTau=(*decay);
     
       std::vector<std::vector<float> > iKFTau_TauVis_p4;
@@ -808,7 +811,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
       // KFTau_Fit_TauCharge.push_back();
 
 
-      unsigned int ntaus = KFTau_Daughter_pdgid.size();
+      
       KFTau_Daughter_pdgid.push_back(std::vector<int>());
       KFTau_Daughter_charge.push_back(std::vector<int>());
 
@@ -823,7 +826,7 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
       std::vector<float>   iKFTau_Daughter_inputpar;
       std::vector<float>   iKFTau_Daughter_inputparCov;
 
-      
+        
 
    
       int taucharge;
@@ -846,8 +849,8 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	KFTau_Fit_SV_PV_significance.push_back(std::vector<float>());
 
 
-	KFTau_pions.push_back(std::vector<std::vector<float> >());
-	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
+// 	KFTau_pions.push_back(std::vector<std::vector<float> >());
+// 	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
 
 
       for(unsigned int ambiguity=0; ambiguity<SelectedKinematicDecay::NAmbiguity; ambiguity++){
@@ -880,14 +883,14 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	KFTau_Fit_Chi2Prob.at(tauindex).push_back(KFTau.chi2prob(ambiguity));
 	KFTau_Fit_PV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotPVRed(ambiguity));
 	KFTau_Fit_SV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotSV(ambiguity));
-	
+	std::cout<<"KFTau.vtxSignPVRotSV(ambiguity) "<<KFTau.vtxSignPVRotSV(ambiguity)<<std::endl;
 	
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).E());
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Px());
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Py());
 	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Pz());
 	
-	std::cout<<"ambiguity: "<<ambiguity<<"  tauPt  "<<KFTau.Tau(ambiguity).Pt()<<std::endl;
+	//	std::cout<<"ambiguity: "<<ambiguity<<"  tauPt  "<<KFTau.Tau(ambiguity).Pt()<<std::endl;
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).E());
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Px());
 	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Py());
@@ -932,7 +935,6 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 	      taucharge = iParticle->charge();
 
-	      std::cout<<"------------------------------------------ taucharge "<<taucharge<<std::endl;
 	    }
 
 	  if(ambiguity == 0){ // supposed to  be the same for all ambuguity points
@@ -965,12 +967,13 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	    
 	  }
 	  
-	
+
  	  for(int j=0;j<iParticle->matrix().GetNrows();j++){
  	    iKFTau_Daughter_par.push_back(iParticle->parameters()(j));
-	  
+
  	    iKFTau_Daughter_inputpar.push_back(iParticle->input_parameters()(j));
  	    for(int k=0;k<=j;k++){
+
  	      iKFTau_Daughter_parCov.push_back(iParticle->matrix()(j,k));
  	      iKFTau_Daughter_inputparCov.push_back(iParticle->input_matrix()(j,k));
  	    }
@@ -987,22 +990,25 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	}
 
       }
-	
+  
       // std::cout<<"Size of QC disc ================= "<<KFTau_discriminatorByQC.at(0).size()<<std::end;
 
 	KFTau_pions.push_back(std::vector<std::vector<float> >());
 	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
-
-	for(unsigned int ipion = 0; ipion < KFTau.Pions(1).size(); ipion++){
+	unsigned int TauAmbiguityForPions;
+	if(KFTau.Pions(0).size()!=0){TauAmbiguityForPions =0;}
+	else if(KFTau.Pions(1).size()!=0){TauAmbiguityForPions=1;}
+	else if(KFTau.Pions(2).size()!=0){TauAmbiguityForPions=2;}
+	for(unsigned int ipion = 0; ipion < KFTau.Pions(TauAmbiguityForPions).size(); ipion++){
 	  
 	  std::vector<float > iiKFTau_pions;
 	  std::vector<float > iiKFTau_Initial_pions;
 	  
-	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).E());
-	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).Px());
-	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).Py());
-	  iiKFTau_pions.push_back(KFTau.Pions(1).at(ipion).Pz());
-	    std::cout<<"particle parameters: "<< KFTau.Pions(1).at(ipion).E()<<std::endl;
+	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).E());
+	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).Px());
+	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).Py());
+	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).Pz());
+	  //    std::cout<<"particle parameters: "<< KFTau.Pions(TauAmbiguityForPions).at(ipion).E()<<std::endl;
 	  
 	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).E());
 	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Px());
@@ -1012,8 +1018,10 @@ void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetu
 	  KFTau_pions.at(ntaus).push_back(iiKFTau_pions);
 	  KFTau_Initial_pions.at(ntaus).push_back(iiKFTau_Initial_pions);
 
+	  //	  std::cout<<"npions  "<<iiKFTau_pions.size()<<"  "<<KFTau_Initial_pions.at(ntaus).size()<<" ipion" << ipion<< "  "<< ntaus <<std::endl;
 	}
-
+	//	std::cout<<"ntau "<< ntaus  <<" " <<selected->size()<<" KFTau.Pions(1).size() " <<KFTau.Pions(TauAmbiguityForPions).size() <<std::endl;
+	//	std::cout<<" 0--->"<<KFTau_pions.at(ntaus).at(TauAmbiguityForPions).at(3) <<std::endl;
       KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
       KFTau_TauFit_p4.push_back(iKFTau_TauFit_p4);
       KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
@@ -1353,8 +1361,8 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup){
     edm::Handle<std::vector<reco::PFMET>  > CorrectedPFMET;
     iEvent.getByLabel("pfType1CorrectedMet", CorrectedPFMET);
 //     std::cout<<"-------------------------------------------------------------- >Corrected MET sie"<<CorrectedPFMET->size()<<std::endl;
-    std::cout<<"Corrected  et  pt  and phi "<< CorrectedPFMET->at(0).et() << "  " <<  CorrectedPFMET->at(0).pt()<<"  " <<  CorrectedPFMET->at(0).phi()<<std::endl;
-    std::cout<<"Un Corrected et   pt and phi "<< pfMEThandle->front().et()<< "  " <<  pfMEThandle->front().pt()<< "  " << pfMEThandle->front().phi()<<std::endl;
+//     std::cout<<"Corrected  et  pt  and phi "<< CorrectedPFMET->at(0).et() << "  " <<  CorrectedPFMET->at(0).pt()<<"  " <<  CorrectedPFMET->at(0).phi()<<std::endl;
+//     std::cout<<"Un Corrected et   pt and phi "<< pfMEThandle->front().et()<< "  " <<  pfMEThandle->front().pt()<< "  " << pfMEThandle->front().phi()<<std::endl;
 
 
 
