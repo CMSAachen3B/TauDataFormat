@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.25 2013/03/09 19:01:47 cherepan Exp $
+// $Id: TauNtuple.h,v 1.26 2013/03/13 16:58:24 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -301,6 +301,8 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> >    Vtx_Track_Weights;
   std::vector<float> Vtx_isFake;
 
+  std::vector<std::vector<std::vector<float> > > Vtx_TracksP4;
+
   //=======  Muons ===
   std::vector<std::vector<float> > Muon_p4;
   std::vector<std::vector<float > > Muon_Poca;
@@ -571,6 +573,10 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> PFJet_etaphiMoment;
   std::vector<std::vector<int> > PFJet_Track_idx;
   std::vector<unsigned int> PFJet_MatchedHPS_idx;
+
+
+  std::vector<std::vector<std::vector<float> > > PFJet_TracksP4;
+  std::vector<float > PFJet_nTrk;
 
   std::vector<int>   PFJet_numberOfDaughters;
   std::vector<float> PFJet_chargedEmEnergyFraction;

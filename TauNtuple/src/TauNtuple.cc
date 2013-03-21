@@ -282,15 +282,27 @@ TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     Vtx_Cov.push_back(iVtx_Cov);
     std::vector<int> matches;
     std::vector<float> TrackWeights;
+    std::vector<std::vector<float> > iVtx_TrackP4;
+    // Vtx_TracksP4.push_back(std::vector<std::vector<float>  >());
     for(reco::Vertex::trackRef_iterator iTrack=pv.tracks_begin(); iTrack<pv.tracks_end();iTrack++){
       int match(-1);
       reco::TrackRef refTrack=iTrack->castTo<reco::TrackRef>();
       if( refTrack.isNonnull() ) {
+	std::vector<float> iiVtx_TrackP4;
+	float trkEnergy = sqrt(refTrack->px()*refTrack->px() + refTrack->py()*refTrack->py() + refTrack->pz()*refTrack->pz() + 0.13957*0.13957);
+	iiVtx_TrackP4.push_back(trkEnergy);
+	iiVtx_TrackP4.push_back(refTrack->px());
+	iiVtx_TrackP4.push_back(refTrack->py());
+	iiVtx_TrackP4.push_back(refTrack->pz());
+	iVtx_TrackP4.push_back(iiVtx_TrackP4);
 	getTrackMatch(trackCollection,refTrack,match);
 	matches.push_back(match);
 	TrackWeights.push_back(pv.trackWeight(refTrack));
       }
     }
+
+    Vtx_nTrk.push_back(iVtx_TrackP4.size());
+    Vtx_TracksP4.push_back(iVtx_TrackP4);
     Vtx_Track_Weights.push_back(TrackWeights);
     Vtx_Track_idx.push_back(matches);
   }
@@ -1133,10 +1145,18 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
       PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
       std::vector<int> matches;
       const edm::ProductID &TrID = trackCollection.id();
+      std::vector<std::vector<float> > iPFJet_TrackP4;
       for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
 	const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
 	reco::TrackRef trackref = pfcand->trackRef();
 	if( trackref.isNonnull() ) {
+	  std::vector<float> iiPFJet_TrackP4;
+	  float trkEnergy = sqrt(trackref->px()*trackref->px() + trackref->py()*trackref->py() + trackref->pz()*trackref->pz() + 0.13957*0.13957);
+	  iiPFJet_TrackP4.push_back(trkEnergy);
+	  iiPFJet_TrackP4.push_back(trackref->px());
+	  iiPFJet_TrackP4.push_back(trackref->py());
+	  iiPFJet_TrackP4.push_back(trackref->pz());
+	  iPFJet_TrackP4.push_back(iiPFJet_TrackP4);
 	  if(trackref.id() != TrID) continue;
 	  int match(-1);
 	  getTrackMatch(trackCollection,trackref,match);
@@ -1144,12 +1164,15 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
 	}
       }
       PFJet_Track_idx.push_back(matches);
+
+      PFJet_TracksP4.push_back(iPFJet_TrackP4);
+      PFJet_nTrk.push_back(iPFJet_TrackP4.size());
+
       edm::Handle<std::vector<reco::PFTau> > HPStaus;
       iEvent.getByLabel(hpsTauProducer_, HPStaus);
       unsigned int idx =0; 
       reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
       PFJet_MatchedHPS_idx.push_back(idx);
-      
     }
   }
   else{
@@ -1638,6 +1661,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("Vtx_Track_idx",&Vtx_Track_idx);
    output_tree->Branch("Vtx_Track_Weights",&Vtx_Track_Weights);
    output_tree->Branch("Vtx_isFake",&Vtx_isFake);
+   output_tree->Branch("Vtx_TracksP4",&Vtx_TracksP4);
+
 
    //=============  Muon Block ====
    output_tree->Branch("isPatMuon",&doPatMuons_);
@@ -1909,6 +1934,11 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PFJet_partonFlavour",&PFJet_partonFlavour);
    output_tree->Branch("PFJet_bDiscriminator",&PFJet_bDiscriminator);
    output_tree->Branch("PFJet_BTagWeight",&PFJet_BTagWeight);
+
+   output_tree->Branch("PFJet_TracksP4",&PFJet_TracksP4);
+   output_tree->Branch("PFJet_nTrk",&PFJet_nTrk);
+
+
 
    //================  MET block ==========
    output_tree->Branch("isPatMET",&doPatMET_);
@@ -2204,7 +2234,7 @@ TauNtuple::ClearEvent(){
   Vtx_Track_idx.clear();
   Vtx_Track_Weights.clear();
   Vtx_isFake.clear();
-  
+  Vtx_TracksP4.clear();
   //=======  Muons ===
   Muon_p4.clear();
   Muon_Poca.clear();
@@ -2471,8 +2501,8 @@ TauNtuple::ClearEvent(){
    PFJet_partonFlavour.clear();
    PFJet_bDiscriminator.clear();
    PFJet_BTagWeight.clear();
-
-
+   PFJet_TracksP4.clear();
+   PFJet_nTrk.clear();
    //=============== Track Block ==============
    Track_p4.clear();
    Track_Poca.clear();

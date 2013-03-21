@@ -44,7 +44,7 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 ######################################################
 
 
-numberOfEvents = 50000
+numberOfEvents = 500
 
 
 
