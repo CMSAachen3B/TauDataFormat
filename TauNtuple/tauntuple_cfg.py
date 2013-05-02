@@ -43,8 +43,20 @@ process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
 ######################################################
 
+process.MessageLogger.categories.append('KinematicTau')
+process.MessageLogger.categories.append('ThreeProngInputSelector_Step2')
+process.MessageLogger.debugModules = cms.untracked.vstring('KinematicTau','ThreeProngInputSelector_Step2')
+process.MessageLogger.cerr = cms.untracked.PSet(
+     threshold = cms.untracked.string('INFO'),
+     FwkReport = cms.untracked.PSet(limit = cms.untracked.int32(-1)),
+     DEBUG = cms.untracked.PSet(limit = cms.untracked.int32(-1)),
+     KinematicTau = cms.untracked.PSet(limit = cms.untracked.int32(-1)),
+     ThreeProngInputSelector_Step2 = cms.untracked.PSet(limit = cms.untracked.int32(-1)),
+)
 
-numberOfEvents = 500
+
+
+numberOfEvents = 5000
 
 
 
@@ -152,7 +164,7 @@ process.load("SkimmingTools.EventCounter.countKinFitPassed_cfi")
 process.load("TauDataFormat.TauNtuple.eventCounter_cfi")
 
 process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
-
+process.load("SkimmingTools.SkimmingCuts.cuts_cfi")
 process.pfJetMETcorr.jetCorrLabel = cms.string("ak5PFL1FastL2L3Residual")
 process.load("JetMETCorrections.Type1MET.pfMETCorrections_cff")
 process.load("JetMETCorrections.Type1MET.pfMETCorrectionType0_cfi")
@@ -183,7 +195,16 @@ process.dqmSaver.workflow = "/KinematicFitSequencewithDQM/VAL/RECO"
 #process.p  = cms.Path(process.EvntCounterA*process.TrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequencewithSkim*process.CountKinFitPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.NtupleMaker)
 
 
-process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.TrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequencewithSkim*process.CountKinFitPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.type0PFMEtCorrection*process.producePFMETCorrections*process.NtupleMaker)
+#process.p  = cms.Path(process.TauJAKIDFilter*process.EvntCounterA*process.CountInputEvents*process.MultiTrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequence*process.CountKinFitPassedEvents*process.PreselectionCuts*process.EvntCounterB*process.recoTauClassicHPSSequence*process.type0PFMEtCorrection*process.producePFMETCorrections*process.NtupleMaker)
+
+process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.MultiTrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.KinematicFitSequence*process.CountKinFitPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.PreselectionCuts*process.type0PFMEtCorrection*process.producePFMETCorrections*process.NtupleMaker)
+
+
+
+
+
+#process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.TrigFilter*process.TrigFilterInfo*process.CountTriggerPassedEvents*process.EvntCounterB*process.recoTauClassicHPSSequence*process.type0PFMEtCorrection*process.producePFMETCorrections*process.NtupleMaker) # without fit
+
 #process.p  = cms.Path(process.EvntCounterA*process.CountInputEvents*process.TrigFilter*process.TrigFilterInfo*process.KinematicFitSequencewithSkim*process.MEtoEDMConverter*process.EDMtoME*process.EvntCounterB*process.recoTauClassicHPSSequence*process.NtupleMaker)
 
 
