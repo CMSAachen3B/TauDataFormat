@@ -26,6 +26,9 @@
 #include <DataFormats/PatCandidates/interface/Jet.h>
 #include <DataFormats/PatCandidates/interface/MET.h>
 
+// MVA electron ID
+#include <cmath>
+#include "RecoEcal/EgammaCoreTools/interface/EcalClusterLazyTools.h"
 
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   primVtxTag_( iConfig.getParameter<edm::InputTag>( "primVtx" ) ),
@@ -62,7 +65,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
   PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile",(std::string)("Weight3D.root"))),
   do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary",(bool)(true))),
-  do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(false))),
+  do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete",(bool)(true))),
   processName_(iConfig.getUntrackedParameter("TriggerProcessName",(std::string)"HLT")),
   TriggerInfoName_( iConfig.getParameter<edm::InputTag>("TriggerInfoName")),
   TriggerEvent_( iConfig.getParameter<edm::InputTag>("TriggerEvent")),
@@ -80,7 +83,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   doElectrons_(iConfig.getUntrackedParameter("doElectrons",(bool)(true))),
   doPFTaus_(iConfig.getUntrackedParameter("doPFTaus",(bool)(true))),
   doTracks_(iConfig.getUntrackedParameter("doTrack",(bool)(true))),
-  doKinFitTaus_(iConfig.getUntrackedParameter("doKinFitTaus",(bool)(true))),
+  doKinFitTaus_(iConfig.getUntrackedParameter("doKinFitTaus",(bool)(false))),
   doTrigger_(iConfig.getUntrackedParameter("doTrigger",(bool)(true))),
   doPrimeVertex_(iConfig.getUntrackedParameter("doPrimeVertex",(bool)(true))),
   doMET_(iConfig.getUntrackedParameter("doMET",(bool)(true))),
@@ -92,7 +95,14 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   srcPatJets_(iConfig.getUntrackedParameter("srcPatJets",(std::string)"selectedPatJets")),
   PatJetScale_(iConfig.getUntrackedParameter("PatJetScale",(std::string)"L3Absolute")),
   BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackCountingHighEffBJetTags")),
-  srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF"))
+  srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF")),
+  ElectronMVAWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights1")), // Electron MVA ID
+  ElectronMVAWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights2")), //  |
+  ElectronMVAWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights3")), //  |
+  ElectronMVAWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights4")), // \ /
+  ElectronMVAWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights5")),
+  ElectronMVAWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights6")),
+  ElectronMVAPtCut_(iConfig.getParameter<double>("ElectronMVAPtCut"))
 {   
   system("echo 'running system to check directory structure...'");
   system("pwd");
@@ -102,6 +112,23 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
 
   LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_,PUInputFile_, PUInputHistoMC_, PUInputHistoData_,PUOutputFile_);
   LumiWeights_.weight3D_init(1);
+  
+  // Electron MVA ID
+  
+  myManualCatWeightsTrigNoIP2012.clear();
+  myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights1_);
+  myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights2_);
+  myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights3_);
+  myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights4_);
+  myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights5_);
+  myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights6_);
+  
+  Bool_t manualCat = true;
+  myMVATrigNoIP2012 = new EGammaMvaEleEstimator();
+  myMVATrigNoIP2012->initialize("BDT",
+								EGammaMvaEleEstimator::kTrigNoIP,//kNonTrig,
+								manualCat,
+								myManualCatWeightsTrigNoIP2012);
     
 } 
 
@@ -129,7 +156,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
   if(iEvent.isRealData()){
     DataMC_Type_idx=DataMCType::Data;
   }
-  fillEventInfo(iEvent, iSetup);
+  fillEventInfo(iEvent, iSetup);  
   if(doMET_)fillMET(iEvent, iSetup);
   edm::Handle< std::vector<reco::Track>  > trackCollection;
   iEvent.getByLabel(generalTracks_,trackCollection);
@@ -355,14 +382,11 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
       Muon_hitPattern_numberOfValidMuonHits.push_back(RefMuon->globalTrack()->hitPattern().numberOfValidMuonHits());
       Muon_trackerLayersWithMeasurement.push_back(RefMuon->innerTrack()->hitPattern().trackerLayersWithMeasurement());
       Muon_numberofValidPixelHits.push_back(RefMuon->innerTrack()->hitPattern().numberOfValidPixelHits());
+//       Muon_dz.push_back(RefMuon->innerTrack()->dz(vertex->position()));
+//       Muon_dxy.push_back(RefMuon->innerTrack()->dxy(vertex->position()));
 
-//       Muon_dz.push_back(RefMuon->muonBestTrack()->dz(vertex->position()));
-//       Muon_dxy.push_back(RefMuon->muonBestTrack()->dxy(vertex->position()));
-//       std::cout<<" poca 1 "<<RefMuon->vx() << "  "<< RefMuon->vy() <<"  " <<RefMuon->vz()<<std::endl;
-//       std::cout<<" poca 2 "<<RefMuon->muonBestTrack()->vx() << "  "<< RefMuon->muonBestTrack()->vy() <<"  " <<RefMuon->muonBestTrack()->vz()<<std::endl;
 
     }
-
     else{
       Muon_normChi2.push_back(0);
       Muon_hitPattern_numberOfValidMuonHits.push_back(0);
@@ -514,9 +538,6 @@ void
  TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
    edm::Handle<std::vector<reco::PFTau> > HPStaus;
    iEvent.getByLabel(hpsTauProducer_, HPStaus);
-   edm::ESHandle<TransientTrackBuilder> transTrackBuilder_;
-   iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder",transTrackBuilder_);
-
 
    edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscr;
    iEvent.getByLabel(hpsPFTauDiscriminationByTightIsolation_, HPSTightIsoDiscr);
@@ -557,6 +578,7 @@ void
 
    edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonTight2;
    iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonTight2);
+
 
 
 
@@ -630,9 +652,11 @@ void
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByTightIsolationMVA2;
    iEvent.getByLabel("hpsPFTauDiscriminationByTightIsolationMVA2", HPSPFTauDiscriminationByTightIsolationMVA2);
 
+
    //hpsPFTauDiscriminationByLooseIsolationMVA
 
-   for ( unsigned int iPFTau = 0; iPFTau < HPStaus->size(); iPFTau++ ) {
+   for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
+
 
  
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
@@ -649,6 +673,7 @@ void
      iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
 
      PFTau_p4.push_back(iPFTau_p4);
+
      PFTau_isTightIsolation.push_back((*HPSTightIsoDiscr)[HPStauCandidate]);
      PFTau_isMediumIsolation.push_back((*HPSMediumIsoDiscr)[HPStauCandidate]);
      PFTau_isLooseIsolation.push_back((*HPSLooseIsoDiscr)[HPStauCandidate]);
@@ -669,6 +694,7 @@ void
      PFTau_isHPSAgainstMuonLoose2.push_back((*HPSAgainstMuonLoose2)[HPStauCandidate]);
      PFTau_isHPSAgainstMuonMedium2.push_back((*HPSAgainstMuonMedium2)[HPStauCandidate]);
      PFTau_isHPSAgainstMuonTight2.push_back((*HPSAgainstMuonTight2)[HPStauCandidate]);
+
 
      PFTau_isHPSByDecayModeFinding.push_back((*HPSByDecayModeFinding)[HPStauCandidate]);
 
@@ -697,162 +723,8 @@ void
      PFTau_hpsDecayMode.push_back(HPStauCandidate->decayMode());
      PFTau_Charge.push_back(HPStauCandidate->charge());
 
-     //--------------------------------Store Vertex Info For DecayID == 10--------------------------------
 
-     SecondaryVertexHelper SVH(transTrackBuilder_,HPStauCandidate);
-     edm::Handle<reco::VertexCollection> primVtxs;
-     iEvent.getByLabel( primVtxTag_, primVtxs);
-
-     unsigned   int MatchedVertexIndex;
-     float disttmp=999.;
-     for(unsigned int i=0;i<primVtxs->size();i++){
-       const reco::Vertex &pv = primVtxs->at(i);
-       float distance = sqrt( pow(pv.x() - HPStauCandidate->vx(),2) + pow(pv.y() - HPStauCandidate->vy(),2)  + pow(pv.z() - HPStauCandidate->vz(),2) );
-       if(distance < disttmp){
-	 disttmp = distance;
-	 MatchedVertexIndex = i;
-       }
-     }
-     const reco::Vertex &PFTauVertex = primVtxs->at(MatchedVertexIndex);
-     reco::TrackCollection NonTauTracksLists_;
-     reco::Vertex PFTauPrimaryVertex;
-     bool PVValid = false;
-     bool SVValid = false;
-     if( GetNonTauTracksFromVertex(iEvent,HPStauCandidate, PFTauVertex, generalTracks_,NonTauTracksLists_)){
-       TransientVertex tmpVtx_;
-       std::vector<reco::TransientTrack> trks_;
-       for (reco::TrackCollection::iterator iter=NonTauTracksLists_.begin(); iter!=NonTauTracksLists_.end(); ++iter){
-	 trks_.push_back(transTrackBuilder_->build(*iter));
-       }
-       edm::Handle<reco::BeamSpot> beamSpot;
-       iEvent.getByLabel("offlineBeamSpot",beamSpot);
-       reco::BeamSpot thebeamSpot=*beamSpot;
-       if (!SecondaryVertexHelper::checkSecVtx(trks_,tmpVtx_,true,&thebeamSpot)){PVValid=false;}
-       else{   PVValid = true;}
-       PFTauPrimaryVertex =tmpVtx_;
-     }
-     
-     if(SVH.hasSecondaryVertex()){
-       SVValid=true;
-     }
-     
-     PFTau_isSVValid.push_back(SVValid);
-     PFTau_isPVValid.push_back(PVValid);
-     
-
-     VertexDistance3D vtxdist;
-     double PFTauSignPVSV;
-     reco::Vertex PFTauSecondaryVertex;
-     if(SVValid && PVValid){ PFTauSignPVSV = vtxdist.distance(PFTauPrimaryVertex,PFTauSecondaryVertex).significance();}
-     else PFTauSignPVSV=-1;
-     PFTau_PVSVSignificance.push_back(PFTauSignPVSV);
-
-   
-
-     PFTau_SV.push_back(std::vector<float>());
-     PFTau_PV.push_back(std::vector<float>());
-     PFTau_ReffitedTracksP4.push_back(std::vector<std::vector<float> >());
-     PFTau_ReffitedTracksCharge.push_back(std::vector<int>());
-
-     if(SVValid){
-       PFTauSecondaryVertex=SVH.SecondaryVertex();
-       const std::vector<reco::Track> RefittedTracks=PFTauSecondaryVertex.refittedTracks();
-       PFTau_SV.at(iPFTau).push_back(PFTauSecondaryVertex.x());
-       PFTau_SV.at(iPFTau).push_back(PFTauSecondaryVertex.y());
-       PFTau_SV.at(iPFTau).push_back(PFTauSecondaryVertex.z());
-
-       std::vector<float> iPFTau_ReffitedTracksP4;
-       for(unsigned int iSVTrack = 0; iSVTrack <RefittedTracks.size();  iSVTrack++){
-	 iPFTau_ReffitedTracksP4.push_back(sqrt(pow(RefittedTracks.at(iSVTrack).p(),2.0)+pow(0.13957018,2.0)));
-	 iPFTau_ReffitedTracksP4.push_back(RefittedTracks.at(iSVTrack).px());
-	 iPFTau_ReffitedTracksP4.push_back(RefittedTracks.at(iSVTrack).py());
-	 iPFTau_ReffitedTracksP4.push_back(RefittedTracks.at(iSVTrack).pz());
-	 
-	 PFTau_ReffitedTracksCharge.at(iPFTau).push_back(RefittedTracks.at(iSVTrack).charge());
-       }
-       PFTau_ReffitedTracksP4.at(iPFTau).push_back(iPFTau_ReffitedTracksP4);
-      
-     }
-
-
-     if(PVValid){
-       PFTau_PV.at(iPFTau).push_back(PFTauPrimaryVertex.x());
-       PFTau_PV.at(iPFTau).push_back(PFTauPrimaryVertex.y());
-       PFTau_PV.at(iPFTau).push_back(PFTauPrimaryVertex.z());
-     }
-
-
-
-     reco::PFCandidateRefVector GammaCandidate=HPStauCandidate->signalPFGammaCands();
      reco::PFCandidateRefVector ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
-     const std::vector< reco::RecoTauPiZero > PiZeroCandiate=HPStauCandidate->signalPiZeroCandidates();
-
-     
-     std::vector<std::vector<float> >  iPFTau_PiZeroP4;
-     std::vector<int> iPFTau_PiZeroNumOfPhotons;
-     std::vector<int> iPFTau_PiZeroNumOfElectrons;
-
-
-     if(PiZeroCandiate.size()!=0){
-       for(unsigned int Pi0Index=0; Pi0Index <PiZeroCandiate.size(); Pi0Index++ ){
-	 reco::RecoTauPiZero iPi0 = PiZeroCandiate.at(Pi0Index);
-	 std::vector<float> iiPFTau_PiZeroP4;
-
-	 iiPFTau_PiZeroP4.push_back(iPi0.p4().E());
-	 iiPFTau_PiZeroP4.push_back(iPi0.p4().Px());
-	 iiPFTau_PiZeroP4.push_back(iPi0.p4().Py());
-	 iiPFTau_PiZeroP4.push_back(iPi0.p4().Pz());
-	 iPFTau_PiZeroP4.push_back(iiPFTau_PiZeroP4);
-
-	 iPFTau_PiZeroNumOfPhotons.push_back(iPi0.numberOfGammas());
-	 iPFTau_PiZeroNumOfElectrons.push_back(iPi0.numberOfElectrons());
-
-	
-       }
-     }
-     PFTau_PiZeroP4.push_back(iPFTau_PiZeroP4);
-     PFTau_PiZeroNumOfPhotons.push_back(iPFTau_PiZeroNumOfPhotons);
-     PFTau_PiZeroNumOfElectrons.push_back(iPFTau_PiZeroNumOfElectrons);
-
-
-     std::vector<std::vector<float> > iPFTau_GammaP4;
-     if(GammaCandidate.size()!=0){
-       for(unsigned int iGamma = 0; iGamma<GammaCandidate.size(); iGamma++){
-	 reco::PFCandidateRef GammaCand(GammaCandidate,iGamma);
-	 std::vector<float> iiPFTau_GammaP4;
-	 
-	 iiPFTau_GammaP4.push_back(GammaCand->p4().E());
-	 iiPFTau_GammaP4.push_back(GammaCand->p4().Px());
-	 iiPFTau_GammaP4.push_back(GammaCand->p4().Py());
-	 iiPFTau_GammaP4.push_back(GammaCand->p4().Pz());
-	 iPFTau_GammaP4.push_back(iiPFTau_GammaP4);
-       }
-     }
-     PFTau_GammaP4.push_back(iPFTau_GammaP4);
-
-     std::vector<std::vector<float> > iPFTau_ChargedHadronP4;
-     std::vector<std::vector<int> > iPFTau_ChargedHadronsCharge;
-     if(ChargedHadrCand.size()!=0){
-       for(unsigned int iChargedHadron = 0; iChargedHadron<ChargedHadrCand.size(); iChargedHadron++){
-	 reco::PFCandidateRef ChargeHadronCand(ChargedHadrCand,iChargedHadron);
-	 std::vector<float> iiPFTau_ChargedHadronP4;
-	 std::vector<int> iiPFTau_ChargedHadronsCharge;
-	 if(ChargedHadrCand.at(iChargedHadron)->trackRef().isNonnull()){
-	   iiPFTau_ChargedHadronP4.push_back(sqrt(pow(ChargedHadrCand.at(iChargedHadron)->trackRef()->p(),2.0)+pow(0.13957018,2.0)));
-	   iiPFTau_ChargedHadronP4.push_back(ChargedHadrCand.at(iChargedHadron)->trackRef()->px());
-	   iiPFTau_ChargedHadronP4.push_back(ChargedHadrCand.at(iChargedHadron)->trackRef()->py());
-	   iiPFTau_ChargedHadronP4.push_back(ChargedHadrCand.at(iChargedHadron)->trackRef()->pz());
-	   iiPFTau_ChargedHadronsCharge.push_back(ChargeHadronCand->charge());
-	 }
-	 iPFTau_ChargedHadronP4.push_back(iiPFTau_ChargedHadronP4);
-	 iPFTau_ChargedHadronsCharge.push_back(iiPFTau_ChargedHadronsCharge);
-       }
-     }
-     PFTau_ChargedHadronsP4.push_back(iPFTau_ChargedHadronP4);
-     PFTau_ChargedHadronsCharge.push_back(iPFTau_ChargedHadronsCharge);
-   
-
-   
      std::vector<int> matches;
      for(unsigned int i=0; i<ChargedHadrCand.size();i++){
        reco::PFCandidateRef Cand(ChargedHadrCand,i);
@@ -868,8 +740,8 @@ void
  }
 
 
-void  
-TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+void  TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+
   //======== Get Reduced Vertex ================
    edm::Handle<reco::VertexCollection> RedprimVtxs;
    iEvent.getByLabel( tauPrimaryVtx_, RedprimVtxs);
@@ -935,7 +807,7 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
   unsigned int ntaus=0;
   for(SelectedKinematicDecayCollection::const_iterator decay = selected->begin(); decay != selected->end(); ++decay, tauindex++){
     ntaus = tauindex;
-    //std::cout<<"nTaus "<<tauindex<<std::endl;
+
     SelectedKinematicDecay KFTau=(*decay);
     
       std::vector<std::vector<float> > iKFTau_TauVis_p4;
@@ -950,7 +822,7 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
       std::vector<float> iKFTau_Fit_InitialPrimaryVertex;
       std::vector<float> iKFTau_Fit_InitialPrimaryVertexReFit;
       std::vector<float> iKFTau_Fit_InitialSecondaryVertex;
-      std::vector<float> iKFTau_Fit_SecondaryVertex;
+      std::vector<std::vector<float> > iKFTau_Fit_SecondaryVertex;
       std::vector<float> iKFTau_Fit_TauPrimVtx;
 
       iKFTau_a1Initial_p4.push_back(KFTau.Initial_a1_p4().E());
@@ -962,7 +834,7 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
       iKFTau_Fit_PrimaryVertex.push_back(KFTau.PrimaryVertexReFitAndRotated().position().x());
       iKFTau_Fit_PrimaryVertex.push_back(KFTau.PrimaryVertexReFitAndRotated().position().y());
       iKFTau_Fit_PrimaryVertex.push_back(KFTau.PrimaryVertexReFitAndRotated().position().z());
-      //     std::cout<<"KFTau PV "<<KFTau.PrimaryVertexReFitAndRotated().position().x()<<std::endl;
+      
       iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertex().position().x());
       iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertex().position().y());
       iKFTau_Fit_InitialPrimaryVertex.push_back(KFTau.InitialPrimaryVertex().position().z());
@@ -975,11 +847,14 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
       iKFTau_Fit_InitialSecondaryVertex.push_back(KFTau.InitialSecondaryVertex().position().x());
       iKFTau_Fit_InitialSecondaryVertex.push_back(KFTau.InitialSecondaryVertex().position().y());
       iKFTau_Fit_InitialSecondaryVertex.push_back(KFTau.InitialSecondaryVertex().position().z());
-      KFTau_nTracksPerTauPassedQC.push_back(KFTau.TrackQuality());
+      
       // KFTau_Fit_TauCharge.push_back();
 
-//       std::cout<<"ini ---- chi2  "<<KFTau.InitialSecondaryVertex().chi2()<<"ini ndof "<<KFTau.InitialSecondaryVertex().ndof()<<std::endl;
- 
+
+      
+      KFTau_Daughter_pdgid.push_back(std::vector<int>());
+      KFTau_Daughter_charge.push_back(std::vector<int>());
+
       KFTau_Daughter_par.push_back(std::vector<std::vector<float>  >());
       KFTau_Daughter_parCov.push_back(std::vector<std::vector<float>  >());
       KFTau_Daughter_inputpar.push_back(std::vector<std::vector<float> > ());
@@ -991,198 +866,181 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
       std::vector<float>   iKFTau_Daughter_inputpar;
       std::vector<float>   iKFTau_Daughter_inputparCov;
 
-      std::vector<std::vector<float> > iKFTau_Daughter_p4;
-      std::vector<std::vector<float> > iKFTau_Daughter_Vertex;
-
-     
-      std::vector<int> iKFTau_Daughter_pdgid;
-      std::vector<int> iKFTau_Daughter_charge;
+        
 
    
       int taucharge;
-      KFTau_discriminatorByKFit.push_back(std::vector<int>());
-      KFTau_discriminatorByQC.push_back(std::vector<int>());
-      
-      KFTau_Fit_Chi2Prob.push_back(std::vector<float>());
-      KFTau_Fit_BDTVal.push_back(std::vector<float>());
-      KFTau_Fit_ndf.push_back(std::vector<float>());
-      KFTau_Fit_csum.push_back(std::vector<int>());
-      KFTau_Fit_iterations.push_back(std::vector<int>());
+      //    Start loop over ambiguity points.
 
-      KFTau_Fit_TauEnergyFraction.push_back(std::vector<float>());
-      KFTau_Fit_RefitVisibleMass.push_back(std::vector<float>());
-      KFTau_Fit_chi2.push_back(std::vector<float>());
-      KFTau_Fit_PV_PV_significance.push_back(std::vector<float>());
-      KFTau_Fit_SV_PV_significance.push_back(std::vector<float>());
+      //   std::vector<float> 
+	KFTau_discriminatorByKFit.push_back(std::vector<int>());
+	KFTau_discriminatorByQC.push_back(std::vector<int>());
+
+	KFTau_Fit_Chi2Prob.push_back(std::vector<float>());
+	KFTau_Fit_BDTVal.push_back(std::vector<float>());
+	KFTau_Fit_ndf.push_back(std::vector<float>());
+	KFTau_Fit_csum.push_back(std::vector<int>());
+	KFTau_Fit_iterations.push_back(std::vector<int>());
+
+	KFTau_Fit_TauEnergyFraction.push_back(std::vector<float>());
+	KFTau_Fit_RefitVisibleMass.push_back(std::vector<float>());
+	KFTau_Fit_chi2.push_back(std::vector<float>());
+	KFTau_Fit_PV_PV_significance.push_back(std::vector<float>());
+	KFTau_Fit_SV_PV_significance.push_back(std::vector<float>());
 
 
-      // 	KFTau_pions.push_back(std::vector<std::vector<float> >());
-      // 	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
-      
-	unsigned int ValidAmbiguityToFillDaughterInfo=0;
-	std::vector<int> iKFTau_IsAmbiguityValid;
-	bool FoundValidAmbiguityToFillTrackInfo=false;
-	for(unsigned int ambiguity=0; ambiguity<SelectedKinematicDecay::NAmbiguity; ambiguity++){
+// 	KFTau_pions.push_back(std::vector<std::vector<float> >());
+// 	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
 
-	  iKFTau_TauVis_p4.push_back(std::vector<float>());
-	  iKFTau_TauFit_p4.push_back(std::vector<float>());
-	  iKFTau_Neutrino_p4.push_back(std::vector<float>());
-	  iKFTau_TauFitInitial_p4.push_back(std::vector<float>());
-	  iKFTau_NeutrinoInitial_p4.push_back(std::vector<float>());
 
-	  
-	  KFTau_Fit_chi2.at(tauindex).push_back(KFTau.chi2(ambiguity));
-	  KFTau_Fit_ndf.at(tauindex).push_back(KFTau.ndf(ambiguity));
-	  KFTau_Fit_csum.at(tauindex).push_back(KFTau.csum(ambiguity));
-	  KFTau_Fit_iterations.at(tauindex).push_back(KFTau.iterations(ambiguity));
-	  KFTau_Fit_BDTVal.at(tauindex).push_back(KFTau.BDTVal(ambiguity));
-	  
-	  KFTau_Fit_TauEnergyFraction.at(tauindex).push_back(KFTau.energyTFraction(ambiguity));
-	  KFTau_Fit_RefitVisibleMass.at(tauindex).push_back(KFTau.a1Mass(ambiguity));
-	  KFTau_Fit_Chi2Prob.at(tauindex).push_back(KFTau.chi2prob(ambiguity));
-	  KFTau_Fit_PV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotPVRed(ambiguity));
-	  KFTau_Fit_SV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotSV(ambiguity));
-	  
-	  iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).E());
-	  iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Px());
-	  iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Py());
-	  iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Pz());
-	  
-	  //	std::cout<<"ambiguity: "<<ambiguity<<"  tauPt  "<<KFTau.Tau(ambiguity).Pt()<<std::endl;
-	  iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).E());
-	  iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Px());
-	  iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Py());
-	  iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Pz());
-	  
-	  iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).E());
-	  iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).Px());
-	  iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).Py());
-	  iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).Pz());
+      for(unsigned int ambiguity=0; ambiguity<SelectedKinematicDecay::NAmbiguity; ambiguity++){
 	
-	  
-	  iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).E());
-	  iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Px());
-	  iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Py());
-	  iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Pz());
-	  
-	  iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).E());
-	  iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Px());
-	  iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Py());
-	  iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Pz());
-	  
-	  
 
 
-	  if(KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFit")->second) KFTau_discriminatorByKFit.at(tauindex).push_back(1);
-	  else KFTau_discriminatorByKFit.at(tauindex).push_back(0);
-	  
-	  if(KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFitQuality")->second){ KFTau_discriminatorByQC.at(tauindex).push_back(1); }
-	  else{ KFTau_discriminatorByQC.at(tauindex).push_back(0); }
-	  
-	  
-	  const SelectedKinematicParticleCollection& Particles =decay->particles(ambiguity);
 
 
-	  if(!FoundValidAmbiguityToFillTrackInfo){
-	    if(decay->particles(ambiguity).size()!=0){
-	      ValidAmbiguityToFillDaughterInfo=ambiguity;
-	      FoundValidAmbiguityToFillTrackInfo=true;
+	iKFTau_TauVis_p4.push_back(std::vector<float>());
+	iKFTau_TauFit_p4.push_back(std::vector<float>());
+	iKFTau_Neutrino_p4.push_back(std::vector<float>());
+	iKFTau_TauFitInitial_p4.push_back(std::vector<float>());
+	iKFTau_NeutrinoInitial_p4.push_back(std::vector<float>());
+	iKFTau_Fit_SecondaryVertex.push_back(std::vector<float>());
+	
+	
+	
+	
+
+
+
+	KFTau_Fit_chi2.at(tauindex).push_back(KFTau.chi2(ambiguity));
+	KFTau_Fit_ndf.at(tauindex).push_back(KFTau.ndf(ambiguity));
+	KFTau_Fit_csum.at(tauindex).push_back(KFTau.csum(ambiguity));
+	KFTau_Fit_iterations.at(tauindex).push_back(KFTau.iterations(ambiguity));
+	KFTau_Fit_BDTVal.at(tauindex).push_back(KFTau.BDTVal(ambiguity));
+	
+	KFTau_Fit_TauEnergyFraction.at(tauindex).push_back(KFTau.energyTFraction(ambiguity));
+	KFTau_Fit_RefitVisibleMass.at(tauindex).push_back(KFTau.a1Mass(ambiguity));
+	KFTau_Fit_Chi2Prob.at(tauindex).push_back(KFTau.chi2prob(ambiguity));
+	KFTau_Fit_PV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotPVRed(ambiguity));
+	KFTau_Fit_SV_PV_significance.at(tauindex).push_back(KFTau.vtxSignPVRotSV(ambiguity));
+	std::cout<<"KFTau.vtxSignPVRotSV(ambiguity) "<<KFTau.vtxSignPVRotSV(ambiguity)<<std::endl;
+	
+	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).E());
+	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Px());
+	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Py());
+	iKFTau_TauVis_p4.at(ambiguity).push_back(KFTau.a1_p4(ambiguity).Pz());
+	
+	//	std::cout<<"ambiguity: "<<ambiguity<<"  tauPt  "<<KFTau.Tau(ambiguity).Pt()<<std::endl;
+	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).E());
+	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Px());
+	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Py());
+	iKFTau_TauFit_p4.at(ambiguity).push_back(KFTau.Tau(ambiguity).Pz());
+
+	iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).E());
+	iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).Px());
+	iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).Py());
+	iKFTau_Neutrino_p4.at(ambiguity).push_back(KFTau.Neutrino(ambiguity).Pz());
+	
+	
+	iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).E());
+	iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Px());
+	iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Py());
+	iKFTau_TauFitInitial_p4.at(ambiguity).push_back(KFTau.InitialTauGuess(ambiguity).Pz());
+	
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).E());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Px());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Py());
+	iKFTau_NeutrinoInitial_p4.at(ambiguity).push_back(KFTau.InitialNeutrinoGuess(ambiguity).Pz());
+	
+	
+	iKFTau_Fit_SecondaryVertex.at(ambiguity).push_back(KFTau.SecondaryVertex(ambiguity).position().x());
+	iKFTau_Fit_SecondaryVertex.at(ambiguity).push_back(KFTau.SecondaryVertex(ambiguity).position().y());
+	iKFTau_Fit_SecondaryVertex.at(ambiguity).push_back(KFTau.SecondaryVertex(ambiguity).position().z());
+	
+
+
+	if(KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFit")->second) KFTau_discriminatorByKFit.at(tauindex).push_back(1);
+	else KFTau_discriminatorByKFit.at(tauindex).push_back(0);
+	
+	if(KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFitQuality")->second){ KFTau_discriminatorByQC.at(tauindex).push_back(1); }
+	else{ KFTau_discriminatorByQC.at(tauindex).push_back(0); }
+	
+
+	//	std::cout<<"ambiguity "<< ambiguity << "  ByKfit  "<<KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFit")->second<<	"  byQC  "<< KFTau.discriminators(ambiguity).find("PFRecoTauDiscriminationByKinematicFitQuality")->second<<" vector size   " <<KFTau_discriminatorByQC.at(ambiguity).size() <<"check ambig size  " << KFTau_Fit_chi2.at(ambiguity).size() <<std::endl;
+
+	const SelectedKinematicParticleCollection& Particles =decay->particles(ambiguity);
+	
+	for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
+	    if(fabs(iParticle->pdgid())==15){
+
+	      taucharge = iParticle->charge();
+
 	    }
-	  }
 
-// 	  if(decay->particles(0).size()!=0){ValidAmbiguityToFillDaughterInfo=0;}
-// 	  else if(decay->particles(1).size()!=0){ValidAmbiguityToFillDaughterInfo=1;}
-// 	  else if(decay->particles(2).size()!=0){ValidAmbiguityToFillDaughterInfo=2;}
+	  if(ambiguity == 0){ // supposed to  be the same for all ambuguity points
 
-	  if(Particles.size()!=0){iKFTau_IsAmbiguityValid.push_back(1);}
-	  else {iKFTau_IsAmbiguityValid.push_back(0);}
-
-// 	  std::cout<<" ---- chi2  "<<KFTau.chi2Vtx()<<" ndof "<<KFTau.ndfVtx()<<std::endl;
-// 	  std::cout<<" ==== chi2  "<<KFTau.SecondaryVertex(ValidAmbiguityToFillDaughterInfo).chi2()<<" ndof "<<KFTau.SecondaryVertex(ValidAmbiguityToFillDaughterInfo).ndof()<<std::endl;
-
-
-//  	   std::cout<<"--ambiguity "<<ambiguity<<" ValidAmbiguityToFillDaughterInfo " <<ValidAmbiguityToFillDaughterInfo <<" SelectedKinematicParticleCollection size "<<Particles.size()<<std::endl;
-
-
-
-	  for(std::vector<SelectedKinematicParticle>::const_iterator iParticle = Particles.begin(); iParticle != Particles.end(); ++iParticle){
-
-	  
-	      
-	      for(int j=0;j<iParticle->matrix().GetNrows();j++){
-		iKFTau_Daughter_par.push_back(iParticle->parameters()(j));
-		iKFTau_Daughter_inputpar.push_back(iParticle->input_parameters()(j));
-		for(int k=0;k<=j;k++){
-		  
-		  iKFTau_Daughter_parCov.push_back(iParticle->matrix()(j,k));
-		  iKFTau_Daughter_inputparCov.push_back(iParticle->input_matrix()(j,k));
-		}
-	      }
-	      KFTau_Daughter_par.at(ntaus).push_back(iKFTau_Daughter_par);
-	      KFTau_Daughter_parCov.at(ntaus).push_back(iKFTau_Daughter_parCov);
-	      KFTau_Daughter_inputpar.at(ntaus).push_back(iKFTau_Daughter_inputpar);
-	      KFTau_Daughter_inputparCov.at(ntaus).push_back(iKFTau_Daughter_inputparCov);
-	      
-	    
-	  }
-	}
-
-
-	const SelectedKinematicParticleCollection& ParticlesFromValidAmbiguityPiont =decay->particles(ValidAmbiguityToFillDaughterInfo);
-	if(FoundValidAmbiguityToFillTrackInfo ){
-	  for(std::vector<SelectedKinematicParticle>::const_iterator vParticle = ParticlesFromValidAmbiguityPiont.begin(); vParticle != ParticlesFromValidAmbiguityPiont.end(); ++vParticle){
-	    
-	    
-	    if(fabs(vParticle->pdgid())==15){
-	      taucharge = vParticle->charge();
-	    }
-	    
-	    // supposed to  be the same for all ambuguity points
 	    //First Store Tau's
+
 	    int d_pdgid=0;
-	    //	      std::cout<<"ValidAmbiguityToFillDaughterInfo  "<<ValidAmbiguityToFillDaughterInfo<<std::endl;
-	    
-	    d_pdgid = vParticle->pdgid();
-	    iKFTau_Daughter_pdgid.push_back(d_pdgid);
-	    iKFTau_Daughter_charge.push_back(vParticle->charge());
-	    
-	    std::vector<float> iiKFTau_Daughter_p4;
-	    std::vector<float> iiKFTau_Daughter_Vertex;
-	      
-// 	    std::cout<<" pdgId:  "<<d_pdgid << " charge:  "<<vParticle->charge()<<std::endl;
-// 	    std::cout<<" Px Py Pz E  "<< vParticle->p4().Px()<<"  "<<vParticle->p4().Py()<<"  "<<vParticle->p4().Pz()<<"  "<<vParticle->p4().E()<<"  "<<std::endl;
+// 	    if(iParticle->name()=="neutrino")                              d_pdgid=PdtPdgMini::nu_tau;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==1)   d_pdgid=PdtPdgMini::tau_plus;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::tau_minus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==1)   d_pdgid=PdtPdgMini::a_1_plus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::a_1_minus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==1)   d_pdgid=PdtPdgMini::pi_plus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::pi_minus;
 
-	    iiKFTau_Daughter_p4.push_back(vParticle->p4().E());
-	    iiKFTau_Daughter_p4.push_back(vParticle->p4().Px());
-	    iiKFTau_Daughter_p4.push_back(vParticle->p4().Py());
-	    iiKFTau_Daughter_p4.push_back(vParticle->p4().Pz());
-
-
-	    iiKFTau_Daughter_Vertex.push_back(vParticle->vertex().X());
-	    iiKFTau_Daughter_Vertex.push_back(vParticle->vertex().Y());
-	    iiKFTau_Daughter_Vertex.push_back(vParticle->vertex().Z());
+	    d_pdgid = iParticle->pdgid();
+// 	    if(iParticle->name()=="neutrino")                              d_pdgid=PdtPdgMini::nu_tau;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==1)   d_pdgid=PdtPdgMini::tau_plus;
+// 	    else if(iParticle->name()=="tau"  && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::tau_minus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==1)   d_pdgid=PdtPdgMini::a_1_plus;
+// 	    else if(iParticle->name()=="a1"   && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::a_1_minus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==1)   d_pdgid=PdtPdgMini::pi_plus;
+// 	    else if(iParticle->name()=="pion" && iParticle->charge()==-1)  d_pdgid=PdtPdgMini::pi_minus;
 	    
-	    iKFTau_Daughter_p4.push_back(iiKFTau_Daughter_p4);
-	    iKFTau_Daughter_Vertex.push_back(iiKFTau_Daughter_Vertex);
+
+	    
+	    KFTau_Daughter_pdgid.at(ntaus).push_back(d_pdgid);
+	    KFTau_Daughter_charge.at(ntaus).push_back(iParticle->charge());
+
 	    
 	  }
+	  
+
+ 	  for(int j=0;j<iParticle->matrix().GetNrows();j++){
+ 	    iKFTau_Daughter_par.push_back(iParticle->parameters()(j));
+
+ 	    iKFTau_Daughter_inputpar.push_back(iParticle->input_parameters()(j));
+ 	    for(int k=0;k<=j;k++){
+
+ 	      iKFTau_Daughter_parCov.push_back(iParticle->matrix()(j,k));
+ 	      iKFTau_Daughter_inputparCov.push_back(iParticle->input_matrix()(j,k));
+ 	    }
+ 	  }
+	  
+
+
+// 	  KFTau_Daughter_par.at(ntaus).push_back(iKFTau_Daughter_par);
+// 	  KFTau_Daughter_parCov.at(ntaus).push_back(iKFTau_Daughter_parCov);
+// 	  KFTau_Daughter_inputpar.at(ntaus).push_back(iKFTau_Daughter_inputpar);
+// 	  KFTau_Daughter_inputparCov.at(ntaus).push_back(iKFTau_Daughter_inputparCov);
+
+
 	}
 
-
-	// std::cout<<"Size of QC disc ================= "<<KFTau_discriminatorByQC.at(0).size()<<std::end;
+      }
+  
+      // std::cout<<"Size of QC disc ================= "<<KFTau_discriminatorByQC.at(0).size()<<std::end;
 
 	KFTau_pions.push_back(std::vector<std::vector<float> >());
 	KFTau_Initial_pions.push_back(std::vector<std::vector<float> > ());
-
-	unsigned int TauAmbiguityForPions=0;
+	unsigned int TauAmbiguityForPions;
 	if(KFTau.Pions(0).size()!=0){TauAmbiguityForPions =0;}
 	else if(KFTau.Pions(1).size()!=0){TauAmbiguityForPions=1;}
 	else if(KFTau.Pions(2).size()!=0){TauAmbiguityForPions=2;}
-
-  
-
 	for(unsigned int ipion = 0; ipion < KFTau.Pions(TauAmbiguityForPions).size(); ipion++){
-
+	  
 	  std::vector<float > iiKFTau_pions;
 	  std::vector<float > iiKFTau_Initial_pions;
 	  
@@ -1190,14 +1048,13 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
 	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).Px());
 	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).Py());
 	  iiKFTau_pions.push_back(KFTau.Pions(TauAmbiguityForPions).at(ipion).Pz());
-	  //	  std::cout<<"particle parameters: "<< KFTau.Pions(TauAmbiguityForPions).at(ipion).Px()<<std::endl;
+	  //    std::cout<<"particle parameters: "<< KFTau.Pions(TauAmbiguityForPions).at(ipion).E()<<std::endl;
 	  
 	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).E());
 	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Px());
 	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Py());
 	  iiKFTau_Initial_pions.push_back(KFTau.InitialPions().at(ipion).Pz());
 	  
-
 	  KFTau_pions.at(ntaus).push_back(iiKFTau_pions);
 	  KFTau_Initial_pions.at(ntaus).push_back(iiKFTau_Initial_pions);
 
@@ -1205,39 +1062,64 @@ TauNtuple::fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm:
 	}
 	//	std::cout<<"ntau "<< ntaus  <<" " <<selected->size()<<" KFTau.Pions(1).size() " <<KFTau.Pions(TauAmbiguityForPions).size() <<std::endl;
 	//	std::cout<<" 0--->"<<KFTau_pions.at(ntaus).at(TauAmbiguityForPions).at(3) <<std::endl;
-
-
-	iKFTau_Fit_SecondaryVertex.push_back(KFTau.SecondaryVertex(ValidAmbiguityToFillDaughterInfo).position().x());
-	iKFTau_Fit_SecondaryVertex.push_back(KFTau.SecondaryVertex(ValidAmbiguityToFillDaughterInfo).position().y());
-	iKFTau_Fit_SecondaryVertex.push_back(KFTau.SecondaryVertex(ValidAmbiguityToFillDaughterInfo).position().z());
-
-	//	std::cout<<"KFVertex  "<<KFTau.SecondaryVertex(ValidAmbiguityToFillDaughterInfo).position().x()<<std::endl;
-	KFTau_Fit_SecondaryVertexChi2.push_back(KFTau.chi2Vtx());
-	KFTau_Fit_SecondaryVertexNDF.push_back(KFTau.ndfVtx());
-
-
       KFTau_TauVis_p4.push_back(iKFTau_TauVis_p4);
       KFTau_TauFit_p4.push_back(iKFTau_TauFit_p4);
-      //      std::cout<<"KFTau_TauFit_p4.size() "<<KFTau_TauFit_p4.size() <<" iKFTau_TauFit_p4.size() "<<iKFTau_TauFit_p4.size()<< " iKFTau_TauFit_p4.at(1).size() "<<iKFTau_TauFit_p4.at(1).size()<<std::endl;
       KFTau_Neutrino_p4.push_back(iKFTau_Neutrino_p4);
       KFTau_TauFitInitial_p4.push_back(iKFTau_TauFitInitial_p4);
       KFTau_NeutrinoInitial_p4.push_back(iKFTau_NeutrinoInitial_p4);
+
       KFTau_Fit_SecondaryVertex.push_back(iKFTau_Fit_SecondaryVertex);
       KFTau_a1Initial_p4.push_back(iKFTau_a1Initial_p4);
       KFTau_Fit_PrimaryVertex.push_back(iKFTau_Fit_PrimaryVertex);
       KFTau_Fit_InitialPrimaryVertex.push_back(iKFTau_Fit_InitialPrimaryVertex);
       KFTau_Fit_InitialPrimaryVertexReFit.push_back(iKFTau_Fit_InitialPrimaryVertexReFit);
       KFTau_Fit_InitialSecondaryVertex.push_back(iKFTau_Fit_InitialSecondaryVertex);
-      KFTau_Fit_charge.push_back(taucharge);
-      KFTau_Daughter_p4.push_back(iKFTau_Daughter_p4);
-      KFTau_Daughter_Vertex.push_back(iKFTau_Daughter_Vertex);
-      KFTau_Daughter_pdgid.push_back(iKFTau_Daughter_pdgid);
-      KFTau_Daughter_charge.push_back(iKFTau_Daughter_charge);
-      KFTau_IsAmbiguityValid.push_back(iKFTau_IsAmbiguityValid);
 
+      KFTau_Fit_charge.push_back(taucharge);
+
+      // std::cout<<" discr  "<<KFTau_discriminatorByQC.size() <<"check ambig size  " << iKFTau_TauVis_p4.at(1).size() <<" taucharge  "<< "taucharge<<taucharge size  " <<KFTau_Fit_charge.size() <<std::endl;
+      //-------------------------------------
   
+      
+      //Match to tau collection to find discriminants
+      unsigned int index = 0;
+      //  bool discriminatorByKFit(false),discriminatorByQC(false);
+
+      TLorentzVector FitTau(iKFTau_TauFit_p4.at(0).at(1),iKFTau_TauFit_p4.at(0).at(2),iKFTau_TauFit_p4.at(0).at(3),iKFTau_TauFit_p4.at(0).at(0));
+
+      double dP=0.01;
+      //     for(reco::PFTauCollection::const_iterator tau = tauCollection->begin(); tau != tauCollection->end(); ++tau, index++) {
+      //       reco::PFTauRef tauRef(tauCollection, index);
+      //       TLorentzVector CollTau(tauRef->alternatLorentzVect().Px(),tauRef->alternatLorentzVect().Py(),tauRef->alternatLorentzVect().Pz(),tauRef->alternatLorentzVect().E());
+      //       double deltaP=sqrt(pow(CollTau.Px()-FitTau.Px(),2.0)+pow(CollTau.Py()-FitTau.Py(),2.0)+pow(CollTau.Pz()-FitTau.Pz(),2.0));
+      //       if(deltaP<dP){
+      // 	dP=deltaP;
+      // 	std::vector<bool> discriminatorPair = CheckTauDiscriminators(tauDiscriminators,tauRef);
+      // 	discriminatorByKFit=discriminatorPair.at(0);
+      // 	discriminatorByQC=discriminatorPair.at(1);
+      //       }
+      //     }
+      /*std::cout << "drmatch " << dP << " " << (int)discriminatorByKFit << " " << (int)discriminatorByQC 
+	<< "iKFTau_TauFit_p4 E: " << iKFTau_TauFit_p4.at(0) 
+	<< "iKFTau_Neutrino_p4 E: " << iKFTau_Neutrino_p4.at(0) 
+	<< "iKFTau_TauVis_p4 E: " << iKFTau_TauVis_p4.at(0) 
+	<< "tauRef->alternatLorentzVect().E()" << E << std::endl;*/
+      //     if(dP<0.001){
+      //       KFTau_discriminatorByKFit.push_back(discriminatorByKFit);
+      //       KFTau_discriminatorByQC.push_back(discriminatorByQC);
+      //     }
+      //     else{
+      //       KFTau_discriminatorByKFit.push_back(false);
+      //       KFTau_discriminatorByQC.push_back(false);
+      //     }
+
       unsigned int idx =0;
-      reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_a1Initial_p4,idx);
+      unsigned int convergedTau;
+      if(iKFTau_TauVis_p4.at(0).at(0)!=0)convergedTau =0;
+      if(iKFTau_TauVis_p4.at(1).at(0)!=0)convergedTau =1;
+      if(iKFTau_TauVis_p4.at(2).at(0)!=0)convergedTau =2;
+
+      reco::PFTauRef MatchedHPSTau = getMatchedHPSTau(HPStaus,iKFTau_TauVis_p4.at(convergedTau),idx);
       KFTau_MatchedHPS_idx.push_back(idx);
   }
 }
@@ -1325,8 +1207,12 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     edm::Handle<pat::JetCollection> jets;
     edm::InputTag labelJets(srcPatJets_);
     iEvent.getByLabel(labelJets, jets);   
+    //edm::Handle<edm::View<pat::Jet> > jetHandle;
+    //iEvent.getByLabel("PatJets", jetHandle);
+    //edm::View<pat::Jet> PatJet = *jetHandle;
     
     for(pat::JetCollection::size_type iPatJet = 0; iPatJet < jets->size(); iPatJet++) {
+    //for(pat::JetCollection::size_type iPatJet = 0; iPatJet < PatJet.size(); iPatJet++){
       pat::JetRef PatJet(jets, iPatJet);
       std::vector<float> iPatJet_Poca;
       iPatJet_Poca.push_back(PatJet->vx());
@@ -1396,6 +1282,12 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
       PFJet_bDiscriminator.push_back(PatJet->bDiscriminator(BTagAlgorithim_));
       std::vector<float> BTagWeights(0);
       PFJet_BTagWeight.push_back(BTagWeights);
+      
+      //std::cout << "!!!!!!!! b-tagging !!!!!!!!" << std::endl;
+      //std::cout << "b-tag algorithm name: " << PatJet->getPairDiscri().first << ", value: " << PatJet->getPairDiscri().second << std::endl;
+      //PFJet_bTagAlgorithmName.push_back(PatJet->getPairDiscri().first);
+      //PFJet_bTagAlgorithmValue.push_back(PatJet->getPairDiscri().second);
+      //std::cout << "name size: " << PFJet_bTagAlgorithmName.size() << ", value size: " << PFJet_bTagAlgorithmValue.size() << std::endl;
 
     }
   }
@@ -1482,7 +1374,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
 
 
      Electron_numberOfMissedHits.push_back(RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
-     Electron_HasMatchedConversions.push_back(ConversionTools::hasMatchedConversion(ElectronCollection->at(iPFElectron), hConversions, beamSpot.position()));
+     Electron_HasMatchedConversions.push_back(ConversionTools::hasMatchedConversion(ElectronCollection->at(iPFElectron), hConversions, beamSpot.position(),true,2.0,1e-6,0));
      // static bool check = !ConversionTools::hasMatchedConversion(ElectronCollection->at(iPFElectron), hConversions, beamSpot.position());
 
      Electron_ecalRecHitSumEt03.push_back(RefElectron->isolationVariables03().ecalRecHitSumEt);
@@ -1514,10 +1406,71 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
      Electron_supercluster_centroid_y.push_back(refSuperCluster->y());
      Electron_supercluster_centroid_z.push_back(refSuperCluster->z());
        
-     //reco::TrackRef refTrack=static_cast<reco::TrackRef>(refGsfTrack);//RefElectron->trackRef();
-     //int match;
-     //getTrackMatch(trackCollection,refTrack,match);
-     Electron_Track_idx.push_back(-1);
+     int match;
+     getTrackMatch(trackCollection,refGsfTrack,match);
+     Electron_Track_idx.push_back(match);
+     
+     edm::Handle<double> Rhokt6PFJets;
+     const edm::InputTag erho("kt6PFJets","rho");
+     iEvent.getByLabel(erho, Rhokt6PFJets);
+     Electron_Rho_kt6PFJets.push_back(*Rhokt6PFJets);
+     
+     ////////////////////////////////////////////////////////////////////////////////
+     //	                                                                           //
+     // MVA ID from https://twiki.cern.ch/twiki/bin/view/CMS/ElectronMVAIDForH2Tau //
+     //                                                                            //
+     ////////////////////////////////////////////////////////////////////////////////
+     
+     double myMVATrigNoIP2012Method1 = -1.;
+     
+     if(RefElectron->pt()>=ElectronMVAPtCut_){
+    	 Bool_t validKF = true;
+         reco::TrackRef myTrackRef = RefElectron->closestCtfTrackRef();
+         validKF = (myTrackRef.isAvailable());
+         validKF = (myTrackRef.isNonnull());
+         
+         EcalClusterLazyTools myEcalCluster(iEvent, iSetup, (edm::InputTag)"reducedEcalRecHitsEB", (edm::InputTag)"reducedEcalRecHitsEE");
+         
+         Double_t Var_spp;
+         std::vector<float> vCov = myEcalCluster.localCovariances(*(RefElectron->superCluster()->seed()));
+         if(!isnan(vCov[2]))Var_spp = sqrt(vCov[2]);
+         else Var_spp = 0.;
+         
+         Double_t Var_R9 = myEcalCluster.e3x3(*(RefElectron->superCluster()->seed()))/RefElectron->superCluster()->rawEnergy();
+         
+         edm::Handle<double> Rho;
+         const edm::InputTag eventrho("kt6PFJets","rho");
+         iEvent.getByLabel(eventrho, Rho);
+         Double_t Var_rho = *Rho;
+         
+         Bool_t printDebug = false;
+         
+         myMVATrigNoIP2012Method1 = myMVATrigNoIP2012->mvaValue( (Double_t)RefElectron->fbrem(),
+        		 (Double_t)((validKF) ? myTrackRef->normalizedChi2() : 0),
+        		 (Int_t)((validKF) ? myTrackRef->hitPattern().trackerLayersWithMeasurement() : -1.),
+        		 (Double_t)RefElectron->gsfTrack()->normalizedChi2(),
+        		 (Double_t)RefElectron->deltaEtaSuperClusterTrackAtVtx(),
+        		 (Double_t)RefElectron->deltaPhiSuperClusterTrackAtVtx(),
+        		 (Double_t)RefElectron->deltaEtaSeedClusterTrackAtCalo(),
+        		 (Double_t)RefElectron->sigmaIetaIeta(),
+        		 (Double_t)Var_spp,
+        		 (Double_t)RefElectron->superCluster()->etaWidth(),
+        		 (Double_t)RefElectron->superCluster()->phiWidth(),
+        		 (Double_t)((RefElectron->e5x5()) !=0. ? 1.-(RefElectron->e1x5()/RefElectron->e5x5()) : -1.),
+        		 (Double_t)Var_R9,
+        		 (Double_t)RefElectron->hadronicOverEm(),
+        		 (Double_t)RefElectron->eSuperClusterOverP(),
+        		 (Double_t)((1.0/RefElectron->superCluster()->energy())-(1.0/RefElectron->gsfTrack()->p())),
+        		 (Double_t)RefElectron->eEleClusterOverPout(),
+        		 (Double_t)Var_rho,
+        		 (Double_t)(RefElectron->superCluster()->preshowerEnergy()/RefElectron->superCluster()->rawEnergy()),
+        		 (Double_t)RefElectron->superCluster()->eta(),
+        		 (Double_t)RefElectron->pt(),
+        		 (Bool_t)printDebug);
+     }
+     
+     Electron_MVA_discriminator.push_back(myMVATrigNoIP2012Method1);
+     
    }
  }
 
@@ -1584,13 +1537,13 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
      TriggerAccept.push_back(triggerResults->accept(triggerIndex));
      TriggerError.push_back(triggerResults->error(triggerIndex));
      TriggerWasRun.push_back(triggerResults->wasrun(triggerIndex));
-         ////////////////////////////////////////////
+     ////////////////////////////////////////////
      // now get level 1 & HLT prescale
      const std::vector< std::pair < bool, std::string > > level1Seeds = hltConfig_.hltL1GTSeeds(HTLTriggerName.at(i));
      int l1Prescale(-1);
      L1GtUtils l1GtUtils;
      l1GtUtils.retrieveL1EventSetup(iSetup);
-     bool isTechbit=false; 
+     bool isTechbit=false;
      if(level1Seeds.size() == 1){
        std::vector<std::string> myl1SeedPaths;
        std::stringstream ss(level1Seeds.at(0).second);
@@ -1811,7 +1764,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 
    //=============  Muon Block ====
-   //   output_tree->Branch("isPatMuon",&doPatMuons_);
+   output_tree->Branch("isPatMuon",&doPatMuons_);
    output_tree->Branch("Muon_p4",&Muon_p4);		       
    output_tree->Branch("Muon_Poca",&Muon_Poca);	       
    output_tree->Branch("Muon_isGlobalMuon",&Muon_isGlobalMuon);      
@@ -1863,8 +1816,6 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("Muon_isPFMuon",&Muon_isPFMuon);
    output_tree->Branch("Muon_numberofValidPixelHits",&Muon_numberofValidPixelHits);
    output_tree->Branch("Muon_trackerLayersWithMeasurement",&Muon_trackerLayersWithMeasurement);
-//    output_tree->Branch("Muon_dz",&Muon_dz);
-//    output_tree->Branch("Muon_dxy",&Muon_dxy);
 
 
    //================ Electron block ========
@@ -1925,7 +1876,11 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("Electron_numberOfMissedHits",&Electron_numberOfMissedHits);    
    output_tree->Branch("Electron_HasMatchedConversions",&Electron_HasMatchedConversions); 
    output_tree->Branch("RhoIsolationAllInputTags",&RhoIsolationAllInputTags); 
-
+   
+   output_tree->Branch("Electron_Track_dR",&Electron_Track_dR);
+   // Electron MVA ID
+   output_tree->Branch("Electron_Rho_kt6PFJets",&Electron_Rho_kt6PFJets);
+   output_tree->Branch("Electron_MVA_discriminator",&Electron_MVA_discriminator);
 
 
 
@@ -1976,22 +1931,6 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 
 
-   output_tree->Branch("PFTau_isSVValid",&PFTau_isSVValid); 
-   output_tree->Branch("PFTau_isPVValid",&PFTau_isPVValid); 
-
-   output_tree->Branch("PFTau_SV",&PFTau_SV); 
-   output_tree->Branch("PFTau_PV",&PFTau_PV); 
-   output_tree->Branch("PFTau_PVSVSignificance",&PFTau_PVSVSignificance); 
-   output_tree->Branch("PFTau_ReffitedTracksP4",&PFTau_ReffitedTracksP4); 
-   output_tree->Branch("PFTau_ReffitedTracksCharge",&PFTau_ReffitedTracksCharge); 
-   output_tree->Branch("PFTau_ChargedHadronsCharge",&PFTau_ChargedHadronsCharge); 
-
-   output_tree->Branch("PFTau_PiZeroP4",&PFTau_PiZeroP4);    
-   output_tree->Branch("PFTau_PiZeroNumOfPhotons",&PFTau_PiZeroNumOfPhotons);    
-   output_tree->Branch("PFTau_PiZeroNumOfElectrons",&PFTau_PiZeroNumOfElectrons);    
-
-   output_tree->Branch("PFTau_ChargedHadronsP4",&PFTau_ChargedHadronsP4);    
-   output_tree->Branch("PFTau_GammaP4",&PFTau_GammaP4);    
 
    output_tree->Branch("PFTau_hpsDecayMode",&PFTau_hpsDecayMode);
    output_tree->Branch("PFTau_Charge",&PFTau_Charge);
@@ -2001,6 +1940,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    //================  KinFitTaus block ==========
    output_tree->Branch("KFTau_discriminatorByKFit",&KFTau_discriminatorByKFit);
    output_tree->Branch("KFTau_discriminatorByQC",&KFTau_discriminatorByQC);
+   output_tree->Branch("KFTau_nKinTaus",&KFTau_nKinTaus);	 
 
    output_tree->Branch("KFTau_TauFitInitial_p4",&KFTau_TauFitInitial_p4);
    output_tree->Branch("KFTau_NeutrinoInitial_p4",&KFTau_NeutrinoInitial_p4);
@@ -2014,9 +1954,6 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("KFTau_Fit_InitialPrimaryVertexReFit",&KFTau_Fit_InitialPrimaryVertexReFit);
 
    output_tree->Branch("KFTau_Fit_SecondaryVertex",&KFTau_Fit_SecondaryVertex);
-   output_tree->Branch("KFTau_Fit_SecondaryVertexChi2",&KFTau_Fit_SecondaryVertexChi2);
-   output_tree->Branch("KFTau_Fit_SecondaryVertexNDF",&KFTau_Fit_SecondaryVertexNDF);
-
    output_tree->Branch("KFTau_Fit_InitialSecondaryVertex",&KFTau_Fit_InitialSecondaryVertex);
    output_tree->Branch("KFTau_Fit_Chi2Prob",&KFTau_Fit_Chi2Prob);
    	    
@@ -2026,7 +1963,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("KFTau_MatchedHPS_idx",&KFTau_MatchedHPS_idx);
    output_tree->Branch("KFTau_Track_idx",&PFTau_Track_idx);
    output_tree->Branch("KFTau_indexOfFitInfo",&KFTau_indexOfFitInfo);
-   output_tree->Branch("KFTau_nTracksPerTauPassedQC",&KFTau_nTracksPerTauPassedQC);
+
    output_tree->Branch("KFTau_Fit_TauPrimVtx",&KFTau_Fit_TauPrimVtx);
    output_tree->Branch("KFTau_Fit_chi2",&KFTau_Fit_chi2);
    output_tree->Branch("KFTau_Fit_ndf",&KFTau_Fit_ndf);
@@ -2034,7 +1971,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("KFTau_Fit_charge",&KFTau_Fit_charge);
    output_tree->Branch("KFTau_Fit_csum",&KFTau_Fit_csum);
    output_tree->Branch("KFTau_Fit_iterations",&KFTau_Fit_iterations);
-   //   output_tree->Branch("KFTau_Fit_BDTVal",&KFTau_Fit_BDTVal);
+   output_tree->Branch("KFTau_Fit_BDTVal",&KFTau_Fit_BDTVal);
    output_tree->Branch("KFTau_Fit_TauEnergyFraction",&KFTau_Fit_TauEnergyFraction);
    output_tree->Branch("KFTau_Fit_RefitVisibleMass",&KFTau_Fit_RefitVisibleMass);
    output_tree->Branch("KFTau_Fit_Chi2Prob",&KFTau_Fit_Chi2Prob);
@@ -2049,12 +1986,6 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("KFTau_Daughter_parCov",&KFTau_Daughter_parCov);
    output_tree->Branch("KFTau_Daughter_inputpar",&KFTau_Daughter_inputpar);
    output_tree->Branch("KFTau_Daughter_inputparCov",&KFTau_Daughter_inputparCov);
-
-
-   output_tree->Branch("KFTau_Daughter_p4",&KFTau_Daughter_p4);
-   output_tree->Branch("KFTau_Daughter_Vertex",&KFTau_Daughter_Vertex);
-   output_tree->Branch("KFTau_IsAmbiguityValid",&KFTau_IsAmbiguityValid);
-
 
    output_tree->Branch("ReducedVtx_chi2",&ReducedVtx_chi2);
    output_tree->Branch("ReducedVtx_nTrk",&ReducedVtx_nTrk);
@@ -2106,6 +2037,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PFJet_partonFlavour",&PFJet_partonFlavour);
    output_tree->Branch("PFJet_bDiscriminator",&PFJet_bDiscriminator);
    output_tree->Branch("PFJet_BTagWeight",&PFJet_BTagWeight);
+   //output_tree->Branch("PFJet_bTagAlgorithmName",&PFJet_bTagAlgorithmName);
+   //output_tree->Branch("PFJet_bTagAlgorithmValue",&PFJet_bTagAlgorithmValue);
 
    output_tree->Branch("PFJet_TracksP4",&PFJet_TracksP4);
    output_tree->Branch("PFJet_nTrk",&PFJet_nTrk);
@@ -2194,7 +2127,7 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("TriggerWasRun",&TriggerWasRun);
    output_tree->Branch("HLTPrescale",&HLTPrescale);
    output_tree->Branch("NHLTL1GTSeeds",&NHLTL1GTSeeds);
-   output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
+  output_tree->Branch("L1SEEDPrescale",&L1SEEDPrescale);
    output_tree->Branch("L1SEEDInvalidPrescale",&L1SEEDInvalidPrescale);
    output_tree->Branch("L1SEEDisTechBit",&L1SEEDisTechBit);
    output_tree->Branch("MuonTriggerMatch",&MuonTriggerMatch);
@@ -2211,49 +2144,6 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("L1Prescale",&L1Prescale);
 
  } 
-
-
-bool TauNtuple::GetNonTauTracksFromVertex(edm::Event& iEvent,const reco::PFTauRef &HPStauCandidate, const reco::Vertex &PFTauVertex, edm::InputTag &trackCollectionTag_,reco::TrackCollection &nonTauTracks){
-  std::vector<reco::TrackRef> tautracks;
-   const reco::PFCandidateRefVector & 	cands = HPStauCandidate->signalPFChargedHadrCands(); //candidates in signal cone 
-   if(cands.size()==0) return false;
-   for(unsigned int i=0;i<cands.size();i++){
-     if(cands.at(i)->trackRef().isNonnull()) {
-       tautracks.push_back(cands.at(i)->trackRef());
-     }
-   }
-     const reco::Vertex &match=PFTauVertex;
-
-     // Get track list
-     edm::Handle<reco::TrackCollection> trackCollection;
-     iEvent.getByLabel(trackCollectionTag_,trackCollection);
-     if (!trackCollection.isValid()) {
-       edm::LogError("KinematicTauProducer") << "KinematicTauProducer::GetNonTauTracksFromVertex: no track collection found!";
-       return false;
-     }
-     // remove tau tracks and only tracks associated with the vertex
-     unsigned int idx = 0;
-     for (reco::TrackCollection::const_iterator iTrk = trackCollection->begin(); iTrk != trackCollection->end(); ++iTrk, idx++) {
-       reco::TrackRef tmpRef(trackCollection, idx);
-       reco::TrackRef tmpRefForBase=tmpRef;
-       if(tmpRef->pt()<17.0){
-	 bool isTauTrk = false;
-	 bool fromVertex=false;
-	 for (std::vector<reco::TrackRef>::const_iterator tauTrk = tautracks.begin(); tauTrk != tautracks.end(); ++tauTrk) {
-	   if (tmpRef==*tauTrk){isTauTrk = true; break;}
-	 }
-	 for(std::vector<reco::TrackBaseRef>::const_iterator vtxTrkRef=match.tracks_begin();vtxTrkRef<match.tracks_end();vtxTrkRef++){
-	   if(match.trackWeight(*vtxTrkRef)>0 ){
-	     if((*vtxTrkRef)==reco::TrackBaseRef(tmpRefForBase)){fromVertex=true; break;}
-	   }
-	 }
-	 if (!isTauTrk && fromVertex) nonTauTracks.push_back(*iTrk);
-       }
-     }
-     return true;
-}
- 
-
 
 
  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2359,6 +2249,20 @@ bool TauNtuple::GetNonTauTracksFromVertex(edm::Event& iEvent,const reco::PFTauRe
      }
    }
    return false;
+ }
+ 
+ bool TauNtuple::getTrackMatch(edm::Handle< std::vector<reco::Track> > &trackCollection, reco::GsfTrackRef &refTrack, int &match){
+	 match=-1;
+	 for(unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++){
+		 reco::TrackRef Track(trackCollection, iTrack);
+		 double dr = TMath::Sqrt(TMath::Power(refTrack->eta()-Track->eta(),2)+TMath::Power(refTrack->phi()-Track->phi(),2));
+		 Electron_Track_dR.push_back(dr);
+		 if(dr<0.1){
+			 match=iTrack;
+			 return true;
+		 }
+	 }
+	 return false;
  }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2509,8 +2413,6 @@ TauNtuple::ClearEvent(){
   Muon_numberofValidPixelHits.clear();
   Muon_trackerLayersWithMeasurement.clear();
 
-//   Muon_dz.clear();
-//   Muon_dxy.clear();
 
   //======= PFTaus ===
   PFTau_p4.clear();
@@ -2537,11 +2439,7 @@ TauNtuple::ClearEvent(){
 
   PFTau_isHPSByDecayModeFinding.clear();    
 
-  PFTau_isSVValid.clear();    
-  PFTau_isPVValid.clear();    
-  PFTau_PVSVSignificance.clear();    
-  PFTau_SV.clear();    
-  PFTau_PV.clear();    
+
 
   //  PFTau_HPSPFTauDiscriminationByMVA3rawElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByMVA3LooseElectronRejection.clear();    		   
@@ -2560,18 +2458,7 @@ TauNtuple::ClearEvent(){
   PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2.clear();   
   PFTau_HPSPFTauDiscriminationByTightIsolationMVA2.clear();   
 
-
-  PFTau_PiZeroP4.clear();   
-  PFTau_PiZeroNumOfPhotons.clear();   
-  PFTau_PiZeroNumOfElectrons.clear();   
-  PFTau_ChargedHadronsP4.clear(); 
-  PFTau_ChargedHadronsCharge.clear();  
-  PFTau_GammaP4.clear();   
-
-
-  PFTau_ReffitedTracksP4.clear();   
-  PFTau_ReffitedTracksCharge.clear();   
-
+  
   PFTau_hpsDecayMode.clear();   
   PFTau_Charge.clear();
   PFTau_Track_idx.clear();
@@ -2597,8 +2484,6 @@ TauNtuple::ClearEvent(){
   KFTau_Fit_InitialPrimaryVertex.clear();
   KFTau_Fit_InitialPrimaryVertexReFit.clear();
   KFTau_Fit_SecondaryVertex.clear();
-  KFTau_Fit_SecondaryVertexChi2.clear();
-  KFTau_Fit_SecondaryVertexNDF.clear();
   KFTau_Fit_InitialSecondaryVertex.clear();
   KFTau_Fit_BDTVal.clear();
 
@@ -2615,8 +2500,7 @@ TauNtuple::ClearEvent(){
   KFTau_Fit_Chi2Prob.clear();
   KFTau_Fit_PV_PV_significance.clear();
   KFTau_Fit_SV_PV_significance.clear();
-
-
+  
   KFTau_Daughter_pdgid.clear();
   KFTau_Daughter_charge.clear();
   KFTau_Daughter_ambiguity.clear();
@@ -2626,10 +2510,6 @@ TauNtuple::ClearEvent(){
   KFTau_Daughter_inputpar.clear();
   KFTau_Daughter_inputparCov.clear();
 
-  KFTau_Daughter_Vertex.clear();
-  KFTau_Daughter_p4.clear();
-  KFTau_IsAmbiguityValid.clear();
-  KFTau_nTracksPerTauPassedQC.clear();
   ReducedVtx_chi2.clear();
   ReducedVtx_nTrk.clear();
   ReducedVtx_ndof.clear();
@@ -2695,10 +2575,12 @@ TauNtuple::ClearEvent(){
   Electron_fbrem.clear();          		   
   Electron_eSuperClusterOverP.clear();             
   Electron_ecalEnergy.clear();          	   
-  Electron_trackMomentumAtVtx  .clear();           
-  Electron_numberOfMissedHits  .clear();           
-  Electron_HasMatchedConversions.clear();          
+  Electron_trackMomentumAtVtx.clear();           
+  Electron_numberOfMissedHits.clear();           
+  Electron_HasMatchedConversions.clear();    
 
+  Electron_Track_dR.clear();
+  Electron_MVA_discriminator.clear();
 
 
   //=======  PFJets ===
@@ -2740,8 +2622,13 @@ TauNtuple::ClearEvent(){
    PFJet_partonFlavour.clear();
    PFJet_bDiscriminator.clear();
    PFJet_BTagWeight.clear();
+
+   //PFJet_bTagAlgorithmName.clear();
+   //PFJet_bTagAlgorithmValue.clear();
+
    PFJet_TracksP4.clear();
    PFJet_nTrk.clear();
+
    //=============== Track Block ==============
    Track_p4.clear();
    Track_Poca.clear();

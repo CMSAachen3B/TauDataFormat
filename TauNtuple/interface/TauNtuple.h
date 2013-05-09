@@ -32,10 +32,7 @@
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include <stdint.h>
-#include "TrackingTools/TransientTrack/interface/TransientTrackBuilder.h"
-#include "TrackingTools/Records/interface/TransientTrackRecord.h"
-#include "TauDataFormat/TauNtuple/interface/SecondaryVertexHelper.h"
-#include "RecoVertex/VertexTools/interface/VertexDistance3D.h"
+
 //  ROOT 
 #include "TTree.h"
 #include "TFile.h"
@@ -130,7 +127,7 @@
 //
 #include <DataFormats/EgammaCandidates/interface/GsfElectron.h>
 #include <RecoEgamma/EgammaTools/interface/ConversionTools.h>
-#include "RecoVertex/VertexTools/interface/VertexDistance3D.h"
+
 
 //  Trigger 
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
@@ -148,7 +145,10 @@
 
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
-#include "RecoTauTag/RecoTau/interface/RecoTauPiZeroPlugins.h"
+
+// Electron MVA ID
+#include "EgammaAnalysis/ElectronTools/interface/EGammaMvaEleEstimator.h"
+
 //
 //
 // class declaration
@@ -188,12 +188,14 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef);
   reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &UnmodifiedTau, unsigned int &match);
   reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &Jet, unsigned int &match);
-  bool GetNonTauTracksFromVertex(edm::Event& iEvent,const reco::PFTauRef &HPStauCandidate, const reco::Vertex &PFTauVertex, edm::InputTag &trackCollectionTag_,reco::TrackCollection &nonTauTracks);
+
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match);
+  bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::GsfTrackRef &refTrack, int &match);
   double DeltaPhi(double phi1, double phi2);
   void ClearEvent();
 
-
+  EGammaMvaEleEstimator* myMVATrigNoIP2012;
+  std::vector<std::string> myManualCatWeightsTrigNoIP2012;
 
   edm::InputTag primVtxTag_;
   edm::InputTag muonsTag_;
@@ -230,6 +232,16 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
+  //edm::InputTag reducedEBRecHitCollection_;
+  //edm::InputTag reducedEERecHitCollection_;
+  // Electron MVA ID
+  std::string ElectronMVAWeights1_;
+  std::string ElectronMVAWeights2_;
+  std::string ElectronMVAWeights3_;
+  std::string ElectronMVAWeights4_;
+  std::string ElectronMVAWeights5_;
+  std::string ElectronMVAWeights6_;
+  double ElectronMVAPtCut_;
   std::vector<std::string> discriminators_;
 
   // PU
@@ -371,10 +383,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> Muon_numberOfMatches;
   std::vector<int>   Muon_trackerLayersWithMeasurement;
                      
-//   std::vector<float> 	Muon_dz; 
-//   std::vector<float> 	Muon_dxy; 
-
-
   //======= PFTaus ===
   std::vector<std::vector<float> > PFTau_p4;
   std::vector<std::vector<float > > PFTau_Poca;
@@ -397,15 +405,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> PFTau_isHPSAgainstMuonLoose2;
   std::vector<bool> PFTau_isHPSAgainstMuonMedium2;
   std::vector<bool> PFTau_isHPSAgainstMuonTight2;
-
-  std::vector<bool> PFTau_isSVValid;
-  std::vector<bool> PFTau_isPVValid;
-
-  std::vector<std::vector<float> > PFTau_SV;
-  std::vector<std::vector<float> > PFTau_PV;
-  std::vector<float> PFTau_PVSVSignificance;
-  std::vector<std::vector<std::vector<float > > > PFTau_ReffitedTracksP4;
-  std::vector<std::vector<int > > PFTau_ReffitedTracksCharge;
 
 
   std::vector<bool> PFTau_isHPSByDecayModeFinding;     
@@ -436,21 +435,11 @@ class TauNtuple : public edm::EDProducer {
   std::vector<int>  PFTau_Charge;
   std::vector<std::vector<int> > PFTau_Track_idx;
 
-  std::vector<std::vector<std::vector<float> > > PFTau_PiZeroP4;
-  std::vector<std::vector<int> > PFTau_PiZeroNumOfPhotons;
-  std::vector<std::vector<int> > PFTau_PiZeroNumOfElectrons;
-  std::vector<std::vector<std::vector<float> > > PFTau_ChargedHadronsP4;
-  std::vector<std::vector<std::vector<int> > > PFTau_ChargedHadronsCharge;
-  std::vector<std::vector<std::vector<float> > > PFTau_GammaP4;
-
-
-
-
   // to include: HPS discriminators against muon and electron
   //======= KinFitTaus ===
   std::vector<std::vector<int> > KFTau_discriminatorByKFit;
   std::vector<std::vector<int> > KFTau_discriminatorByQC;
-  std::vector<unsigned int > KFTau_nTracksPerTauPassedQC;
+  int  KFTau_nKinTaus;
   // std::vector<int> KFTau_Fit_TauCharge;
   std::vector<std::vector<std::vector<float> > > KFTau_TauVis_p4;
   std::vector<std::vector<std::vector<float> > > KFTau_TauFit_p4;
@@ -459,9 +448,7 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<std::vector<float> > > KFTau_NeutrinoInitial_p4;
   std::vector<std::vector<float> >  KFTau_a1Initial_p4;
   std::vector<std::vector<std::vector<float> > > KFTau_pions;
-  std::vector<std::vector<std::vector<float> > > KFTau_pionsCharge;
   std::vector<std::vector<std::vector<float> > > KFTau_Initial_pions;
-  std::vector<std::vector<int> > KFTau_IsAmbiguityValid;
 
   std::vector<unsigned int> KFTau_MatchedHPS_idx;
   std::vector<std::vector<int> > KFTau_Track_idx;
@@ -478,10 +465,7 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> > KFTau_Fit_InitialPrimaryVertex;
   std::vector<std::vector<float> > KFTau_Fit_InitialPrimaryVertexReFit;
 
-  std::vector<std::vector<float> >   KFTau_Fit_SecondaryVertex;
-  std::vector<float >   KFTau_Fit_SecondaryVertexChi2;
-  std::vector<float >   KFTau_Fit_SecondaryVertexNDF;
-
+  std::vector<std::vector<std::vector<float> > >  KFTau_Fit_SecondaryVertex;
   std::vector<std::vector<float> >  KFTau_Fit_InitialSecondaryVertex;
 
 
@@ -495,9 +479,6 @@ class TauNtuple : public edm::EDProducer {
 
   std::vector<std::vector<int> > KFTau_Daughter_pdgid;
   std::vector<std::vector<int> > KFTau_Daughter_charge;
-  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_p4;
-  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_Vertex;
-
   std::vector<std::vector<float> > KFTau_Daughter_ambiguity;
 
   std::vector<std::vector<std::vector<float> > > KFTau_Daughter_par;
@@ -574,7 +555,11 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> Electron_trackMomentumAtVtx;
   std::vector<float> Electron_numberOfMissedHits;  //number of missing hits conversion rejection 
   std::vector<bool>  Electron_HasMatchedConversions;
-
+  
+  std::vector<float> Electron_Track_dR;
+  // Electron MVA ID
+  std::vector<float> Electron_Rho_kt6PFJets;
+  std::vector<float> Electron_MVA_discriminator;
 
 
 
@@ -621,6 +606,8 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float>   PFJet_partonFlavour;
   std::vector<float>   PFJet_bDiscriminator;
   std::vector<std::vector<float> >   PFJet_BTagWeight;
+  //std::vector<std::string> PFJet_bTagAlgorithmName;
+  //std::vector<float>   PFJet_bTagAlgorithmValue;
 
   //=======  MET ===
   // now only PFMET
@@ -715,6 +702,7 @@ class TauNtuple : public edm::EDProducer {
   std::vector<int> MCSignalParticle_charge;
   std::vector<std::vector<float > > MCSignalParticle_Poca;
   std::vector<std::vector<unsigned int> > MCSignalParticle_Tauidx;
+  
 
   // MC Tau Info
   std::vector<std::vector<std::vector<float> > > MCTauandProd_p4;

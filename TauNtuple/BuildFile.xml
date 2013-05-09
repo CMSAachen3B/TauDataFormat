@@ -18,6 +18,7 @@
 <use name="SimGeneral/HepPDTRecord"/>
 <use name="RecoEgamma/EgammaTools"/>
 <use name="PhysicsTools/PatAlgos"/>
+<use name="EgammaAnalysis/ElectronTools"/>
 <use name="root"/>
 <use name="rootmath"/>
 <flags EDM_PLUGIN="1"/>
