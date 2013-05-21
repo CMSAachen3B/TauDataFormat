@@ -3,7 +3,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.cc,v 1.2 2011/12/15 15:59:21 inugent Exp $
+// $Id: EventCounter.cc,v 1.3 2012/01/06 12:48:37 inugent Exp $
 //
 #include "TauDataFormat/TauNtuple/interface/EventCounter.h"
 
@@ -15,7 +15,7 @@
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include "TauDataFormat/TauNtuple/interface/TauDecay_CMSSW.h"
-#include "TauDataFormat/TauNtuple/interface/PdtPdgMini.h"
+#include "Validation/EventGenerator/interface/PdtPdgMini.h"
 #include "TauDataFormat/TauNtuple/interface/DataMCType.h"
 
 //

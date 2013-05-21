@@ -1,5 +1,5 @@
 #include "TauDataFormat/TauNtuple/interface/DataMCType.h"
-#include "TauDataFormat/TauNtuple/interface/PdtPdgMini.h"
+#include "Validation/EventGenerator/interface/PdtPdgMini.h"
 #include "Validation/EventGenerator/interface/TauDecay.h"
 #include <iostream>
 #include <cstdlib>

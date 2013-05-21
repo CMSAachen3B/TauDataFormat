@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.27 2013/03/21 14:02:11 cherepan Exp $
+// $Id: TauNtuple.h,v 1.29 2013/05/09 16:13:16 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -389,24 +389,19 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> PFTau_isTightIsolation;
   std::vector<bool> PFTau_isMediumIsolation;
   std::vector<bool> PFTau_isLooseIsolation;
-
   std::vector<bool> PFTau_isTightIsolationDBSumPtCorr;
   std::vector<bool> PFTau_isMediumIsolationDBSumPtCorr;
   std::vector<bool> PFTau_isLooseIsolationDBSumPtCorr;
   std::vector<bool> PFTau_isVLooseIsolationDBSumPtCorr;
-
   std::vector<bool> PFTau_isHPSAgainstElectronsLoose;
   std::vector<bool> PFTau_isHPSAgainstElectronsMedium;
   std::vector<bool> PFTau_isHPSAgainstElectronsTight;
   std::vector<bool> PFTau_isHPSAgainstMuonLoose;
   std::vector<bool> PFTau_isHPSAgainstMuonMedium;
   std::vector<bool> PFTau_isHPSAgainstMuonTight;
-
   std::vector<bool> PFTau_isHPSAgainstMuonLoose2;
   std::vector<bool> PFTau_isHPSAgainstMuonMedium2;
   std::vector<bool> PFTau_isHPSAgainstMuonTight2;
-
-
   std::vector<bool> PFTau_isHPSByDecayModeFinding;     
 
 
@@ -422,7 +417,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA;                      
   std::vector<bool> PFTau_HPSPFTauDiscriminationByTightIsolationMVA;                      
-
   std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2;                      
   std::vector<bool> PFTau_HPSPFTauDiscriminationByTightIsolationMVA2;                      
