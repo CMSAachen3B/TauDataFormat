@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.29 2013/05/09 16:13:16 inugent Exp $
+// $Id: TauNtuple.h,v 1.30 2013/05/21 14:54:25 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -200,17 +200,15 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag primVtxTag_;
   edm::InputTag muonsTag_;
   edm::InputTag hpsTauProducer_;
+  edm::InputTag PFTauTIPTag_;
   edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
   edm::InputTag hpsPFTauDiscriminationByMediumIsolation_;
   edm::InputTag hpsPFTauDiscriminationByLooseIsolation_;
-
 
   edm::InputTag hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_;
   edm::InputTag hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_; 
   edm::InputTag hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_;
   edm::InputTag hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_; 
-
-
   edm::InputTag hpsPFTauDiscriminationAgainstElectronLoose_; 
   edm::InputTag hpsPFTauDiscriminationAgainstElectronMedium_;
   edm::InputTag hpsPFTauDiscriminationAgainstElectronTight_; 
@@ -219,13 +217,7 @@ class TauNtuple : public edm::EDProducer {
   edm::InputTag hpsPFTauDiscriminationAgainstMuonTight_;     
   edm::InputTag hpsPFTauDiscriminationByDecayModeFinding_;  
 
-
-
-
   edm::InputTag pfMETTag_;
-  edm::InputTag kinTausTag_;
-  edm::InputTag KinFitAdvanced_;
-  edm::InputTag tauPrimaryVtx_;
   edm::InputTag pfjetsTag_;
   edm::InputTag PFElectronTag_;
   edm::InputTag rhoIsolAllInputTag_;
@@ -282,7 +274,6 @@ class TauNtuple : public edm::EDProducer {
   bool doElectrons_;
   bool doPFTaus_;
   bool doTracks_;
-  bool doKinFitTaus_;
   bool doTrigger_;
   bool doPrimeVertex_;
   bool doMET_;
@@ -365,11 +356,6 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> 	Muon_sumPhotonEtHighThreshold04;        // sum pt of PF photons with a higher threshold
   std::vector<float> 	Muon_sumPUPt04;                         // sum pt of charged Particles not from PV (for Pu corrections) 
 
-
-
-
-						       
-
   std::vector<int>      Muon_numberOfChambers;
   std::vector<int>      Muon_Charge;
   std::vector<unsigned int>  Muon_Track_idx;
@@ -420,79 +406,32 @@ class TauNtuple : public edm::EDProducer {
   std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA2;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA2;                      
   std::vector<bool> PFTau_HPSPFTauDiscriminationByTightIsolationMVA2;                      
-
-
-
-
-
   std::vector<int>  PFTau_hpsDecayMode;   
   std::vector<int>  PFTau_Charge;
   std::vector<std::vector<int> > PFTau_Track_idx;
 
-  // to include: HPS discriminators against muon and electron
-  //======= KinFitTaus ===
-  std::vector<std::vector<int> > KFTau_discriminatorByKFit;
-  std::vector<std::vector<int> > KFTau_discriminatorByQC;
-  int  KFTau_nKinTaus;
-  // std::vector<int> KFTau_Fit_TauCharge;
-  std::vector<std::vector<std::vector<float> > > KFTau_TauVis_p4;
-  std::vector<std::vector<std::vector<float> > > KFTau_TauFit_p4;
-  std::vector<std::vector<std::vector<float> > > KFTau_TauFitInitial_p4;
-  std::vector<std::vector<std::vector<float> > > KFTau_Neutrino_p4;
-  std::vector<std::vector<std::vector<float> > > KFTau_NeutrinoInitial_p4;
-  std::vector<std::vector<float> >  KFTau_a1Initial_p4;
-  std::vector<std::vector<std::vector<float> > > KFTau_pions;
-  std::vector<std::vector<std::vector<float> > > KFTau_Initial_pions;
+  std::vector<std::vector<double> > PFTau_TIP_primaryVertex_pos;
+  std::vector<std::vector<double> > PFTau_TIP_primaryVertex_cov;
+  std::vector<std::vector<double> > PFTau_TIP_secondaryVertex_pos;
+  std::vector<std::vector<double> > PFTau_TIP_secondaryVertex_cov;
+  std::vector<double>               PFTau_TIP_secondaryVertex_vtxchi2;
+  std::vector<double>               PFTau_TIP_secondaryVertex_vtxndof;
+  std::vector<std::vector<double> > PFTau_a1_lvp;
+  std::vector<std::vector<double> > PFTau_a1_cov;
+  std::vector<int>                  PFTau_a1_charge;
+  std::vector<int>                  PFTau_a1_pdgid;
+  std::vector<double>               PFTau_a1_B;
+  std::vector<double>               PFTau_a1_M;
 
-  std::vector<unsigned int> KFTau_MatchedHPS_idx;
-  std::vector<std::vector<int> > KFTau_Track_idx;
-  std::vector<int> KFTau_indexOfFitInfo;
-  std::vector<std::vector<float> >	KFTau_Fit_ndf;
-  // std::vector<int>	KFTau_Fit_ambiguity;
-  std::vector<int>	KFTau_Fit_charge;
-  std::vector<std::vector<int> >	KFTau_Fit_csum;     
-  std::vector<std::vector<int> >     KFTau_Fit_iterations;
-  std::vector<std::vector<float> > KFTau_Fit_TauPrimVtx;
-
-
-  std::vector<std::vector<float> > KFTau_Fit_PrimaryVertex;
-  std::vector<std::vector<float> > KFTau_Fit_InitialPrimaryVertex;
-  std::vector<std::vector<float> > KFTau_Fit_InitialPrimaryVertexReFit;
-
-  std::vector<std::vector<std::vector<float> > >  KFTau_Fit_SecondaryVertex;
-  std::vector<std::vector<float> >  KFTau_Fit_InitialSecondaryVertex;
-
-
-  std::vector<std::vector<float> > KFTau_Fit_TauEnergyFraction;
-  std::vector<std::vector<float> > KFTau_Fit_RefitVisibleMass;
-  std::vector<std::vector<float> > KFTau_Fit_Chi2Prob;
-  std::vector<std::vector<float> > KFTau_Fit_chi2;
-  std::vector<std::vector<float> > KFTau_Fit_BDTVal;
-  std::vector<std::vector<float> > KFTau_Fit_PV_PV_significance;
-  std::vector<std::vector<float> > KFTau_Fit_SV_PV_significance;
-
-  std::vector<std::vector<int> > KFTau_Daughter_pdgid;
-  std::vector<std::vector<int> > KFTau_Daughter_charge;
-  std::vector<std::vector<float> > KFTau_Daughter_ambiguity;
-
-  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_par;
-  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_parCov;
-  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_inputpar;
-  std::vector<std::vector<std::vector<float> > > KFTau_Daughter_inputparCov;
-
-  std::vector<float> ReducedVtx_chi2;
-  std::vector<float> ReducedVtx_nTrk;
-  std::vector<float> ReducedVtx_ndof;
-  std::vector<float> ReducedVtx_y;
-  std::vector<float> ReducedVtx_x;
-  std::vector<float> ReducedVtx_z;
-  std::vector<std::vector<std::vector<float> > >  ReducedVtx_Cov;
-  std::vector<std::vector<int> >    ReducedVtx_Track_idx;
-  std::vector<float> ReducedVtx_isFake;
+  std::vector<std::vector<std::vector<double> > > PFTau_daughterTracks;
+  std::vector<std::vector<std::vector<double> > > PFTau_daughterTracks_cov;
+  std::vector<std::vector<int> >                  PFTau_daughterTracks_charge;
+  std::vector<std::vector<int> >                  PFTau_daughterTracks_pdgid;
+  std::vector<std::vector<double> >               PFTau_daughterTracks_B;
+  std::vector<std::vector<double> >               PFTau_daughterTracks_M;
+  std::vector<std::vector<std::vector<double> > > PFTau_daughterTracks_poca;
 
   //=======  Electrons ===
-
-
   double RhoIsolationAllInputTags;
   std::vector<std::vector<float> > Electron_p4;
   std::vector<std::vector<float > > Electron_Poca;
