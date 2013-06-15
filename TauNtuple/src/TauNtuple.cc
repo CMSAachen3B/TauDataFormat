@@ -146,11 +146,11 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights6_);
   
   Bool_t manualCat = true;
-  myMVATrigNoIP2012 = new EGammaMvaEleEstimator();
-  myMVATrigNoIP2012->initialize("BDT",
-				EGammaMvaEleEstimator::kTrigNoIP,//kNonTrig,
-				manualCat,
-				myManualCatWeightsTrigNoIP2012);
+  //myMVATrigNoIP2012 = new EGammaMvaEleEstimator();
+  //myMVATrigNoIP2012->initialize("BDT",
+  //			EGammaMvaEleEstimator::kTrigNoIP,//kNonTrig,
+  //			manualCat,
+  //			myManualCatWeightsTrigNoIP2012);
   
 } 
 
@@ -702,20 +702,20 @@ void
 
      ////////////////////////////////////////////////////////////////////////////////     
      int Ntau=PFTau_daughterTracks.size();
-     PFTau_TIP_primaryVertex_pos.push_back(std::vector<double>());
-     PFTau_TIP_primaryVertex_cov.push_back(std::vector<double>());
-     PFTau_TIP_secondaryVertex_pos.push_back(std::vector<double>());
-     PFTau_TIP_secondaryVertex_cov.push_back(std::vector<double>());
-     PFTau_a1_lvp.push_back(std::vector<double>());
-     PFTau_a1_cov.push_back(std::vector<double>());
+     PFTau_TIP_primaryVertex_pos.push_back(std::vector<float>());
+     PFTau_TIP_primaryVertex_cov.push_back(std::vector<float>());
+     PFTau_TIP_secondaryVertex_pos.push_back(std::vector<float>());
+     PFTau_TIP_secondaryVertex_cov.push_back(std::vector<float>());
+     PFTau_a1_lvp.push_back(std::vector<float>());
+     PFTau_a1_cov.push_back(std::vector<float>());
 
-     PFTau_daughterTracks.push_back(std::vector<std::vector<double> >());
-     PFTau_daughterTracks_cov.push_back(std::vector<std::vector<double> >());
+     PFTau_daughterTracks.push_back(std::vector<std::vector<float> >());
+     PFTau_daughterTracks_cov.push_back(std::vector<std::vector<float> >());
      PFTau_daughterTracks_charge.push_back(std::vector<int>());
      PFTau_daughterTracks_pdgid.push_back(std::vector<int>());
-     PFTau_daughterTracks_B.push_back(std::vector<double>());
-     PFTau_daughterTracks_M.push_back(std::vector<double>());
-     PFTau_daughterTracks_poca.push_back(std::vector<std::vector<double> >());
+     PFTau_daughterTracks_B.push_back(std::vector<float>());
+     PFTau_daughterTracks_M.push_back(std::vector<float>());
+     PFTau_daughterTracks_poca.push_back(std::vector<std::vector<float> >());
 
      const reco::PFTauTransverseImpactParameterRef theTIP=TIPAV->value(HPStauCandidate.key());
      //fill primary and Secondary vertex
@@ -807,9 +807,9 @@ void
      const std::vector<edm::Ptr<reco::PFCandidate> > cands = HPStauCandidate->signalPFChargedHadrCands();
      for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
        //
-       PFTau_daughterTracks_poca.at(Ntau).push_back(std::vector<double>());
-       PFTau_daughterTracks.at(Ntau).push_back(std::vector<double>());
-       PFTau_daughterTracks_cov.at(Ntau).push_back(std::vector<double>());
+       PFTau_daughterTracks_poca.at(Ntau).push_back(std::vector<float>());
+       PFTau_daughterTracks.at(Ntau).push_back(std::vector<float>());
+       PFTau_daughterTracks_cov.at(Ntau).push_back(std::vector<float>());
        //
        bool hastrack(false);
        reco::TransientTrack transTrk;
@@ -1172,7 +1172,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
          
          Bool_t printDebug = false;
          
-         myMVATrigNoIP2012Method1 = myMVATrigNoIP2012->mvaValue( (Double_t)RefElectron->fbrem(),
+         myMVATrigNoIP2012Method1 = 0.0;/* myMVATrigNoIP2012->mvaValue( (Double_t)RefElectron->fbrem(),
         		 (Double_t)((validKF) ? myTrackRef->normalizedChi2() : 0),
         		 (Int_t)((validKF) ? myTrackRef->hitPattern().trackerLayersWithMeasurement() : -1.),
         		 (Double_t)RefElectron->gsfTrack()->normalizedChi2(),
@@ -1193,7 +1193,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
         		 (Double_t)(RefElectron->superCluster()->preshowerEnergy()/RefElectron->superCluster()->rawEnergy()),
         		 (Double_t)RefElectron->superCluster()->eta(),
         		 (Double_t)RefElectron->pt(),
-        		 (Bool_t)printDebug);
+        		 (Bool_t)printDebug);*/
      }
      
      Electron_MVA_discriminator.push_back(myMVATrigNoIP2012Method1);
