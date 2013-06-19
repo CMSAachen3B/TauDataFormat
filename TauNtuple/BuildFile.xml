@@ -6,7 +6,6 @@
 <use name="DataFormats/RecoCandidate"/>
 <use name="CommonTools/RecoAlgos"/>
 <use name="RecoVertex/PrimaryVertexProducer"/>
-<use name="DataFormats/KinematicFit"/>
 <use name="RecoVertex/KinematicFitPrimitives"/>
 <use name="RecoVertex/KinematicFit"/>
 <use name="DataFormats/ParticleFlowCandidate"/>
@@ -23,6 +22,7 @@
 <use name="RecoTauTag/ImpactParameter"/>
 <use name="root"/>
 <use name="rootmath"/>
+<use   name="TrackingTools/TransientTrack"/>
 <flags EDM_PLUGIN="1"/>
 <export>
    <lib name="1"/>

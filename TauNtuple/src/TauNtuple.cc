@@ -555,8 +555,8 @@ void
 
 
 
- void 
- TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+ void  TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
+
    edm::Handle<std::vector<reco::PFTau> > HPStaus;
    iEvent.getByLabel(hpsTauProducer_, HPStaus);
 
@@ -643,9 +643,9 @@ void
 
    edm::Handle<edm::AssociationVector<reco::PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameterRef> > > TIPAV;
    iEvent.getByLabel(PFTauTIPTag_,TIPAV);
-
-   for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ) {
+   for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ){
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
+     if(HPStauCandidate->p4().Pt()>18 && fabs(HPStauCandidate->p4().Eta())<2.2){
      std::vector<float> iPFTau_Poca;
      iPFTau_Poca.push_back(HPStauCandidate->vx());
      iPFTau_Poca.push_back(HPStauCandidate->vy());
@@ -765,6 +765,7 @@ void
        LorentzVectorParticle a1;
        std::vector<reco::Track> selectedTracks=secVtx->refittedTracks();
        std::vector<reco::TransientTrack> transTrkVect;
+
        for(unsigned int i = 0; i!=selectedTracks.size();i++) transTrkVect.push_back(transTrackBuilder->build(selectedTracks.at(i)));
        KinematicParticleFactoryFromTransientTrack kinFactory;
        float piMassSigma(sqrt(pow(10.,-12.))), piChi(0.0), piNdf(0.0);
@@ -775,7 +776,8 @@ void
        jpTree->movePointerToTheTop();
        const KinematicParameters parameters = jpTree->currentParticle()->currentState().kinematicParameters();
        AlgebraicSymMatrix77 cov=jpTree->currentParticle()->currentState().kinematicParametersError().matrix();
-       // get pions                                                                                                                                                                                                                     
+
+       // get pions                                
        double c(0);
        std::vector<reco::Track> Tracks;
        std::vector<LorentzVectorParticle> ReFitPions;
@@ -783,12 +785,11 @@ void
 	 c+=transTrkVect.at(i).charge();
 	 ReFitPions.push_back(ParticleBuilder::CreateLorentzVectorParticle(transTrkVect.at(i),transTrackBuilder,svtx,true,true));
        }
-       // now covert a1 into LorentzVectorParticle                                                                                                                                                                                      
+       // now covert a1 into LorentzVectorParticle
        TMatrixT<double>    a1_par(LorentzVectorParticle::NLorentzandVertexPar,1);
        TMatrixTSym<double> a1_cov(LorentzVectorParticle::NLorentzandVertexPar);
        for(int i = 0; i<7; i++){a1_par(i,0)=parameters(i);for(int j = 0; j<7; j++){a1_cov(i,j)=cov(i,j);} }
        a1=LorentzVectorParticle(a1_par,a1_cov,abs(PDGInfo::a_1_plus)*c,c,transTrackBuilder->field()->inInverseGeV(sv).z());
-
        PFTau_a1_charge.push_back(a1.Charge());
        PFTau_a1_pdgid.push_back(a1.PDGID());
        PFTau_a1_B.push_back(a1.BField());
@@ -800,13 +801,13 @@ void
          }
        }
      }
-
      ////////////////////////////////////////////////////////////////////////////////
      // Get unfit Tracks
      GlobalPoint pvpoint(primaryVertex->position().x(),primaryVertex->position().y(),primaryVertex->position().z());
      const std::vector<edm::Ptr<reco::PFCandidate> > cands = HPStauCandidate->signalPFChargedHadrCands();
      for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
-       //
+   //
+       int Npi=PFTau_daughterTracks.at(Ntau).size();
        PFTau_daughterTracks_poca.at(Ntau).push_back(std::vector<float>());
        PFTau_daughterTracks.at(Ntau).push_back(std::vector<float>());
        PFTau_daughterTracks_cov.at(Ntau).push_back(std::vector<float>());
@@ -816,14 +817,11 @@ void
        if(iter->get()->trackRef().isNonnull()){transTrk=transTrackBuilder->build(iter->get()->trackRef());hastrack=true;}
        else if(iter->get()->gsfTrackRef().isNonnull()){transTrk=transTrackBuilder->build(iter->get()->gsfTrackRef());hastrack=true;}
        if(hastrack){
-	 int Npi=PFTau_daughterTracks.at(Ntau).size();
-
          TrackParticle pion=ParticleBuilder::CreateTrackParticle(transTrk,transTrackBuilder,pvpoint,true,true);
          GlobalPoint pos=transTrk.trajectoryStateClosestToPoint(pvpoint).position();
          PFTau_daughterTracks_poca.at(Ntau).at(Npi).push_back(pos.x());
          PFTau_daughterTracks_poca.at(Ntau).at(Npi).push_back(pos.y());
          PFTau_daughterTracks_poca.at(Ntau).at(Npi).push_back(pos.z());
-
 	 PFTau_daughterTracks_charge.at(Ntau).push_back(pion.Charge());
 	 PFTau_daughterTracks_pdgid.at(Ntau).push_back(pion.PDGID());
 	 PFTau_daughterTracks_B.at(Ntau).push_back(pion.BField());
@@ -837,7 +835,6 @@ void
        }
      }
      ////////////////////////////////////////////////////////////////////////////////
-     
      const std::vector<edm::Ptr<reco::PFCandidate> >  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
      std::vector<int> matches;
      for(unsigned int i=0; i<ChargedHadrCand.size();i++){
@@ -849,6 +846,7 @@ void
        }
      }
      PFTau_Track_idx.push_back(matches);
+   }
    }
 }
 
