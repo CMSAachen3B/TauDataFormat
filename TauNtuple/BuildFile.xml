@@ -19,7 +19,7 @@
 <use name="PhysicsTools/PatAlgos"/>
 <use name="EgammaAnalysis/ElectronTools"/>
 <use name="Validation/EventGenerator"/>
-<use name="RecoTauTag/ImpactParameter"/>
+<use name="SimpleFits/FitSoftware"/>
 <use name="root"/>
 <use name="rootmath"/>
 <use   name="TrackingTools/TransientTrack"/>

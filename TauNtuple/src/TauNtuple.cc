@@ -39,7 +39,7 @@
 #include "SimpleFits/FitSoftware/interface/Particle.h"
 #include "SimpleFits/FitSoftware/interface/LorentzVectorParticle.h"
 #include "SimpleFits/FitSoftware/interface/TrackParticle.h"
-#include "RecoTauTag/ImpactParameter/interface/ParticleBuilder.h"
+#include "TauDataFormat/TauNtuple/interface/ParticleBuilder.h"
 #include "SimpleFits/FitSoftware/interface/TauA1NuConstrainedFitter.h"
 #include "SimpleFits/FitSoftware/interface/Chi2VertexFitter.h"
 #include "RecoVertex/KinematicFit/interface/KinematicParticleVertexFitter.h"
@@ -816,8 +816,8 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        iEvent.getByLabel( primVtxTag_, primVtxs);
        reco::Vertex primaryVertex=primVtxs->front();
        // Get tracks form PFTau daugthers
-       const std::vector<edm::Ptr<reco::PFCandidate> > cands = HPStauCandidate->signalPFChargedHadrCands(); 
-       for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
+       const reco::PFCandidateRefVector cands = HPStauCandidate->signalPFChargedHadrCands(); 
+       for (reco::PFCandidateRefVector::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
 	 if(iter->get()->trackRef().isNonnull()) SignalTracks.push_back(reco::TrackBaseRef(iter->get()->trackRef()));
 	 else if(iter->get()->gsfTrackRef().isNonnull()){SignalTracks.push_back(reco::TrackBaseRef(((iter)->get()->gsfTrackRef())));}
        }
@@ -905,8 +905,8 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 	 // Get tracks form PFTau daugthers
 	 std::vector<reco::TransientTrack> transTrk;
 	 TransientVertex transVtx;
-	 const std::vector<edm::Ptr<reco::PFCandidate> > cands = HPStauCandidate->signalPFChargedHadrCands(); 
-	 for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
+	 const reco::PFCandidateRefVector cands = HPStauCandidate->signalPFChargedHadrCands(); 
+	 for (reco::PFCandidateRefVector::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
 	   if(iter->get()->trackRef().isNonnull())transTrk.push_back(transTrackBuilder->build(iter->get()->trackRef()));
 	   else if(iter->get()->gsfTrackRef().isNonnull())transTrk.push_back(transTrackBuilder->build(iter->get()->gsfTrackRef()));
 	 }
@@ -990,7 +990,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        ////////////////////////////////////////////////////////////////////////////////
        // Get unfit Tracks
        GlobalPoint pvpoint(primaryVertex.position().x(),primaryVertex.position().y(),primaryVertex.position().z());
-       for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
+       for (reco::PFCandidateRefVector::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
 	 int Npi=PFTau_daughterTracks.at(Ntau).size();
 	 PFTau_daughterTracks_poca.at(Ntau).push_back(std::vector<float>());
 	 PFTau_daughterTracks.at(Ntau).push_back(std::vector<float>());
@@ -1019,7 +1019,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 	 }
        }
        ////////////////////////////////////////////////////////////////////////////////
-       const std::vector<edm::Ptr<reco::PFCandidate> >  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
+       const reco::PFCandidateRefVector  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
        std::vector<int> matches;
        for(unsigned int i=0; i<ChargedHadrCand.size();i++){
 	 reco::TrackRef refTrack=ChargedHadrCand.at(i).get()->trackRef();
