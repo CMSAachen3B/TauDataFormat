@@ -8,6 +8,7 @@ Scale = '1.0'       # The "Scale" argument should be set to 1.0 if you want to r
 NtupleMaker = cms.EDProducer('TauNtuple',
                              primVtx = cms.InputTag("offlinePrimaryVertices"),
                              hpsTauProducer=cms.InputTag("hpsPFTauProducer"),
+                             beamSpot = cms.InputTag("offlineBeamSpot"),
                              hpsPFTauDiscriminationByTightIsolation =cms.InputTag("hpsPFTauDiscriminationByTightIsolation"), 
                              hpsPFTauDiscriminationByMediumIsolation=cms.InputTag("hpsPFTauDiscriminationByMediumIsolation"),
                              hpsPFTauDiscriminationByLooseIsolation =cms.InputTag("hpsPFTauDiscriminationByLooseIsolation"),
@@ -54,6 +55,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              TriggerElectronMatchingdr = cms.untracked.double(0.3),
                              TriggerTauMatchingdr = cms.untracked.double(0.3),
                              BTagAlgorithim = cms.untracked.string("trackCountingHighEffBJetTags")
+
                              )                                                                   
  
 

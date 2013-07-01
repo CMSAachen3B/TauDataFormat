@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.32 2013/06/15 10:33:17 inugent Exp $
+// $Id: TauNtuple.h,v 1.33 2013/07/01 07:55:46 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -174,7 +174,7 @@ class TauNtuple : public edm::EDProducer {
   void fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup);
   void fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
   void fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
-  void fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollection);
+  void fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollection,const edm::EventSetup& iSetup);
   void fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
   void fillKinFitTaus(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
   void fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
@@ -193,14 +193,28 @@ class TauNtuple : public edm::EDProducer {
   double DeltaPhi(double phi1, double phi2);
   void ClearEvent();
 
+  bool isGoodMuon(reco::MuonRef &RefMuon);
+  bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator>  &Dis);
+  bool isGoodElectron(reco::GsfElectronRef &RefElectron);
+
   EGammaMvaEleEstimator* myMVATrigNoIP2012;
   std::vector<std::string> myManualCatWeightsTrigNoIP2012;
+
+  double MuonPtCut_;
+  double MuonEtaCut_;
+  double TauPtCut_;
+  double TauEtaCut_;
+  double ElectronPtCut_;
+  double ElectronEtaCut_;
+  bool RemoveMuonTracks_;
+  bool RemoveElectronTracks_;
+  edm::InputTag beamSpotTag_;
+  bool useBeamSpot_;
+
 
   edm::InputTag primVtxTag_;
   edm::InputTag muonsTag_;
   edm::InputTag hpsTauProducer_;
-  edm::InputTag PFTauTIPTag_;
-  edm::InputTag PFTau3PSTag_;
   edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
   edm::InputTag hpsPFTauDiscriminationByMediumIsolation_;
   edm::InputTag hpsPFTauDiscriminationByLooseIsolation_;
@@ -357,8 +371,15 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> 	Muon_sumPUPt04;                         // sum pt of charged Particles not from PV (for Pu corrections) 
 
   std::vector<int>      Muon_numberOfChambers;
-  std::vector<int>      Muon_Charge;
   std::vector<unsigned int>  Muon_Track_idx;
+
+  std::vector<int> Muon_charge;
+  std::vector<int> Muon_pdgid;
+  std::vector<float> Muon_B;
+  std::vector<float> Muon_M;
+  std::vector<std::vector<float> > Muon_par;
+  std::vector<std::vector<float> > Muon_cov;
+
 
   std::vector<float> Muon_hitPattern_pixelLayerwithMeas;
   std::vector<float> Muon_numberOfMatchedStations;
@@ -451,7 +472,6 @@ class TauNtuple : public edm::EDProducer {
   double RhoIsolationAllInputTags;
   std::vector<std::vector<float> > Electron_p4;
   std::vector<std::vector<float > > Electron_Poca;
-  std::vector<float> Electron_Charge;
   std::vector<float> Electron_Gsf_deltaEtaEleClusterTrackAtCalo;
   std::vector<float> Electron_Gsf_deltaEtaSeedClusterTrackAtCalo;
   std::vector<float> Electron_Gsf_deltaEtaSuperClusterTrackAtVtx;
@@ -490,11 +510,9 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> 	Electron_hcalDepth2TowerSumEtBc04;
   std::vector<float> 	Electron_tkSumPt04;
 
-
   std::vector<float> 	Electron_chargedHadronIso;
   std::vector<float> 	Electron_neutralHadronIso;
   std::vector<float> 	Electron_photonIso;                
-
 
   std::vector<float> Electron_sigmaIetaIeta;
   std::vector<float> Electron_hadronicOverEm;
@@ -510,6 +528,12 @@ class TauNtuple : public edm::EDProducer {
   std::vector<float> Electron_Rho_kt6PFJets;
   std::vector<float> Electron_MVA_discriminator;
 
+  std::vector<int> Electron_charge;
+  std::vector<int> Electron_pdgid;
+  std::vector<float> Electron_B;
+  std::vector<float> Electron_M;
+  std::vector<std::vector<float> > Electron_par;
+  std::vector<std::vector<float> > Electron_cov;
 
 
   //=======  PFJets ===
@@ -590,18 +614,21 @@ class TauNtuple : public edm::EDProducer {
   int PileupInfo_NumInteractions_np1;
   float EvtWeight3D;
 
-
   //====== Tracks ======= 
   std::vector<std::vector<float> > Track_p4;
   std::vector<std::vector<float > > Track_Poca;
-  std::vector<int> Track_charge;
   std::vector<float> Track_chi2;
   std::vector<float> Track_ndof;
   std::vector<unsigned short> Track_numberOfLostHits;
   std::vector<unsigned short> Track_numberOfValidHits;
   std::vector<unsigned int> Track_qualityMask;
+
+  std::vector<int> Track_charge;
+  std::vector<int> Track_pdgid;
+  std::vector<float> Track_B;
+  std::vector<float> Track_M;
   std::vector<std::vector<float> > Track_par;
-  std::vector<std::vector<std::vector<float> > > Track_parCov;
+  std::vector<std::vector<float> > Track_cov;
 
   //====== Trigger ======= 
   std::vector<std::string>  HTLTriggerName;
