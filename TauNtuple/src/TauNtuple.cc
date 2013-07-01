@@ -17,10 +17,15 @@
 #include <dirent.h>
 #include "DataFormats/Math/interface/deltaR.h"
 
+#include "DataFormats/TrackReco/interface/TrackBase.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
+
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/ParticleFlowReco/interface/GsfPFRecTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
+
 #include <DataFormats/EgammaReco/interface/SuperCluster.h>
 
 #include <DataFormats/PatCandidates/interface/Jet.h>
@@ -54,12 +59,15 @@
 
 #include "DataFormats/TauReco/interface/PFTauTransverseImpactParameter.h"
 #include "DataFormats/TauReco/interface/PFTauTransverseImpactParameterFwd.h"
+#include "DataFormats/TauReco/interface/PFTau3ProngSummary.h"
+#include "DataFormats/TauReco/interface/PFTau3ProngSummaryFwd.h"
 
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   primVtxTag_( iConfig.getParameter<edm::InputTag>( "primVtx" ) ),
   muonsTag_(iConfig.getParameter<edm::InputTag>( "muons" )),
   hpsTauProducer_( iConfig.getParameter<edm::InputTag>( "hpsTauProducer" ) ),
   PFTauTIPTag_(iConfig.getParameter<edm::InputTag>("PFTauTIPTag")),
+  PFTau3PSTag_(iConfig.getParameter<edm::InputTag>("PFTau3PSTag")),
   hpsPFTauDiscriminationByTightIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByTightIsolation" ) ),
   hpsPFTauDiscriminationByMediumIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByMediumIsolation" ) ),
   hpsPFTauDiscriminationByLooseIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByLooseIsolation" ) ),
@@ -146,11 +154,11 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights6_);
   
   Bool_t manualCat = true;
-  //myMVATrigNoIP2012 = new EGammaMvaEleEstimator();
-  //myMVATrigNoIP2012->initialize("BDT",
-  //			EGammaMvaEleEstimator::kTrigNoIP,//kNonTrig,
-  //			manualCat,
-  //			myManualCatWeightsTrigNoIP2012);
+  myMVATrigNoIP2012 = new EGammaMvaEleEstimator();
+  myMVATrigNoIP2012->initialize("BDT",
+  			EGammaMvaEleEstimator::kTrigNoIP,//kNonTrig,
+  			manualCat,
+  			myManualCatWeightsTrigNoIP2012);
   
 } 
 
@@ -643,6 +651,10 @@ void
 
    edm::Handle<edm::AssociationVector<reco::PFTauRefProd, std::vector<reco::PFTauTransverseImpactParameterRef> > > TIPAV;
    iEvent.getByLabel(PFTauTIPTag_,TIPAV);
+
+   edm::Handle<edm::AssociationVector<reco::PFTauRefProd,  std::vector<reco::PFTau3ProngSummaryRef> > > ThreePSV;
+   iEvent.getByLabel(PFTau3PSTag_,ThreePSV);
+
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ){
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
      if(HPStauCandidate->p4().Pt()>18 && fabs(HPStauCandidate->p4().Eta())<2.2){
@@ -702,6 +714,10 @@ void
 
      ////////////////////////////////////////////////////////////////////////////////     
      int Ntau=PFTau_daughterTracks.size();
+     PFTau_TIP_secondaryVertex_vtxchi2.push_back(std::vector<float>());
+     PFTau_TIP_secondaryVertex_vtxndof.push_back(std::vector<float>());
+     PFTau_TIP_primaryVertex_vtxchi2.push_back(std::vector<float>());
+     PFTau_TIP_primaryVertex_vtxndof.push_back(std::vector<float>());
      PFTau_TIP_primaryVertex_pos.push_back(std::vector<float>());
      PFTau_TIP_primaryVertex_cov.push_back(std::vector<float>());
      PFTau_TIP_secondaryVertex_pos.push_back(std::vector<float>());
@@ -716,6 +732,26 @@ void
      PFTau_daughterTracks_B.push_back(std::vector<float>());
      PFTau_daughterTracks_M.push_back(std::vector<float>());
      PFTau_daughterTracks_poca.push_back(std::vector<std::vector<float> >());
+
+     PFTau_3PS_LCchi2.push_back(std::vector<float>());
+     PFTau_3PS_has3ProngSolution.push_back(std::vector<int>());
+     PFTau_3PS_Tau_LV.push_back(std::vector<std::vector<float> >());
+
+     //
+     PFTau_a1_charge.push_back(std::vector<int>());
+     PFTau_a1_pdgid.push_back(std::vector<int>());
+     PFTau_a1_B.push_back(std::vector<float>());
+     PFTau_a1_M.push_back(std::vector<float>());
+
+     PFTau_3PS_A1_LV.push_back(std::vector<float>());
+     PFTau_3PS_M_A1.push_back(std::vector<float>());
+     PFTau_3PS_M_12.push_back(std::vector<float>());
+     PFTau_3PS_M_13.push_back(std::vector<float>());
+     PFTau_3PS_M_23.push_back(std::vector<float>());
+     PFTau_3PS_Tau_Charge.push_back(std::vector<int>());
+
+     PFTau_TIP_flightLength.push_back(std::vector<float>());
+     PFTau_TIP_flightLengthSig.push_back(std::vector<float>());
 
      const reco::PFTauTransverseImpactParameterRef theTIP=TIPAV->value(HPStauCandidate.key());
      //fill primary and Secondary vertex
@@ -736,6 +772,11 @@ void
          PFTau_TIP_primaryVertex_pos.at(Ntau).push_back(pvcov(i,j));
        }
      }
+     double vtxchi2(0), vtxndf(1);
+     vtxchi2=pvtx.chi2();
+     vtxndf=pvtx.ndof();
+     PFTau_TIP_primaryVertex_vtxchi2.at(Ntau).push_back(vtxchi2);
+     PFTau_TIP_primaryVertex_vtxndof.at(Ntau).push_back(vtxndf);
 
      if(theTIP->hasSecondaryVertex()){
        const reco::VertexRef secondaryVertex=theTIP->secondaryVertex();
@@ -755,17 +796,21 @@ void
        }
        const reco::VertexRef secVtx=theTIP->secondaryVertex();
        GlobalPoint sv(secVtx->position().x(), secVtx->position().y(), secVtx->position().z());
-       double vtxchi2(0), vtxndf(1);
+       vtxchi2=0; vtxndf=1;
        vtxchi2=secVtx->chi2();
        vtxndf=secVtx->ndof();
-       PFTau_TIP_secondaryVertex_vtxchi2.push_back(vtxchi2);
-       PFTau_TIP_secondaryVertex_vtxndof.push_back(vtxndf);
+       PFTau_TIP_secondaryVertex_vtxchi2.at(Ntau).push_back(vtxchi2);
+       PFTau_TIP_secondaryVertex_vtxndof.at(Ntau).push_back(vtxndf);
+
+       PFTau_TIP_flightLength.at(Ntau).push_back(theTIP->flightLength().X());
+       PFTau_TIP_flightLength.at(Ntau).push_back(theTIP->flightLength().Y());
+       PFTau_TIP_flightLength.at(Ntau).push_back(theTIP->flightLength().Z());
+       PFTau_TIP_flightLengthSig.at(Ntau).push_back(theTIP->flightLengthSig());
 
        ////////////////////////////////////////////////////////////////////////////////
        LorentzVectorParticle a1;
        std::vector<reco::Track> selectedTracks=secVtx->refittedTracks();
        std::vector<reco::TransientTrack> transTrkVect;
-
        for(unsigned int i = 0; i!=selectedTracks.size();i++) transTrkVect.push_back(transTrackBuilder->build(selectedTracks.at(i)));
        KinematicParticleFactoryFromTransientTrack kinFactory;
        float piMassSigma(sqrt(pow(10.,-12.))), piChi(0.0), piNdf(0.0);
@@ -776,7 +821,6 @@ void
        jpTree->movePointerToTheTop();
        const KinematicParameters parameters = jpTree->currentParticle()->currentState().kinematicParameters();
        AlgebraicSymMatrix77 cov=jpTree->currentParticle()->currentState().kinematicParametersError().matrix();
-
        // get pions                                
        double c(0);
        std::vector<reco::Track> Tracks;
@@ -788,12 +832,12 @@ void
        // now covert a1 into LorentzVectorParticle
        TMatrixT<double>    a1_par(LorentzVectorParticle::NLorentzandVertexPar,1);
        TMatrixTSym<double> a1_cov(LorentzVectorParticle::NLorentzandVertexPar);
-       for(int i = 0; i<7; i++){a1_par(i,0)=parameters(i);for(int j = 0; j<7; j++){a1_cov(i,j)=cov(i,j);} }
+       for(int i = 0; i<LorentzVectorParticle::NLorentzandVertexPar; i++){a1_par(i,0)=parameters(i);for(int j = 0; j<LorentzVectorParticle::NLorentzandVertexPar; j++){a1_cov(i,j)=cov(i,j);} }
        a1=LorentzVectorParticle(a1_par,a1_cov,abs(PDGInfo::a_1_plus)*c,c,transTrackBuilder->field()->inInverseGeV(sv).z());
-       PFTau_a1_charge.push_back(a1.Charge());
-       PFTau_a1_pdgid.push_back(a1.PDGID());
-       PFTau_a1_B.push_back(a1.BField());
-       PFTau_a1_M.push_back(a1.Mass());
+       PFTau_a1_charge.at(Ntau).push_back(a1.Charge());
+       PFTau_a1_pdgid.at(Ntau).push_back(a1.PDGID());
+       PFTau_a1_B.at(Ntau).push_back(a1.BField());
+       PFTau_a1_M.at(Ntau).push_back(a1.Mass());
        for(int i=0;i<a1.NParameters();i++){
          PFTau_a1_lvp.at(Ntau).push_back(a1.Parameter(i));
          for(int j=i;j<a1.NParameters();j++){
@@ -806,7 +850,6 @@ void
      GlobalPoint pvpoint(primaryVertex->position().x(),primaryVertex->position().y(),primaryVertex->position().z());
      const std::vector<edm::Ptr<reco::PFCandidate> > cands = HPStauCandidate->signalPFChargedHadrCands();
      for (std::vector<edm::Ptr<reco::PFCandidate> >::const_iterator iter = cands.begin(); iter!=cands.end(); ++iter) {
-   //
        int Npi=PFTau_daughterTracks.at(Ntau).size();
        PFTau_daughterTracks_poca.at(Ntau).push_back(std::vector<float>());
        PFTau_daughterTracks.at(Ntau).push_back(std::vector<float>());
@@ -815,7 +858,7 @@ void
        bool hastrack(false);
        reco::TransientTrack transTrk;
        if(iter->get()->trackRef().isNonnull()){transTrk=transTrackBuilder->build(iter->get()->trackRef());hastrack=true;}
-       else if(iter->get()->gsfTrackRef().isNonnull()){transTrk=transTrackBuilder->build(iter->get()->gsfTrackRef());hastrack=true;}
+       //else if(iter->get()->gsfTrackRef().isNonnull()){transTrk=transTrackBuilder->build(iter->get()->gsfTrackRef());hastrack=true;}
        if(hastrack){
          TrackParticle pion=ParticleBuilder::CreateTrackParticle(transTrk,transTrackBuilder,pvpoint,true,true);
          GlobalPoint pos=transTrk.trajectoryStateClosestToPoint(pvpoint).position();
@@ -835,6 +878,38 @@ void
        }
      }
      ////////////////////////////////////////////////////////////////////////////////
+     const reco::PFTau3ProngSummaryRef the3PS=ThreePSV->value(HPStauCandidate.key());
+     std::vector<float> A1_LV;
+     if(theTIP->hasSecondaryVertex()){
+       A1_LV.push_back(the3PS->A1_LV().E());
+       A1_LV.push_back(the3PS->A1_LV().Px());
+       A1_LV.push_back(the3PS->A1_LV().Py());
+       A1_LV.push_back(the3PS->A1_LV().Pz());
+       PFTau_3PS_A1_LV.at(Ntau)=A1_LV;
+       PFTau_3PS_M_A1.at(Ntau).push_back(the3PS->M_A1());
+       PFTau_3PS_M_12.at(Ntau).push_back(the3PS->M_12());
+       PFTau_3PS_M_13.at(Ntau).push_back(the3PS->M_13());
+       PFTau_3PS_M_23.at(Ntau).push_back(the3PS->M_23());
+       PFTau_3PS_Tau_Charge.at(Ntau).push_back(the3PS->Tau_Charge());
+       for(unsigned int i=0;i<reco::PFTau3ProngSummary::nsolutions;i++){
+	 PFTau_3PS_LCchi2.at(Ntau).push_back(the3PS->Solution_Chi2(i));
+	 PFTau_3PS_has3ProngSolution.at(Ntau).push_back((int)the3PS->has3ProngSolution(i));
+	 std::vector<float> Tau_LV;
+	 Tau_LV.push_back(the3PS->Tau(i).E());
+	 Tau_LV.push_back(the3PS->Tau(i).Px());
+	 Tau_LV.push_back(the3PS->Tau(i).Py());
+	 Tau_LV.push_back(the3PS->Tau(i).Pz());
+	 PFTau_3PS_Tau_LV.at(Ntau).push_back(Tau_LV);
+       }
+     }
+     else{
+       PFTau_3PS_M_A1.at(Ntau).push_back(0);
+       PFTau_3PS_M_12.at(Ntau).push_back(0);
+       PFTau_3PS_M_13.at(Ntau).push_back(0);
+       PFTau_3PS_M_23.at(Ntau).push_back(0);
+       PFTau_3PS_Tau_Charge.at(Ntau).push_back(0);
+     }
+     ////////////////////////////////////////////////////////////////////////////////
      const std::vector<edm::Ptr<reco::PFCandidate> >  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
      std::vector<int> matches;
      for(unsigned int i=0; i<ChargedHadrCand.size();i++){
@@ -848,7 +923,7 @@ void
      PFTau_Track_idx.push_back(matches);
    }
    }
-}
+ }
 
 
 void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection){
@@ -1170,7 +1245,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
          
          Bool_t printDebug = false;
          
-         myMVATrigNoIP2012Method1 = 0.0;/* myMVATrigNoIP2012->mvaValue( (Double_t)RefElectron->fbrem(),
+         myMVATrigNoIP2012Method1 =  myMVATrigNoIP2012->mvaValue( (Double_t)RefElectron->fbrem(),
         		 (Double_t)((validKF) ? myTrackRef->normalizedChi2() : 0),
         		 (Int_t)((validKF) ? myTrackRef->hitPattern().trackerLayersWithMeasurement() : -1.),
         		 (Double_t)RefElectron->gsfTrack()->normalizedChi2(),
@@ -1191,7 +1266,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
         		 (Double_t)(RefElectron->superCluster()->preshowerEnergy()/RefElectron->superCluster()->rawEnergy()),
         		 (Double_t)RefElectron->superCluster()->eta(),
         		 (Double_t)RefElectron->pt(),
-        		 (Bool_t)printDebug);*/
+        		 (Bool_t)printDebug);
      }
      
      Electron_MVA_discriminator.push_back(myMVATrigNoIP2012Method1);
@@ -1651,6 +1726,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PFTau_TIP_secondaryVertex_cov",&PFTau_TIP_secondaryVertex_cov);
    output_tree->Branch("PFTau_TIP_secondaryVertex_vtxchi2",&PFTau_TIP_secondaryVertex_vtxchi2);
    output_tree->Branch("PFTau_TIP_secondaryVertex_vtxndof",&PFTau_TIP_secondaryVertex_vtxndof);
+   output_tree->Branch("PFTau_TIP_primaryVertex_vtxchi2",&PFTau_TIP_secondaryVertex_vtxchi2);
+   output_tree->Branch("PFTau_TIP_primaryVertex_vtxndof",&PFTau_TIP_secondaryVertex_vtxndof);
 
    output_tree->Branch("PFTau_a1_lvp",&PFTau_a1_lvp);
    output_tree->Branch("PFTau_a1_cov",&PFTau_a1_cov);
@@ -1666,6 +1743,16 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PFTau_daughterTracks_B",&PFTau_daughterTracks_B);
    output_tree->Branch("PFTau_daughterTracks_M",&PFTau_daughterTracks_M);
    output_tree->Branch("PFTau_daughterTracks_poca",&PFTau_daughterTracks_poca);
+
+   output_tree->Branch("PFTau_3PS_A1_LV",&PFTau_3PS_A1_LV);
+   output_tree->Branch("PFTau_3PS_M_A1",&PFTau_3PS_M_A1);
+   output_tree->Branch("PFTau_3PS_M_12",&PFTau_3PS_M_12);
+   output_tree->Branch("PFTau_3PS_M_13",&PFTau_3PS_M_13);
+   output_tree->Branch("PFTau_3PS_M_23",&PFTau_3PS_M_23);
+   output_tree->Branch("PFTau_3PS_Tau_Charge",&PFTau_3PS_Tau_Charge);
+   output_tree->Branch("PFTau_3PS_LCchi2",&PFTau_3PS_LCchi2);
+   output_tree->Branch("PFTau_3PS_has3ProngSolution",&PFTau_3PS_has3ProngSolution);
+   output_tree->Branch("PFTau_3PS_Tau_LV",&PFTau_3PS_Tau_LV);
 
   //=======  PFJets ===
    output_tree->Branch("isPatJet",&doPatJets_);
@@ -2131,6 +2218,8 @@ TauNtuple::ClearEvent(){
   PFTau_TIP_secondaryVertex_cov.clear();
   PFTau_TIP_secondaryVertex_vtxchi2.clear();
   PFTau_TIP_secondaryVertex_vtxndof.clear();
+  PFTau_TIP_primaryVertex_vtxchi2.clear();
+  PFTau_TIP_primaryVertex_vtxndof.clear();
 
   PFTau_a1_lvp.clear();
   PFTau_a1_cov.clear();
@@ -2146,6 +2235,16 @@ TauNtuple::ClearEvent(){
   PFTau_daughterTracks_B.clear();
   PFTau_daughterTracks_M.clear();
   PFTau_daughterTracks_poca.clear();
+
+  PFTau_3PS_A1_LV.clear();
+  PFTau_3PS_M_A1.clear();
+  PFTau_3PS_M_12.clear();
+  PFTau_3PS_M_13.clear();
+  PFTau_3PS_M_23.clear();
+  PFTau_3PS_Tau_Charge.clear();
+  PFTau_3PS_LCchi2.clear();
+  PFTau_3PS_has3ProngSolution.clear();
+  PFTau_3PS_Tau_LV.clear();
 
   //=======  Electrons ===
   Electron_p4.clear();

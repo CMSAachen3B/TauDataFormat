@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.31 2013/06/12 19:49:59 mschimp Exp $
+// $Id: TauNtuple.h,v 1.32 2013/06/15 10:33:17 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -146,7 +146,7 @@
 #include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
 
 // Electron MVA ID
-//#include "EgammaAnalysis/ElectronTools/interface/EGammaMvaEleEstimator.h"
+#include "EgammaAnalysis/ElectronTools/interface/EGammaMvaEleEstimator.h"
 
 //
 //
@@ -193,13 +193,14 @@ class TauNtuple : public edm::EDProducer {
   double DeltaPhi(double phi1, double phi2);
   void ClearEvent();
 
-  //EGammaMvaEleEstimator* myMVATrigNoIP2012;
+  EGammaMvaEleEstimator* myMVATrigNoIP2012;
   std::vector<std::string> myManualCatWeightsTrigNoIP2012;
 
   edm::InputTag primVtxTag_;
   edm::InputTag muonsTag_;
   edm::InputTag hpsTauProducer_;
   edm::InputTag PFTauTIPTag_;
+  edm::InputTag PFTau3PSTag_;
   edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
   edm::InputTag hpsPFTauDiscriminationByMediumIsolation_;
   edm::InputTag hpsPFTauDiscriminationByLooseIsolation_;
@@ -413,14 +414,17 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> > PFTau_TIP_primaryVertex_cov;
   std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_pos;
   std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_cov;
-  std::vector<float>               PFTau_TIP_secondaryVertex_vtxchi2;
-  std::vector<float>               PFTau_TIP_secondaryVertex_vtxndof;
+  std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_vtxchi2;
+  std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_vtxndof;
+  std::vector<std::vector<float> > PFTau_TIP_primaryVertex_vtxchi2;
+  std::vector<std::vector<float> > PFTau_TIP_primaryVertex_vtxndof;
+
   std::vector<std::vector<float> > PFTau_a1_lvp;
   std::vector<std::vector<float> > PFTau_a1_cov;
-  std::vector<int>                  PFTau_a1_charge;
-  std::vector<int>                  PFTau_a1_pdgid;
-  std::vector<float>               PFTau_a1_B;
-  std::vector<float>               PFTau_a1_M;
+  std::vector<std::vector<int> >   PFTau_a1_charge;
+  std::vector<std::vector<int> >   PFTau_a1_pdgid;
+  std::vector<std::vector<float> > PFTau_a1_B;
+  std::vector<std::vector<float> > PFTau_a1_M;
 
   std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks;
   std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks_cov;
@@ -429,6 +433,19 @@ class TauNtuple : public edm::EDProducer {
   std::vector<std::vector<float> >               PFTau_daughterTracks_B;
   std::vector<std::vector<float> >               PFTau_daughterTracks_M;
   std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks_poca;
+
+  std::vector<std::vector<float> > PFTau_3PS_A1_LV;
+  std::vector<std::vector<float> > PFTau_3PS_M_A1;
+  std::vector<std::vector<float> > PFTau_3PS_M_12;
+  std::vector<std::vector<float> > PFTau_3PS_M_13;
+  std::vector<std::vector<float> > PFTau_3PS_M_23;
+  std::vector<std::vector<int> >   PFTau_3PS_Tau_Charge;
+  std::vector<std::vector<float> > PFTau_3PS_LCchi2;
+  std::vector<std::vector<int> >   PFTau_3PS_has3ProngSolution;
+  std::vector<std::vector<std::vector<float> > > PFTau_3PS_Tau_LV;
+
+  std::vector<std::vector<float> > PFTau_TIP_flightLength;
+  std::vector<std::vector<float> > PFTau_TIP_flightLengthSig;
 
   //=======  Electrons ===
   double RhoIsolationAllInputTags;
