@@ -3,7 +3,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.cc,v 1.3 2012/01/06 12:48:37 inugent Exp $
+// $Id: EventCounter.cc,v 1.4 2013/05/21 14:54:26 inugent Exp $
 //
 #include "TauDataFormat/TauNtuple/interface/EventCounter.h"
 
@@ -155,4 +155,6 @@ EventCounter::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   descriptions.addDefault(desc);
 }
 
+//define this as a plug-in
+DEFINE_FWK_MODULE(EventCounter);
 

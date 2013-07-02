@@ -13,7 +13,7 @@
 //
 // Original Author:  Vladimir Cherepanov
 //         Created:  Thu Feb 23 18:53:30 CET 2012
-// $Id: SkimmingCuts.cc,v 1.1 2013/07/01 17:51:23 inugent Exp $
+// $Id: SkimmingCuts.h,v 1.1 2013/07/02 09:35:44 inugent Exp $
 //
 //
 #ifndef SkimmingCuts_h
@@ -93,5 +93,4 @@ private:
 
 };
 
-DEFINE_FWK_MODULE(SkimmingCuts);
 #endif

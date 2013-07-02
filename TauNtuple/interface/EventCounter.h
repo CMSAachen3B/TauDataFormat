@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent
 //         Created:  Thu Dec  3 11:38:49 CET 2011
-// $Id: EventCounter.h,v 1.2 2011/12/15 15:59:20 inugent Exp $
+// $Id: EventCounter.h,v 1.3 2012/01/06 12:48:36 inugent Exp $
 //
 //
 #ifndef EventsCounter_h
@@ -72,9 +72,5 @@ private:
   std::map<unsigned int,unsigned int>    DataMCMap;
 
 };
-
-
-//define this as a plug-in
-DEFINE_FWK_MODULE(EventCounter);
 
 #endif

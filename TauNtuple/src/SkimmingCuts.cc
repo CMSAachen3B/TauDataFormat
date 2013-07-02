@@ -86,3 +86,4 @@ void SkimmingCuts::fillDescriptions(edm::ConfigurationDescriptions& descriptions
   descriptions.addDefault(desc);
 }
 
+DEFINE_FWK_MODULE(SkimmingCuts);

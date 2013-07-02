@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.36 2013/07/02 16:17:27 anehrkor Exp $
+// $Id: TauNtuple.h,v 1.37 2013/07/02 19:25:39 cherepan Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -259,7 +259,7 @@ private:
   std::string ElectronMVAWeights4_;
   std::string ElectronMVAWeights5_;
   std::string ElectronMVAWeights6_;
-  double ElectronMVAPtCut_;
+  float ElectronMVAPtCut_;
   std::vector<std::string> discriminators_; 
 
   // PU
@@ -489,7 +489,7 @@ private:
 
 
   //=======  Electrons ===
-  double RhoIsolationAllInputTags;
+  float RhoIsolationAllInputTags;
   std::vector<std::vector<float> > Electron_p4;
   std::vector<std::vector<float > > Electron_Poca;
   std::vector<float> Electron_Gsf_deltaEtaEleClusterTrackAtCalo;
@@ -633,15 +633,22 @@ private:
   int PileupInfo_NumInteractions_n0;
   int PileupInfo_NumInteractions_np1;
   float EvtWeight3D;
+
+  std::vector<float> beamspot_par;
+  std::vector<float> beamspot_cov;
+  float beamspot_emittanceX;
+  float beamspot_emittanceY;
+  float beamspot_betaStar;
+
   // for embedded samples
-  double TauSpinnerWeight;
-  double SelEffWeight;
-  double RadiationCorrWeight;
-  double MinVisPtFilter;
-  double KinWeightPt;
-  double KinWeightEta;
-  double KinWeightMassPt;
-  double EmbeddedWeight;
+  float TauSpinnerWeight;
+  float SelEffWeight;
+  float RadiationCorrWeight;
+  float MinVisPtFilter;
+  float KinWeightPt;
+  float KinWeightEta;
+  float KinWeightMassPt;
+  float EmbeddedWeight;
 
   //====== Tracks ======= 
   std::vector<std::vector<float> > Track_p4;
@@ -733,6 +740,5 @@ private:
 
 
 };
-//define this as a plug-in
-DEFINE_FWK_MODULE(TauNtuple);
+
 #endif

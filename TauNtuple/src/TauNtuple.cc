@@ -101,7 +101,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   generalTracks_(iConfig.getParameter<edm::InputTag>( "generalTracks" )),
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
-  Embedded_(iConfig.getParameter<bool>("Embedded")), //embedding
+  Embedded_(iConfig.getUntrackedParameter("Embedded",(bool)false)), //embedding
   ElectronMVAWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights1")), // Electron MVA ID 
   ElectronMVAWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights2")), //  |              
   ElectronMVAWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights3")), //  |              
@@ -1344,23 +1344,16 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
      Electron_ecalEnergy.push_back(RefElectron->ecalEnergy());	 
      Electron_trackMomentumAtVtx.push_back(RefElectron->ecalEnergy()/RefElectron->eSuperClusterOverP());
 
-
      reco::BeamSpot beamSpot;
      edm::Handle<reco::BeamSpot> beamSpotHandle;
-     iEvent.getByLabel("offlineBeamSpot", beamSpotHandle);
-    
-     if ( beamSpotHandle.isValid() )
-       {
-	 beamSpot = *beamSpotHandle;
-	 
-       } else
-       {
-	 edm::LogInfo("")
-	   << "No beam spot available from EventSetup \n";
-       }
-
-
-
+     iEvent.getByLabel(beamSpotTag_, beamSpotHandle);
+     if(beamSpotHandle.isValid()){
+       beamSpot = *beamSpotHandle;
+     } 
+     else{
+       edm::LogInfo("")	 << "No beam spot available from EventSetup \n";
+     }
+     
      Electron_numberOfMissedHits.push_back(RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits());
      Electron_HasMatchedConversions.push_back(ConversionTools::hasMatchedConversion(ElectronCollection->at(iPFElectron), hConversions, beamSpot.position(),true,2.0,1e-6,0));
      // static bool check = !ConversionTools::hasMatchedConversion(ElectronCollection->at(iPFElectron), hConversions, beamSpot.position());
@@ -1710,15 +1703,50 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 
 
- void 
- TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
-
+void  TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup){
+  
    Event_EventNumber=iEvent.id().event();
    Event_RunNumber=iEvent.id().run();
    Event_bunchCrossing=iEvent.bunchCrossing(); 
    Event_orbitNumber=iEvent.orbitNumber();
    Event_luminosityBlock=iEvent.luminosityBlock(); 
    Event_isRealData=iEvent.isRealData();
+
+   reco::BeamSpot beamSpot;
+   edm::Handle<reco::BeamSpot> beamSpotHandle;
+   iEvent.getByLabel(beamSpotTag_, beamSpotHandle);
+   if(beamSpotHandle.isValid()){
+     beamSpot = *beamSpotHandle;
+     beamspot_par.push_back(beamSpot.x0());
+     beamspot_par.push_back(beamSpot.y0());
+     beamspot_par.push_back(beamSpot.z0());
+     beamspot_par.push_back(beamSpot.sigmaZ());
+     beamspot_par.push_back(beamSpot.dxdz());
+     beamspot_par.push_back(beamSpot.dydz());
+     beamspot_par.push_back(beamSpot.BeamWidthX());
+     for(unsigned int i=0;i<reco::BeamSpot::dimension;i++){
+       for(unsigned int j=i;j<reco::BeamSpot::dimension;j++){
+	 beamspot_cov.push_back(beamSpot.covariance(i,j));
+       }
+     }
+     beamspot_emittanceX=beamSpot.emittanceX();
+     beamspot_emittanceY=beamSpot.emittanceY();
+     beamspot_betaStar=beamSpot.betaStar();
+   }
+   else{
+     for(unsigned int i=0;i<reco::BeamSpot::dimension;i++){
+       beamspot_par.push_back(-999);
+       for(unsigned int j=i;j<reco::BeamSpot::dimension;j++){
+         beamspot_cov.push_back(-999);
+       }
+     }
+     beamspot_emittanceX=-999;
+     beamspot_emittanceY=-999;
+     beamspot_betaStar=-999;
+   }
+
+
+   // Add Embedding info
    if(Event_isRealData && Embedded_)Event_isRealData=false;
    if(!Event_isRealData && !Embedded_){
      edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
@@ -1743,59 +1771,58 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
 	   KinWeightPt = 1.;
 	   KinWeightEta = 1.;
 	   KinWeightMassPt = 1.;
-   }else{
-	   edm::InputTag tauspinner("TauSpinnerReco","TauSpinnerWT");
-	   edm::Handle<double> TauSpinnerRecoHandle;
-	   iEvent.getByLabel(tauspinner,TauSpinnerRecoHandle);
-	   TauSpinnerWeight = *TauSpinnerRecoHandle;
+   }
+   else{
+     edm::InputTag tauspinner("TauSpinnerReco","TauSpinnerWT");
+     edm::Handle<double> TauSpinnerRecoHandle;
+     iEvent.getByLabel(tauspinner,TauSpinnerRecoHandle);
+     TauSpinnerWeight = *TauSpinnerRecoHandle;
+     
+     edm::InputTag seleffweight("ZmumuEvtSelEffCorrWeightProducer","weight");
+     edm::Handle<double> ZmumuEvtSelEffCorrProducerHandle;
+     iEvent.getByLabel(seleffweight,ZmumuEvtSelEffCorrProducerHandle);
+     SelEffWeight = *ZmumuEvtSelEffCorrProducerHandle;
 	   
-	   edm::InputTag seleffweight("ZmumuEvtSelEffCorrWeightProducer","weight");
-	   edm::Handle<double> ZmumuEvtSelEffCorrProducerHandle;
-	   iEvent.getByLabel(seleffweight,ZmumuEvtSelEffCorrProducerHandle);
-	   SelEffWeight = *ZmumuEvtSelEffCorrProducerHandle;
+     edm::InputTag radiationcorrweight("muonRadiationCorrWeightProducer","weight");
+     edm::Handle<double> muonRadiationCorrWeightProducerHandle;
+     iEvent.getByLabel(radiationcorrweight,muonRadiationCorrWeightProducerHandle);
+     RadiationCorrWeight = *muonRadiationCorrWeightProducerHandle;
+     
+     edm::InputTag generator("generator","minVisPtFilter");
+     edm::Handle<GenFilterInfo> generatorHandle;
+     iEvent.getByLabel(generator,generatorHandle);
+     MinVisPtFilter = generatorHandle->filterEfficiency();
+     
+     edm::InputTag kinweightpt("embeddingKineReweightRECembedding","genTau2PtVsGenTau1Pt");
+     edm::Handle<double> embeddingKineReweightRECembeddingPtHandle;
+     iEvent.getByLabel(kinweightpt,embeddingKineReweightRECembeddingPtHandle);
+     KinWeightPt = *embeddingKineReweightRECembeddingPtHandle;
+     
+     edm::InputTag kinweighteta("embeddingKineReweightRECembedding","genTau2EtaVsGenTau1Eta");
+     edm::Handle<double> embeddingKineReweightRECembeddingEtaHandle;
+     iEvent.getByLabel(kinweighteta,embeddingKineReweightRECembeddingEtaHandle);
+     KinWeightEta = *embeddingKineReweightRECembeddingEtaHandle;
 	   
-	   edm::InputTag radiationcorrweight("muonRadiationCorrWeightProducer","weight");
-	   edm::Handle<double> muonRadiationCorrWeightProducerHandle;
-	   iEvent.getByLabel(radiationcorrweight,muonRadiationCorrWeightProducerHandle);
-	   RadiationCorrWeight = *muonRadiationCorrWeightProducerHandle;
-	   
-	   edm::InputTag generator("generator","minVisPtFilter");
-	   edm::Handle<GenFilterInfo> generatorHandle;
-	   iEvent.getByLabel(generator,generatorHandle);
-	   MinVisPtFilter = generatorHandle->filterEfficiency();
-	   
-	   edm::InputTag kinweightpt("embeddingKineReweightRECembedding","genTau2PtVsGenTau1Pt");
-	   edm::Handle<double> embeddingKineReweightRECembeddingPtHandle;
-	   iEvent.getByLabel(kinweightpt,embeddingKineReweightRECembeddingPtHandle);
-	   KinWeightPt = *embeddingKineReweightRECembeddingPtHandle;
-	   
-	   edm::InputTag kinweighteta("embeddingKineReweightRECembedding","genTau2EtaVsGenTau1Eta");
-	   edm::Handle<double> embeddingKineReweightRECembeddingEtaHandle;
-	   iEvent.getByLabel(kinweighteta,embeddingKineReweightRECembeddingEtaHandle);
-	   KinWeightEta = *embeddingKineReweightRECembeddingEtaHandle;
-	   
-	   edm::InputTag kinweightmasspt("embeddingKineReweightRECembedding","genDiTauMassVsGenDiTauPt");
-	   edm::Handle<double> embeddingKineReweightRECembeddingMassPtHandle;
-	   iEvent.getByLabel(kinweightmasspt,embeddingKineReweightRECembeddingEtaHandle);
-	   KinWeightMassPt = *embeddingKineReweightRECembeddingEtaHandle;
+     edm::InputTag kinweightmasspt("embeddingKineReweightRECembedding","genDiTauMassVsGenDiTauPt");
+     edm::Handle<double> embeddingKineReweightRECembeddingMassPtHandle;
+     iEvent.getByLabel(kinweightmasspt,embeddingKineReweightRECembeddingEtaHandle);
+     KinWeightMassPt = *embeddingKineReweightRECembeddingEtaHandle;
    }
    EmbeddedWeight = TauSpinnerWeight*SelEffWeight*RadiationCorrWeight*MinVisPtFilter*KinWeightPt*KinWeightEta*KinWeightMassPt;
    if(EmbeddedWeight!=TauSpinnerWeight*SelEffWeight*RadiationCorrWeight*MinVisPtFilter*KinWeightPt*KinWeightEta*KinWeightMassPt){
-	   std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
+     std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
    }
- }
+}
 
 
 
 
 
- void 
- TauNtuple::beginJob()
- {
-
-   std::cout<<"----------------------------------- >>>>>>>>>>>>>> TauNtuple begin Job"<<std::endl;
- //-------------------------
- //   TString cmd1="pwd";
+void TauNtuple::beginJob() {
+  
+  std::cout<<"----------------------------------- >>>>>>>>>>>>>> TauNtuple begin Job"<<std::endl;
+  //-------------------------
+  //   TString cmd1="pwd";
  //   TString cmd2="ls";
  //   TString cmd3="ls ../";
  //   TString cmd4="ls */";
@@ -1809,6 +1836,12 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree = new TTree("t","t");
 
    output_tree->Branch("DataMC_Type",&DataMC_Type_idx);
+
+   output_tree->Branch("beamspot_par",&beamspot_par);
+   output_tree->Branch("beamspot_cov",&beamspot_cov);
+   output_tree->Branch("beamspot_emittanceX",&beamspot_emittanceX);
+   output_tree->Branch("beamspot_emittanceY",&beamspot_emittanceY);
+   output_tree->Branch("beamspot_betaStar",&beamspot_betaStar);
 
    //=============  Vertex Block ====
    output_tree->Branch("Vtx_chi2",&Vtx_chi2);
@@ -2396,6 +2429,9 @@ TauNtuple::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
 
 void 
 TauNtuple::ClearEvent(){
+  beamspot_par.clear();
+  beamspot_cov.clear();
+
   Vtx_chi2.clear();
   Vtx_nTrk.clear();
   Vtx_ndof.clear();
@@ -2749,6 +2785,8 @@ TauNtuple::ClearEvent(){
 
 }
 
+//define this as a plug-in
+DEFINE_FWK_MODULE(TauNtuple);
 
 
 

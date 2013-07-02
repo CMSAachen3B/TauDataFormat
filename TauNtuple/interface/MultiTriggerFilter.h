@@ -62,6 +62,4 @@ class MultiTriggerFilter : public edm::EDFilter {
     std::vector<std::string> useTriggers_;
 };
 
-//define this as a plug-in
-DEFINE_FWK_MODULE(MultiTriggerFilter);
 #endif

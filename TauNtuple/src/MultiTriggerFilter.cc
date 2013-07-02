@@ -34,15 +34,13 @@ MultiTriggerFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
       for(unsigned int i=0;i<useTriggers_.size();i++){
 	if(trigname.Contains(useTriggers_.at(i))){
 	  TauNtuple::MyTriggerInfoNames.push_back(trigname.Data());
-	  // std::cout<<trigname<<"  "<<triggerResults->accept(itrig)<<std::endl;
+	  //std::cout<<trigname<<"  "<<triggerResults->accept(itrig)<<std::endl;
 	  if(triggerResults->accept(itrig)) passed=true;
-	 
 	}
       }
     }
   }
-  // return true;
-    return passed;
+  return passed;
 }
 
 
@@ -125,4 +123,6 @@ MultiTriggerFilter::fillDescriptions(edm::ConfigurationDescriptions& description
   descriptions.addDefault(desc);
 }
 
+//define this as a plug-in
+DEFINE_FWK_MODULE(MultiTriggerFilter);
 
