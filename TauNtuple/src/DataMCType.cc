@@ -28,6 +28,7 @@ unsigned int DataMCType::GetType(TString name){
   if(name=="dy_ee")     return DY_ee;
   if(name=="dy_mumu")   return DY_mumu;
   if(name=="dy_tautau") return DY_tautau;
+  if(name=="dy_emu_embedded") return DY_emu_embedded;
   if(name=="zz")        return ZZ;
   if(name=="ww")        return WW;
   if(name=="wz")        return WZ;

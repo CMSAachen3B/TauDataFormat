@@ -61,6 +61,7 @@
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
 
+
 double TauNtuple::MuonPtCut_(0.0);
 double TauNtuple::MuonEtaCut_(2.4);
 double TauNtuple::TauPtCut_(0.0);
@@ -107,6 +108,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   ElectronMVAWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights5")),
   ElectronMVAWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights6")),
   ElectronMVAPtCut_(iConfig.getParameter<double>("ElectronMVAPtCut")),
+  Embedded_(iConfig.getParameter<bool>("Embedded")), //embedding
   discriminators_( iConfig.getParameter< std::vector<std::string> >("discriminators") ),
   ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
   PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
@@ -1643,7 +1645,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    Event_orbitNumber=iEvent.orbitNumber();
    Event_luminosityBlock=iEvent.luminosityBlock(); 
    Event_isRealData=iEvent.isRealData();
-   if(!Event_isRealData){
+   if(Event_isRealData && Embedded_)Event_isRealData=false;
+   if(!Event_isRealData && !Embedded_){
      edm::Handle<std::vector< PileupSummaryInfo > > PupInfo; 
      iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo); 
      std::vector<PileupSummaryInfo>::const_iterator PVI; 
@@ -1656,7 +1659,56 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
        if(BX == 0)  PileupInfo_NumInteractions_n0  =  PVI->getPU_NumInteractions();  
        if(BX == 1)  PileupInfo_NumInteractions_np1 =  PVI->getPU_NumInteractions(); 
      } 
-     EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);}
+     EvtWeight3D = LumiWeights_.weight3D( PileupInfo_NumInteractions_nm1,PileupInfo_NumInteractions_n0,PileupInfo_NumInteractions_np1);
+   }
+   if(!Embedded_){
+	   TauSpinnerWeight = 1.;
+	   SelEffWeight = 1.;
+	   RadiationCorrWeight = 1.;
+	   MinVisPtFilter = 1.;
+	   KinWeightPt = 1.;
+	   KinWeightEta = 1.;
+	   KinWeightMassPt = 1.;
+   }else{
+	   edm::InputTag tauspinner("TauSpinnerReco","TauSpinnerWT");
+	   edm::Handle<double> TauSpinnerRecoHandle;
+	   iEvent.getByLabel(tauspinner,TauSpinnerRecoHandle);
+	   TauSpinnerWeight = *TauSpinnerRecoHandle;
+	   
+	   edm::InputTag seleffweight("ZmumuEvtSelEffCorrWeightProducer","weight");
+	   edm::Handle<double> ZmumuEvtSelEffCorrProducerHandle;
+	   iEvent.getByLabel(seleffweight,ZmumuEvtSelEffCorrProducerHandle);
+	   SelEffWeight = *ZmumuEvtSelEffCorrProducerHandle;
+	   
+	   edm::InputTag radiationcorrweight("muonRadiationCorrWeightProducer","weight");
+	   edm::Handle<double> muonRadiationCorrWeightProducerHandle;
+	   iEvent.getByLabel(radiationcorrweight,muonRadiationCorrWeightProducerHandle);
+	   RadiationCorrWeight = *muonRadiationCorrWeightProducerHandle;
+	   
+	   edm::InputTag generator("generator","minVisPtFilter");
+	   edm::Handle<GenFilterInfo> generatorHandle;
+	   iEvent.getByLabel(generator,generatorHandle);
+	   MinVisPtFilter = generatorHandle->filterEfficiency();
+	   
+	   edm::InputTag kinweightpt("embeddingKineReweightRECembedding","genTau2PtVsGenTau1Pt");
+	   edm::Handle<double> embeddingKineReweightRECembeddingPtHandle;
+	   iEvent.getByLabel(kinweightpt,embeddingKineReweightRECembeddingPtHandle);
+	   KinWeightPt = *embeddingKineReweightRECembeddingPtHandle;
+	   
+	   edm::InputTag kinweighteta("embeddingKineReweightRECembedding","genTau2EtaVsGenTau1Eta");
+	   edm::Handle<double> embeddingKineReweightRECembeddingEtaHandle;
+	   iEvent.getByLabel(kinweighteta,embeddingKineReweightRECembeddingEtaHandle);
+	   KinWeightEta = *embeddingKineReweightRECembeddingEtaHandle;
+	   
+	   edm::InputTag kinweightmasspt("embeddingKineReweightRECembedding","genDiTauMassVsGenDiTauPt");
+	   edm::Handle<double> embeddingKineReweightRECembeddingMassPtHandle;
+	   iEvent.getByLabel(kinweightmasspt,embeddingKineReweightRECembeddingEtaHandle);
+	   KinWeightMassPt = *embeddingKineReweightRECembeddingEtaHandle;
+   }
+   EmbeddedWeight = TauSpinnerWeight*SelEffWeight*RadiationCorrWeight*MinVisPtFilter*KinWeightPt*KinWeightEta*KinWeightMassPt;
+   if(EmbeddedWeight!=TauSpinnerWeight*SelEffWeight*RadiationCorrWeight*MinVisPtFilter*KinWeightPt*KinWeightEta*KinWeightMassPt){
+	   std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
+   }
  }
 
 
@@ -1978,6 +2030,16 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    output_tree->Branch("PileupInfo_NumInteractions_n0",&PileupInfo_NumInteractions_n0);
    output_tree->Branch("PileupInfo_NumInteractions_np1",&PileupInfo_NumInteractions_np1);
    output_tree->Branch("EvtWeight3D",&EvtWeight3D);
+   
+   // for embbeded samples
+   output_tree->Branch("TauSpinnerWeight",&TauSpinnerWeight);
+   output_tree->Branch("SelEffWeight",&SelEffWeight);
+   output_tree->Branch("RadiationCorrWeight",&RadiationCorrWeight);
+   output_tree->Branch("MinVisPtFilter",&MinVisPtFilter);
+   output_tree->Branch("KinWeightPt",&KinWeightPt);
+   output_tree->Branch("KinWeightEta",&KinWeightEta);
+   output_tree->Branch("KinWeightMassPt",&KinWeightMassPt);
+   output_tree->Branch("EmbeddedWeight",&EmbeddedWeight);
 
    //=============== Track Block ==============
    output_tree->Branch("Track_p4",&Track_p4);

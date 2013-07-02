@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.34 2013/07/01 14:00:28 inugent Exp $
+// $Id: TauNtuple.h,v 1.35 2013/07/02 09:32:25 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -150,6 +150,9 @@
 // Electron MVA ID
 #include "EgammaAnalysis/ElectronTools/interface/EGammaMvaEleEstimator.h"
 
+// embedded samples
+#include "SimDataFormats/GeneratorProducts/interface/GenFilterInfo.h"
+
 //
 //
 // class declaration
@@ -246,6 +249,7 @@ private:
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
+  bool Embedded_; //embedding
   //edm::InputTag reducedEBRecHitCollection_;
   //edm::InputTag reducedEERecHitCollection_;
   // Electron MVA ID
@@ -621,6 +625,15 @@ private:
   int PileupInfo_NumInteractions_n0;
   int PileupInfo_NumInteractions_np1;
   float EvtWeight3D;
+  // for embedded samples
+  double TauSpinnerWeight;
+  double SelEffWeight;
+  double RadiationCorrWeight;
+  double MinVisPtFilter;
+  double KinWeightPt;
+  double KinWeightEta;
+  double KinWeightMassPt;
+  double EmbeddedWeight;
 
   //====== Tracks ======= 
   std::vector<std::vector<float> > Track_p4;
