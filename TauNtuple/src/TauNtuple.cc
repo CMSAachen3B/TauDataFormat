@@ -101,6 +101,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   generalTracks_(iConfig.getParameter<edm::InputTag>( "generalTracks" )),
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
   GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
+  Embedded_(iConfig.getParameter<bool>("Embedded")), //embedding
   ElectronMVAWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights1")), // Electron MVA ID 
   ElectronMVAWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights2")), //  |              
   ElectronMVAWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights3")), //  |              
@@ -108,7 +109,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   ElectronMVAWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights5")),
   ElectronMVAWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights6")),
   ElectronMVAPtCut_(iConfig.getParameter<double>("ElectronMVAPtCut")),
-  Embedded_(iConfig.getParameter<bool>("Embedded")), //embedding
   discriminators_( iConfig.getParameter< std::vector<std::string> >("discriminators") ),
   ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
   PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
@@ -1102,7 +1102,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
      
 
        ////////////////////////////////////////////////////////////////////////////////
-       const reco::PFCandidateRefVector  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
+       //const reco::PFCandidateRefVector  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
        std::vector<int> matches;
        for(unsigned int i=0; i<ChargedHadrCand.size();i++){
 	 reco::TrackRef refTrack=ChargedHadrCand.at(i).get()->trackRef();
