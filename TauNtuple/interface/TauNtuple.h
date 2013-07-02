@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.33 2013/07/01 07:55:46 inugent Exp $
+// $Id: TauNtuple.h,v 1.34 2013/07/01 14:00:28 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -141,6 +141,8 @@
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMapRecord.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMapFwd.h"
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMap.h"
+#include "TauDataFormat/TauNtuple/interface/SkimmingCuts.h"
+#include "TauDataFormat/TauNtuple/interface/MultiTriggerFilter.h"
 
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
@@ -154,14 +156,16 @@
 //
 
 class TauNtuple : public edm::EDProducer {
-   public:
+  friend class SkimmingCuts;
+  friend class MultiTriggerFilter;
+public:
       explicit TauNtuple(const edm::ParameterSet&);
       ~TauNtuple();
 
       static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
-   private:
-      virtual void beginJob() ;
+private:
+  virtual void beginJob() ;
       virtual void produce(edm::Event&, const edm::EventSetup&);
       virtual void endJob() ;
       
@@ -170,7 +174,7 @@ class TauNtuple : public edm::EDProducer {
       virtual void beginLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
       virtual void endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&);
 
-      // ----------member data ---------------------------
+  // ----------member data ---------------------------
   void fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup);
   void fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
   void fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Handle< std::vector<reco::Track>  > &trackCollection);
@@ -193,28 +197,32 @@ class TauNtuple : public edm::EDProducer {
   double DeltaPhi(double phi1, double phi2);
   void ClearEvent();
 
-  bool isGoodMuon(reco::MuonRef &RefMuon);
-  bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator>  &Dis);
-  bool isGoodElectron(reco::GsfElectronRef &RefElectron);
+  static bool isGoodMuon(reco::MuonRef &RefMuon);
+  static bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator>  &Dis1,edm::Handle<reco::PFTauDiscriminator>  &Dis2);
+  static bool isGoodElectron(reco::GsfElectronRef &RefElectron);
+  static bool isGoodVertex(const reco::Vertex &pv);
 
   EGammaMvaEleEstimator* myMVATrigNoIP2012;
   std::vector<std::string> myManualCatWeightsTrigNoIP2012;
 
-  double MuonPtCut_;
-  double MuonEtaCut_;
-  double TauPtCut_;
-  double TauEtaCut_;
-  double ElectronPtCut_;
-  double ElectronEtaCut_;
+  static double MuonPtCut_;
+  static double MuonEtaCut_;
+  static double TauPtCut_;
+  static double TauEtaCut_;
+  static double ElectronPtCut_;
+  static double ElectronEtaCut_;
+
   bool RemoveMuonTracks_;
   bool RemoveElectronTracks_;
   edm::InputTag beamSpotTag_;
   bool useBeamSpot_;
 
 
-  edm::InputTag primVtxTag_;
-  edm::InputTag muonsTag_;
-  edm::InputTag hpsTauProducer_;
+  static edm::InputTag primVtxTag_;
+  static edm::InputTag muonsTag_;
+  static edm::InputTag hpsTauProducer_;
+  static std::vector<std::string> MyTriggerInfoNames;
+
   edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
   edm::InputTag hpsPFTauDiscriminationByMediumIsolation_;
   edm::InputTag hpsPFTauDiscriminationByLooseIsolation_;
@@ -233,7 +241,7 @@ class TauNtuple : public edm::EDProducer {
 
   edm::InputTag pfMETTag_;
   edm::InputTag pfjetsTag_;
-  edm::InputTag PFElectronTag_;
+  static edm::InputTag PFElectronTag_;
   edm::InputTag rhoIsolAllInputTag_;
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;

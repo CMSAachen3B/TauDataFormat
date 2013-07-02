@@ -2,7 +2,6 @@
 #include "TString.h"
 
 MultiTriggerFilter::MultiTriggerFilter(const edm::ParameterSet& iConfig) :
-  MyTriggerHelper(),
   TriggerResults_( iConfig.getParameter<edm::InputTag>("TriggerResults")),
   useTriggers_( iConfig.getParameter< std::vector<std::string> >("useTriggers"))
 {
@@ -23,7 +22,7 @@ MultiTriggerFilter::~MultiTriggerFilter()
 // ------------ method called on each new Event  ------------
 bool
 MultiTriggerFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
-  MyTriggerHelper.Reset();
+  TauNtuple::MyTriggerInfoNames.clear();
   edm::Handle<edm::TriggerResults> triggerResults;
   iEvent.getByLabel(TriggerResults_, triggerResults);
   const edm::TriggerNames& trigNames = iEvent.triggerNames(*triggerResults);
@@ -34,7 +33,7 @@ MultiTriggerFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
       TString trigname = trigNames.triggerName(itrig);
       for(unsigned int i=0;i<useTriggers_.size();i++){
 	if(trigname.Contains(useTriggers_.at(i))){
-	  MyTriggerHelper.AddTrigger(trigname.Data());
+	  TauNtuple::MyTriggerInfoNames.push_back(trigname.Data());
 	  // std::cout<<trigname<<"  "<<triggerResults->accept(itrig)<<std::endl;
 	  if(triggerResults->accept(itrig)) passed=true;
 	 

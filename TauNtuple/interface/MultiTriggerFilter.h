@@ -31,7 +31,8 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include <FWCore/Common/interface/TriggerNames.h>
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
-#include "TauDataFormat/TauNtuple/interface/TriggerHelper.h"
+#include "TauDataFormat/TauNtuple/interface/TauNtuple.h"
+
 //
 // class declaration
 //
@@ -57,7 +58,6 @@ class MultiTriggerFilter : public edm::EDFilter {
     edm::Event * iEvent_;
     std::string processName_; // process name of (HLT) process for which to get HLT configuration
     HLTConfigProvider hltConfig_;/// The instance of the HLTConfigProvider as a data member
-    TriggerHelper MyTriggerHelper;
     edm::InputTag  TriggerResults_;
     std::vector<std::string> useTriggers_;
 };

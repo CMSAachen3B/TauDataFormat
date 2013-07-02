@@ -1,7 +1,5 @@
 import FWCore.ParameterSet.Config as cms
 
-TrigFilterInfo = cms.EDProducer("TriggerFilterInfoProducer")
-
 MultiTrigFilter = cms.EDFilter("MultiTriggerFilter",
                                TriggerResults = cms.InputTag("TriggerResults","","HLT"),
 #                               useTriggers = cms.vstring("HLT_QuadJet40_IsoPFTau40","HLT_QuadJet40_IsoPFTau40","HLT_Mu20","HLT_Mu24","HLT_Mu30","HLT_IsoMu12_LooseIsoPFTau10","HLT_Mu15_LooseIsoPFTau20")

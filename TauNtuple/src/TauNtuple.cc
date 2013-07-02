@@ -60,20 +60,26 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
+
+double TauNtuple::MuonPtCut_(0.0);
+double TauNtuple::MuonEtaCut_(2.4);
+double TauNtuple::TauPtCut_(0.0);
+double TauNtuple::TauEtaCut_(2.4);
+double TauNtuple::ElectronPtCut_(0.0);
+double TauNtuple::ElectronEtaCut_(2.4);
+
+edm::InputTag TauNtuple::primVtxTag_;
+edm::InputTag TauNtuple::muonsTag_;
+edm::InputTag TauNtuple::hpsTauProducer_;
+edm::InputTag TauNtuple::PFElectronTag_;
+
+std::vector<std::string> TauNtuple::MyTriggerInfoNames;
+
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
-  MuonPtCut_(iConfig.getUntrackedParameter("MuonPtCut",(double)18.0)),
-  MuonEtaCut_(iConfig.getUntrackedParameter("MuonEtaCut",(double)2.2)),
-  TauPtCut_(iConfig.getUntrackedParameter("TauPtCut",(double)18.0)),
-  TauEtaCut_(iConfig.getUntrackedParameter("TauEtaCut",(double)2.2)),
-  ElectronPtCut_(iConfig.getUntrackedParameter("ElectronPtCut",(double)28.0)),
-  ElectronEtaCut_(iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.4)),
   RemoveMuonTracks_(iConfig.getUntrackedParameter("RemoveMuonTracks",(bool)true)),
   RemoveElectronTracks_(iConfig.getUntrackedParameter("RemoveuonTracks",(bool)true)),
   beamSpotTag_(iConfig.getParameter<edm::InputTag>("beamSpot")),
   useBeamSpot_(iConfig.getUntrackedParameter("useBeamSpot",(bool)true)),
-  primVtxTag_( iConfig.getParameter<edm::InputTag>( "primVtx" ) ),
-  muonsTag_(iConfig.getParameter<edm::InputTag>( "muons" )),
-  hpsTauProducer_( iConfig.getParameter<edm::InputTag>( "hpsTauProducer" ) ),
   hpsPFTauDiscriminationByTightIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByTightIsolation" ) ),
   hpsPFTauDiscriminationByMediumIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByMediumIsolation" ) ),
   hpsPFTauDiscriminationByLooseIsolation_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByLooseIsolation" ) ),
@@ -90,7 +96,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   hpsPFTauDiscriminationByDecayModeFinding_( iConfig.getParameter<edm::InputTag>( "hpsPFTauDiscriminationByDecayModeFinding" ) ),
   pfMETTag_( iConfig.getParameter<edm::InputTag>( "pfMet" ) ),
   pfjetsTag_( iConfig.getParameter<edm::InputTag>( "pfjets" ) ),
-  PFElectronTag_( iConfig.getParameter<edm::InputTag>( "pfelectrons" ) ),
   rhoIsolAllInputTag_( iConfig.getParameter<edm::InputTag>( "RhoIsolAllInputTag" ) ),
   generalTracks_(iConfig.getParameter<edm::InputTag>( "generalTracks" )),
   gensrc_(iConfig.getParameter<edm::InputTag>( "gensrc" )),
@@ -140,6 +145,18 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackCountingHighEffBJetTags")),
   srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF"))
 {   
+  MuonPtCut_=iConfig.getUntrackedParameter("MuonPtCut",(double)18.0);
+  MuonEtaCut_=iConfig.getUntrackedParameter("MuonEtaCut",(double)2.2);
+  TauPtCut_=iConfig.getUntrackedParameter("TauPtCut",(double)18.0);
+  TauEtaCut_=iConfig.getUntrackedParameter("TauEtaCut",(double)2.2);
+  ElectronPtCut_=iConfig.getUntrackedParameter("ElectronPtCut",(double)28.0);
+  ElectronEtaCut_=iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.4);
+
+  primVtxTag_=iConfig.getParameter<edm::InputTag>("primVtx");
+  muonsTag_=iConfig.getParameter<edm::InputTag>("muons");
+  hpsTauProducer_=iConfig.getParameter<edm::InputTag>("hpsTauProducer");
+  PFElectronTag_=iConfig.getParameter<edm::InputTag>("pfelectrons");   
+  
   system("echo 'running system to check directory structure...'");
   system("pwd");
   system("ls");
@@ -174,26 +191,30 @@ TauNtuple::~TauNtuple(){
 }   
 
 bool TauNtuple::isGoodMuon(reco::MuonRef &RefMuon){
-  if(RefMuon->p4().Pt() > MuonPtCut_ && fabs(RefMuon->p4().Eta())<MuonEtaCut_){
-    if(RefMuon->isGlobalMuon() && RefMuon->isPFMuon()){
-      return true;
-    }
+  if(RefMuon.isNonnull()){
+    if(RefMuon->p4().Pt() > MuonPtCut_ && fabs(RefMuon->p4().Eta())<MuonEtaCut_ && RefMuon->isGlobalMuon() && RefMuon->isPFMuon()) return true;
   }
   return false;
 }
 
-bool TauNtuple::isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator>  &Dis){
-  if(RefTau->p4().Pt()>TauPtCut_ && fabs(RefTau->p4().Pt())<TauEtaCut_){
-    if((*Dis)[RefTau])return true;
+bool TauNtuple::isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator>  &Dis1,edm::Handle<reco::PFTauDiscriminator>  &Dis2 ){
+  if(RefTau.isNonnull()){
+    if(RefTau->p4().Pt()>TauPtCut_ && fabs(RefTau->p4().Eta())<TauEtaCut_ && (*Dis1)[RefTau] && (*Dis2)[RefTau])return true;
   }
   return false;
 }
 
 
 bool TauNtuple::isGoodElectron(reco::GsfElectronRef &RefElectron){
-  if(RefElectron->p4().Pt()>ElectronPtCut_ && fabs(RefElectron->p4().Pt())<ElectronEtaCut_){
-    return true;
+  reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
+  if(RefElectron.isNonnull()){
+    if(RefElectron->p4().Et()>ElectronPtCut_ && fabs(refSuperCluster->eta())<ElectronEtaCut_) return true;
   }
+  return false;
+}
+
+bool TauNtuple::isGoodVertex(const reco::Vertex &pv){
+  if(!pv.isFake() &&  pv.ndof()>4 &&  fabs(pv.z())<24 && pv.position().rho()<2)return true;
   return false;
 }
 
@@ -348,6 +369,7 @@ TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
   nVtxs = primVtxs->size();
   for(int i=0;i<nVtxs;i++){
     const reco::Vertex &pv = primVtxs->at(i);
+    if(isGoodVertex(pv)){
     Vtx_isFake.push_back(pv.isFake());
     Vtx_chi2.push_back(pv.chi2());
     Vtx_ndof.push_back(pv.ndof());
@@ -388,6 +410,7 @@ TauNtuple::fillPrimeVertex(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     Vtx_Track_Weights.push_back(TrackWeights);
     Vtx_Track_idx.push_back(matches);
   }
+  }
 }
 
 void 
@@ -397,6 +420,7 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
   int Muon_index =0;
   for(reco::MuonCollection::const_iterator iMuon = muonCollection->begin(); iMuon!= muonCollection->end(); ++iMuon, Muon_index++){
     reco::MuonRef RefMuon(muonCollection, Muon_index);
+    if(isGoodMuon(RefMuon)){
     std::vector<float> iMuon_Poca;
     iMuon_Poca.push_back(RefMuon->vx());
     iMuon_Poca.push_back(RefMuon->vy());
@@ -561,8 +585,7 @@ TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup,edm::Hand
     Muon_Track_idx.push_back(match);
 
   }
-
-
+  }
 }
 
 
@@ -654,19 +677,6 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
    edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
    iEvent.getByLabel(hpsPFTauDiscriminationByDecayModeFinding_, HPSByDecayModeFinding);
 
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3rawElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3rawElectronRejection", HPSPFTauDiscriminationByMVA3rawElectronRejection);
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3LooseElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3LooseElectronRejection", HPSPFTauDiscriminationByMVA3LooseElectronRejection);
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3MediumElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3MediumElectronRejection", HPSPFTauDiscriminationByMVA3MediumElectronRejection);
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3TightElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3TightElectronRejection", HPSPFTauDiscriminationByMVA3TightElectronRejection);
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3VTightElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3VTightElectronRejection", HPSPFTauDiscriminationByMVA3VTightElectronRejection);
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3rawElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3rawElectronRejection", HPSPFTauDiscriminationByMVA3rawElectronRejection);
- 
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3LooseElectronRejection;
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3LooseElectronRejection", HPSPFTauDiscriminationByMVA3LooseElectronRejection);
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3MediumElectronRejection;
@@ -675,9 +685,6 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3TightElectronRejection", HPSPFTauDiscriminationByMVA3TightElectronRejection);
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMVA3VTightElectronRejection;
    iEvent.getByLabel("hpsPFTauDiscriminationByMVA3VTightElectronRejection", HPSPFTauDiscriminationByMVA3VTightElectronRejection);
-
-//    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByDeadECALElectronRejection;
-//    iEvent.getByLabel("hpsPFTauDiscriminationByDeadECALElectronRejection", HPSPFTauDiscriminationByDeadECALElectronRejection);
 
    edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits;
    iEvent.getByLabel("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits", HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits);
@@ -710,7 +717,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ){
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
-     if(isGoodTau(HPStauCandidate,HPSPFTauDiscriminationByLooseIsolationMVA)){
+     if(isGoodTau(HPStauCandidate,HPSPFTauDiscriminationByLooseIsolationMVA,HPSByDecayModeFinding)){
        std::vector<float> iPFTau_Poca;
        iPFTau_Poca.push_back(HPStauCandidate->vx());
        iPFTau_Poca.push_back(HPStauCandidate->vy());
@@ -1218,14 +1225,11 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
    iEvent.getByLabel(rhoIsolAllInputTag_, RhoIsolation);
    const double *RhoIsolationRef = RhoIsolation.product();
 
-
    RhoIsolationAllInputTags  = *(RhoIsolationRef);
-
-
    
  for(reco::PFCandidateCollection::size_type iPFElectron = 0; iPFElectron < ElectronCollection->size(); iPFElectron++) {
-
    reco::GsfElectronRef RefElectron(ElectronCollection, iPFElectron);
+   if(isGoodElectron(RefElectron)){
      std::vector<float> iElectron_Poca;
      iElectron_Poca.push_back(RefElectron->vx());
      iElectron_Poca.push_back(RefElectron->vy());
@@ -1404,7 +1408,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
      }
      
      Electron_MVA_discriminator.push_back(myMVATrigNoIP2012Method1);
-     
+   }
    }
  }
 
@@ -1463,10 +1467,8 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
    iEvent.getByLabel(TriggerEvent_,triggerEvent);
    edm::Handle<edm::TriggerResults> triggerResults;
    iEvent.getByLabel(TriggerResults_, triggerResults);
-   edm::Handle<std::vector<std::string> > MyTriggerInfoNames;
-   iEvent.getByLabel(TriggerInfoName_, MyTriggerInfoNames);
-   for(unsigned int i=0; i<MyTriggerInfoNames->size();i++){
-     HTLTriggerName.push_back(MyTriggerInfoNames->at(i));
+   for(unsigned int i=0; i<MyTriggerInfoNames.size();i++){
+     HTLTriggerName.push_back(MyTriggerInfoNames.at(i));
      unsigned int triggerIndex = hltConfig_.triggerIndex(HTLTriggerName.at(i));
      TriggerAccept.push_back(triggerResults->accept(triggerIndex));
      TriggerError.push_back(triggerResults->error(triggerIndex));
