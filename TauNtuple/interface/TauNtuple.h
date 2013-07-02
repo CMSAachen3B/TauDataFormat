@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.35 2013/07/02 09:32:25 inugent Exp $
+// $Id: TauNtuple.h,v 1.36 2013/07/02 16:17:27 anehrkor Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -34,7 +34,7 @@
 #include <stdint.h>
 
 //  ROOT 
-#include "TTree.h"
+#include "TTree.h" 
 #include "TFile.h"
 
 
@@ -101,7 +101,7 @@
 
 #include "Math/SMatrix.h"
 #include "Math/Vector4D.h"
-//#include "LorentzVector.h"
+//#include "LorentzVector.h" 
 #include "TMatrixT.h"
 #include "DataFormats/Math/interface/Error.h"
 #include <DataFormats/Candidate/interface/Candidate.h>
@@ -117,7 +117,7 @@
 #include <DataFormats/Candidate/interface/Candidate.h>
 #include <SimDataFormats/GeneratorProducts/interface/HepMCProduct.h>
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
-
+#include "RecoTauTag/RecoTau/interface/RecoTauPiZeroPlugins.h"
 
 // PU
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
@@ -241,7 +241,7 @@ private:
   edm::InputTag hpsPFTauDiscriminationAgainstMuonMedium_;   
   edm::InputTag hpsPFTauDiscriminationAgainstMuonTight_;     
   edm::InputTag hpsPFTauDiscriminationByDecayModeFinding_;  
-
+ 
   edm::InputTag pfMETTag_;
   edm::InputTag pfjetsTag_;
   static edm::InputTag PFElectronTag_;
@@ -260,7 +260,7 @@ private:
   std::string ElectronMVAWeights5_;
   std::string ElectronMVAWeights6_;
   double ElectronMVAPtCut_;
-  std::vector<std::string> discriminators_;
+  std::vector<std::string> discriminators_; 
 
   // PU
   std::string ScaleFactor_;
@@ -479,6 +479,14 @@ private:
 
   std::vector<std::vector<float> > PFTau_TIP_flightLength;
   std::vector<std::vector<float> > PFTau_TIP_flightLengthSig;
+
+  std::vector<std::vector<std::vector<float> > > PFTau_PiZeroP4;
+  std::vector<std::vector<int> > PFTau_PiZeroNumOfPhotons;
+  std::vector<std::vector<int> > PFTau_PiZeroNumOfElectrons;
+  std::vector<std::vector<std::vector<float> > > PFTau_ChargedHadronsP4;
+  std::vector<std::vector<std::vector<int> > > PFTau_ChargedHadronsCharge;
+  std::vector<std::vector<std::vector<float> > > PFTau_GammaP4;
+
 
   //=======  Electrons ===
   double RhoIsolationAllInputTags;
