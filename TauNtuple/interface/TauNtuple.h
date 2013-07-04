@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.37 2013/07/02 19:25:39 cherepan Exp $
+// $Id: TauNtuple.h,v 1.38 2013/07/02 21:03:00 inugent Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -433,6 +433,7 @@ private:
   std::vector<bool> PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits;
+  std::vector<float> PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA;
   std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA;                      
   std::vector<bool> PFTau_HPSPFTauDiscriminationByTightIsolationMVA;                      

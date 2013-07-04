@@ -763,6 +763,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
+       PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits.push_back((*HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByLooseIsolationMVA.push_back((*HPSPFTauDiscriminationByLooseIsolationMVA)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.push_back((*HPSPFTauDiscriminationByMediumIsolationMVA)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByTightIsolationMVA.push_back((*HPSPFTauDiscriminationByTightIsolationMVA)[HPStauCandidate]);    
@@ -2013,7 +2014,8 @@ void TauNtuple::beginJob() {
    //   output_tree->Branch("PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection",&PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection);		   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits);  
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits); 
-   output_tree->Branch("PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits);  
+   output_tree->Branch("PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits",&PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits);
+   output_tree->Branch("PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits",&PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits);
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByLooseIsolationMVA",&PFTau_HPSPFTauDiscriminationByLooseIsolationMVA);			   
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByMediumIsolationMVA",&PFTau_HPSPFTauDiscriminationByMediumIsolationMVA);                      
    output_tree->Branch("PFTau_HPSPFTauDiscriminationByTightIsolationMVA",&PFTau_HPSPFTauDiscriminationByTightIsolationMVA);                      
@@ -2538,7 +2540,8 @@ TauNtuple::ClearEvent(){
   //  PFTau_HPSPFTauDiscriminationByDeadECALElectronRejection.clear();    		   
   PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits.clear();      
   PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits.clear();     
-  PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.clear();      
+  PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.clear();
+  PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits.clear();
   PFTau_HPSPFTauDiscriminationByLooseIsolationMVA.clear();    			   
   PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.clear();   
   PFTau_HPSPFTauDiscriminationByTightIsolationMVA.clear();   
