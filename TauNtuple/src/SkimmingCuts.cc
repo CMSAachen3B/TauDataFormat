@@ -59,12 +59,12 @@ bool SkimmingCuts::PFTausCuts(edm::Event& iEvent, const edm::EventSetup& iSetup)
   edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
   iEvent.getByLabel("hpsPFTauDiscriminationByDecayModeFinding", HPSByDecayModeFinding);
 
-  edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByLooseIsolationMVA;
-  iEvent.getByLabel("hpsPFTauDiscriminationByLooseIsolationMVA", HPSPFTauDiscriminationByLooseIsolationMVA);
+  edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMediumIsolationMVA;
+  iEvent.getByLabel("hpsPFTauDiscriminationByMediumIsolationMVA", HPSPFTauDiscriminationByMediumIsolationMVA);
 
   for ( unsigned int iPFTau = 0; iPFTau < PFTaus->size(); iPFTau++ ) {
     reco::PFTauRef PFTauCand(PFTaus, iPFTau);
-    if(TauNtuple::isGoodTau(PFTauCand,HPSPFTauDiscriminationByLooseIsolationMVA,HPSByDecayModeFinding))return true;
+    if(TauNtuple::isGoodTau(PFTauCand,HPSPFTauDiscriminationByMediumIsolationMVA,HPSByDecayModeFinding))return true;
   }
   return false;
 }

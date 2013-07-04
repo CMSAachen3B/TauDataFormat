@@ -62,12 +62,12 @@
 
 
 
-double TauNtuple::MuonPtCut_(0.0);
-double TauNtuple::MuonEtaCut_(2.4);
-double TauNtuple::TauPtCut_(0.0);
-double TauNtuple::TauEtaCut_(2.4);
-double TauNtuple::ElectronPtCut_(0.0);
-double TauNtuple::ElectronEtaCut_(2.4);
+double TauNtuple::MuonPtCut_(18.0);
+double TauNtuple::MuonEtaCut_(2.2);
+double TauNtuple::TauPtCut_(18.0);
+double TauNtuple::TauEtaCut_(2.2);
+double TauNtuple::ElectronPtCut_(28.0);
+double TauNtuple::ElectronEtaCut_(2.3);
 
 edm::InputTag TauNtuple::primVtxTag_;
 edm::InputTag TauNtuple::muonsTag_;
@@ -150,9 +150,9 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   MuonPtCut_=iConfig.getUntrackedParameter("MuonPtCut",(double)18.0);
   MuonEtaCut_=iConfig.getUntrackedParameter("MuonEtaCut",(double)2.2);
   TauPtCut_=iConfig.getUntrackedParameter("TauPtCut",(double)18.0);
-  TauEtaCut_=iConfig.getUntrackedParameter("TauEtaCut",(double)2.2);
+  TauEtaCut_=iConfig.getUntrackedParameter("TauEtaCut",(double)2.0);
   ElectronPtCut_=iConfig.getUntrackedParameter("ElectronPtCut",(double)28.0);
-  ElectronEtaCut_=iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.4);
+  ElectronEtaCut_=iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.3);
 
   primVtxTag_=iConfig.getParameter<edm::InputTag>("primVtx");
   muonsTag_=iConfig.getParameter<edm::InputTag>("muons");
@@ -719,7 +719,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ){
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
-     if(isGoodTau(HPStauCandidate,HPSPFTauDiscriminationByLooseIsolationMVA,HPSByDecayModeFinding)){
+     if(isGoodTau(HPStauCandidate,HPSPFTauDiscriminationByMediumIsolationMVA,HPSByDecayModeFinding)){
        std::vector<float> iPFTau_Poca;
        iPFTau_Poca.push_back(HPStauCandidate->vx());
        iPFTau_Poca.push_back(HPStauCandidate->vy());
