@@ -68,6 +68,8 @@ double TauNtuple::TauPtCut_(18.0);
 double TauNtuple::TauEtaCut_(2.2);
 double TauNtuple::ElectronPtCut_(28.0);
 double TauNtuple::ElectronEtaCut_(2.3);
+double TauNtuple::JetPtCut_(18.0); 
+double TauNtuple::JetEtaCut_(4.7);
 
 edm::InputTag TauNtuple::primVtxTag_;
 edm::InputTag TauNtuple::muonsTag_;
@@ -153,6 +155,9 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   TauEtaCut_=iConfig.getUntrackedParameter("TauEtaCut",(double)2.0);
   ElectronPtCut_=iConfig.getUntrackedParameter("ElectronPtCut",(double)28.0);
   ElectronEtaCut_=iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.3);
+  JetPtCut_=iConfig.getUntrackedParameter("JetPtCut",(double)18.0);
+  JetEtaCut_=iConfig.getUntrackedParameter("JetEtaCut",(double)4.7);
+
 
   primVtxTag_=iConfig.getParameter<edm::InputTag>("primVtx");
   muonsTag_=iConfig.getParameter<edm::InputTag>("muons");
@@ -219,6 +224,23 @@ bool TauNtuple::isGoodVertex(const reco::Vertex &pv){
   if(!pv.isFake() &&  pv.ndof()>4 &&  fabs(pv.z())<24 && pv.position().rho()<2)return true;
   return false;
 }
+
+
+bool TauNtuple::isGoodJet(reco::PFJetRef &RefJet){
+  if(RefJet.isNonnull()){
+    if(RefJet->p4().Pt() > JetPtCut_ && fabs(RefJet->p4().Eta())<JetEtaCut_) return true;
+  }
+  return false;
+}
+
+
+bool TauNtuple::isGoodJet(pat::JetRef &RefJet){
+  if(RefJet.isNonnull()){
+    if(RefJet->p4().Pt() > JetPtCut_ && fabs(RefJet->p4().Eta())<JetEtaCut_) return true;
+  }
+  return false;
+}
+
 
 // member functions
 // ------------ method called to produce the data  ------------
@@ -763,7 +785,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits.push_back((*HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits)[HPStauCandidate]);
-       PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits.push_back((*HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits)[HPStauCandidate]);
+       PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits.push_back(false);//(*HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByLooseIsolationMVA.push_back((*HPSPFTauDiscriminationByLooseIsolationMVA)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByMediumIsolationMVA.push_back((*HPSPFTauDiscriminationByMediumIsolationMVA)[HPStauCandidate]);
        PFTau_HPSPFTauDiscriminationByTightIsolationMVA.push_back((*HPSPFTauDiscriminationByTightIsolationMVA)[HPStauCandidate]);    
@@ -899,7 +921,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        for(int i = 0; i<LorentzVectorParticle::NVertex; i++)for(int j = 0; j<LorentzVectorParticle::NVertex; j++){pvcov(i,j)=pvCov(i,j);pvcov(j,i)=pvCov(i,j);}
        for(int i = 0; i<LorentzVectorParticle::NVertex; i++){
 	 for(int j = i; j<LorentzVectorParticle::NVertex; j++){
-	   PFTau_TIP_primaryVertex_pos.at(Ntau).push_back(pvcov(i,j));
+	   PFTau_TIP_primaryVertex_cov.at(Ntau).push_back(pvcov(i,j));
 	 }
        }
        double vtxchi2(0), vtxndf(1);
@@ -1125,54 +1147,55 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     iEvent.getByLabel(pfjetsTag_,  JetCollection);
     for(reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
       reco::PFJetRef PFJet(JetCollection, iPFJet);
-      std::vector<float> iPFJet_Poca;
-      iPFJet_Poca.push_back(PFJet->vx());
-      iPFJet_Poca.push_back(PFJet->vy());
-      iPFJet_Poca.push_back(PFJet->vz());
-      PFJet_Poca.push_back(iPFJet_Poca);
-      
-      std::vector<float> iPFJet_p4;
-      iPFJet_p4.push_back(PFJet->p4().E());
-      iPFJet_p4.push_back(PFJet->p4().Px());
-      iPFJet_p4.push_back(PFJet->p4().Py());
-      iPFJet_p4.push_back(PFJet->p4().Pz());
-      PFJet_p4.push_back(iPFJet_p4);
-      PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
-      PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
-      PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
-      PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
-      PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
-      PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
-      PFJet_chargedHadronEnergy.push_back(PFJet->chargedHadronEnergy());
-      PFJet_chargedHadronMultiplicity.push_back(PFJet->chargedHadronMultiplicity());
-      PFJet_chargedMuEnergy.push_back(PFJet->chargedMuEnergy());
-      PFJet_chargedMultiplicity.push_back(PFJet->chargedMultiplicity());
-      PFJet_electronEnergy.push_back(PFJet->electronEnergy());
-      PFJet_electronMultiplicity.push_back(PFJet->electronMultiplicity());
-      PFJet_HFEMEnergy.push_back(PFJet->HFEMEnergy());
-      PFJet_HFEMMultiplicity.push_back(PFJet->HFEMMultiplicity());
-      PFJet_HFHadronEnergy.push_back(PFJet->HFHadronEnergy());
-      PFJet_HFHadronMultiplicity.push_back(PFJet->HFHadronMultiplicity());
-      PFJet_muonEnergy.push_back(PFJet->muonEnergy());
-      PFJet_muonMultiplicity.push_back(PFJet->muonMultiplicity());
-      PFJet_neutralEmEnergy.push_back(PFJet->neutralEmEnergy());
-      PFJet_neutralHadronEnergy.push_back(PFJet->neutralHadronEnergy());
-      PFJet_neutralHadronMultiplicity.push_back(PFJet->neutralHadronMultiplicity());
-      PFJet_photonEnergy.push_back(PFJet->photonEnergy());
-      PFJet_photonMultiplicity.push_back(PFJet->photonMultiplicity());
-      PFJet_jetArea.push_back(PFJet->jetArea()); 
-      PFJet_maxDistance.push_back(PFJet->maxDistance());
-      PFJet_nConstituents.push_back(PFJet->nConstituents());
-      PFJet_pileup.push_back(PFJet->pileup());  
-      PFJet_etaetaMoment.push_back(PFJet->etaetaMoment());
-      PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
-      std::vector<int> matches;
-      const edm::ProductID &TrID = trackCollection.id();
-      std::vector<std::vector<float> > iPFJet_TrackP4;
-      for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
-	const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
-	reco::TrackRef trackref = pfcand->trackRef();
-	if( trackref.isNonnull() ) {
+      if(isGoodJet(PFJet)){
+	std::vector<float> iPFJet_Poca;
+	iPFJet_Poca.push_back(PFJet->vx());
+	iPFJet_Poca.push_back(PFJet->vy());
+	iPFJet_Poca.push_back(PFJet->vz());
+	PFJet_Poca.push_back(iPFJet_Poca);
+	
+	std::vector<float> iPFJet_p4;
+	iPFJet_p4.push_back(PFJet->p4().E());
+	iPFJet_p4.push_back(PFJet->p4().Px());
+	iPFJet_p4.push_back(PFJet->p4().Py());
+	iPFJet_p4.push_back(PFJet->p4().Pz());
+	PFJet_p4.push_back(iPFJet_p4);
+	PFJet_numberOfDaughters.push_back(PFJet->numberOfDaughters());
+	PFJet_chargedEmEnergyFraction.push_back(PFJet->chargedEmEnergyFraction());
+	PFJet_chargedHadronEnergyFraction.push_back(PFJet->chargedHadronEnergyFraction());
+	PFJet_neutralHadronEnergyFraction.push_back(PFJet->neutralHadronEnergyFraction());
+	PFJet_neutralEmEnergyFraction.push_back(PFJet->neutralEmEnergyFraction());
+	PFJet_chargedEmEnergy.push_back(PFJet->chargedEmEnergy());
+	PFJet_chargedHadronEnergy.push_back(PFJet->chargedHadronEnergy());
+	PFJet_chargedHadronMultiplicity.push_back(PFJet->chargedHadronMultiplicity());
+	PFJet_chargedMuEnergy.push_back(PFJet->chargedMuEnergy());
+	PFJet_chargedMultiplicity.push_back(PFJet->chargedMultiplicity());
+	PFJet_electronEnergy.push_back(PFJet->electronEnergy());
+	PFJet_electronMultiplicity.push_back(PFJet->electronMultiplicity());
+	PFJet_HFEMEnergy.push_back(PFJet->HFEMEnergy());
+	PFJet_HFEMMultiplicity.push_back(PFJet->HFEMMultiplicity());
+	PFJet_HFHadronEnergy.push_back(PFJet->HFHadronEnergy());
+	PFJet_HFHadronMultiplicity.push_back(PFJet->HFHadronMultiplicity());
+	PFJet_muonEnergy.push_back(PFJet->muonEnergy());
+	PFJet_muonMultiplicity.push_back(PFJet->muonMultiplicity());
+	PFJet_neutralEmEnergy.push_back(PFJet->neutralEmEnergy());
+	PFJet_neutralHadronEnergy.push_back(PFJet->neutralHadronEnergy());
+	PFJet_neutralHadronMultiplicity.push_back(PFJet->neutralHadronMultiplicity());
+	PFJet_photonEnergy.push_back(PFJet->photonEnergy());
+	PFJet_photonMultiplicity.push_back(PFJet->photonMultiplicity());
+	PFJet_jetArea.push_back(PFJet->jetArea()); 
+	PFJet_maxDistance.push_back(PFJet->maxDistance());
+	PFJet_nConstituents.push_back(PFJet->nConstituents());
+	PFJet_pileup.push_back(PFJet->pileup());  
+	PFJet_etaetaMoment.push_back(PFJet->etaetaMoment());
+	PFJet_etaphiMoment.push_back(PFJet->etaphiMoment());
+	std::vector<int> matches;
+	const edm::ProductID &TrID = trackCollection.id();
+	std::vector<std::vector<float> > iPFJet_TrackP4;
+	for (unsigned i = 0;  i <  PFJet->numberOfDaughters (); i++) {
+	  const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
+	  reco::TrackRef trackref = pfcand->trackRef();
+	  if( trackref.isNonnull() ) {
 	  std::vector<float> iiPFJet_TrackP4;
 	  float trkEnergy = sqrt(trackref->px()*trackref->px() + trackref->py()*trackref->py() + trackref->pz()*trackref->pz() + 0.13957*0.13957);
 	  iiPFJet_TrackP4.push_back(trkEnergy);
@@ -1184,18 +1207,19 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
 	  int match(-1);
 	  getTrackMatch(trackCollection,trackref,match);
 	  if(match>=0)matches.push_back(match);
+	  }
 	}
+	PFJet_Track_idx.push_back(matches);
+	
+	PFJet_TracksP4.push_back(iPFJet_TrackP4);
+	PFJet_nTrk.push_back(iPFJet_TrackP4.size());
+	
+	edm::Handle<std::vector<reco::PFTau> > HPStaus;
+	iEvent.getByLabel(hpsTauProducer_, HPStaus);
+	unsigned int idx =0; 
+	reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
+	PFJet_MatchedHPS_idx.push_back(idx);
       }
-      PFJet_Track_idx.push_back(matches);
-
-      PFJet_TracksP4.push_back(iPFJet_TrackP4);
-      PFJet_nTrk.push_back(iPFJet_TrackP4.size());
-
-      edm::Handle<std::vector<reco::PFTau> > HPStaus;
-      iEvent.getByLabel(hpsTauProducer_, HPStaus);
-      unsigned int idx =0; 
-      reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPFJet_p4,idx);
-      PFJet_MatchedHPS_idx.push_back(idx);
     }
   }
   else{
@@ -1209,81 +1233,83 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
     for(pat::JetCollection::size_type iPatJet = 0; iPatJet < jets->size(); iPatJet++) {
     //for(pat::JetCollection::size_type iPatJet = 0; iPatJet < PatJet.size(); iPatJet++){
       pat::JetRef PatJet(jets, iPatJet);
-      std::vector<float> iPatJet_Poca;
-      iPatJet_Poca.push_back(PatJet->vx());
-      iPatJet_Poca.push_back(PatJet->vy());
-      iPatJet_Poca.push_back(PatJet->vz());
-      PFJet_Poca.push_back(iPatJet_Poca);
- 
-      std::vector<float> iPatJet_p4;
-      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).E());
-      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Px());
-      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Py());
-      iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Pz());
-      PFJet_p4.push_back(iPatJet_p4);
-      PFJet_numberOfDaughters.push_back(PatJet->numberOfDaughters());
-      PFJet_chargedEmEnergyFraction.push_back(PatJet->chargedEmEnergyFraction());
-      PFJet_chargedHadronEnergyFraction.push_back(PatJet->chargedHadronEnergyFraction());
-      PFJet_neutralHadronEnergyFraction.push_back(PatJet->neutralHadronEnergyFraction());
-      PFJet_neutralEmEnergyFraction.push_back(PatJet->neutralEmEnergyFraction());
-      PFJet_chargedEmEnergy.push_back(PatJet->chargedEmEnergy());
-      PFJet_chargedHadronEnergy.push_back(PatJet->chargedHadronEnergy());
-      PFJet_chargedHadronMultiplicity.push_back(PatJet->chargedHadronMultiplicity());
-      PFJet_chargedMuEnergy.push_back(PatJet->chargedMuEnergy());
-      PFJet_chargedMultiplicity.push_back(PatJet->chargedMultiplicity());
-      PFJet_electronEnergy.push_back(PatJet->electronEnergy());
-      PFJet_electronMultiplicity.push_back(PatJet->electronMultiplicity());
-      PFJet_HFEMEnergy.push_back(PatJet->HFEMEnergy());
-      PFJet_HFEMMultiplicity.push_back(PatJet->HFEMMultiplicity());
-      PFJet_HFHadronEnergy.push_back(PatJet->HFHadronEnergy());
-      PFJet_HFHadronMultiplicity.push_back(PatJet->HFHadronMultiplicity());
-      PFJet_muonEnergy.push_back(PatJet->muonEnergy());
-      PFJet_muonMultiplicity.push_back(PatJet->muonMultiplicity());
-      PFJet_neutralEmEnergy.push_back(PatJet->neutralEmEnergy());
-      PFJet_neutralHadronEnergy.push_back(PatJet->neutralHadronEnergy());
-      PFJet_neutralHadronMultiplicity.push_back(PatJet->neutralHadronMultiplicity());
-      PFJet_photonEnergy.push_back(PatJet->photonEnergy());
-      PFJet_photonMultiplicity.push_back(PatJet->photonMultiplicity());
-      PFJet_jetArea.push_back(PatJet->jetArea());
-      PFJet_maxDistance.push_back(PatJet->maxDistance());
-      PFJet_nConstituents.push_back(PatJet->nConstituents());
-      PFJet_pileup.push_back(PatJet->pileup());
-      PFJet_etaetaMoment.push_back(PatJet->etaetaMoment());
-      PFJet_etaphiMoment.push_back(PatJet->etaphiMoment());
-      std::vector<int> matches;
-      const edm::ProductID &TrID = trackCollection.id();
-      for (unsigned i = 0;  i <  PatJet->numberOfDaughters (); i++) {
-	const reco::PFCandidatePtr pfcand = PatJet->getPFConstituent(i);
-	reco::TrackRef trackref = pfcand->trackRef();
-	if( trackref.isNonnull() ) {
-	  if(trackref.id() != TrID) continue;
-	  int match(-1);
-	  getTrackMatch(trackCollection,trackref,match);
-	  if(match>=0)matches.push_back(match);
+      if(isGoodJet(PatJet)){
+	std::vector<float> iPatJet_Poca;
+	iPatJet_Poca.push_back(PatJet->vx());
+	iPatJet_Poca.push_back(PatJet->vy());
+	iPatJet_Poca.push_back(PatJet->vz());
+	PFJet_Poca.push_back(iPatJet_Poca);
+	
+	std::vector<float> iPatJet_p4;
+	iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).E());
+	iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Px());
+	iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Py());
+	iPatJet_p4.push_back(PatJet->correctedP4(PatJetScale_).Pz());
+	PFJet_p4.push_back(iPatJet_p4);
+	PFJet_numberOfDaughters.push_back(PatJet->numberOfDaughters());
+	PFJet_chargedEmEnergyFraction.push_back(PatJet->chargedEmEnergyFraction());
+	PFJet_chargedHadronEnergyFraction.push_back(PatJet->chargedHadronEnergyFraction());
+	PFJet_neutralHadronEnergyFraction.push_back(PatJet->neutralHadronEnergyFraction());
+	PFJet_neutralEmEnergyFraction.push_back(PatJet->neutralEmEnergyFraction());
+	PFJet_chargedEmEnergy.push_back(PatJet->chargedEmEnergy());
+	PFJet_chargedHadronEnergy.push_back(PatJet->chargedHadronEnergy());
+	PFJet_chargedHadronMultiplicity.push_back(PatJet->chargedHadronMultiplicity());
+	PFJet_chargedMuEnergy.push_back(PatJet->chargedMuEnergy());
+	PFJet_chargedMultiplicity.push_back(PatJet->chargedMultiplicity());
+	PFJet_electronEnergy.push_back(PatJet->electronEnergy());
+	PFJet_electronMultiplicity.push_back(PatJet->electronMultiplicity());
+	PFJet_HFEMEnergy.push_back(PatJet->HFEMEnergy());
+	PFJet_HFEMMultiplicity.push_back(PatJet->HFEMMultiplicity());
+	PFJet_HFHadronEnergy.push_back(PatJet->HFHadronEnergy());
+	PFJet_HFHadronMultiplicity.push_back(PatJet->HFHadronMultiplicity());
+	PFJet_muonEnergy.push_back(PatJet->muonEnergy());
+	PFJet_muonMultiplicity.push_back(PatJet->muonMultiplicity());
+	PFJet_neutralEmEnergy.push_back(PatJet->neutralEmEnergy());
+	PFJet_neutralHadronEnergy.push_back(PatJet->neutralHadronEnergy());
+	PFJet_neutralHadronMultiplicity.push_back(PatJet->neutralHadronMultiplicity());
+	PFJet_photonEnergy.push_back(PatJet->photonEnergy());
+	PFJet_photonMultiplicity.push_back(PatJet->photonMultiplicity());
+	PFJet_jetArea.push_back(PatJet->jetArea());
+	PFJet_maxDistance.push_back(PatJet->maxDistance());
+	PFJet_nConstituents.push_back(PatJet->nConstituents());
+	PFJet_pileup.push_back(PatJet->pileup());
+	PFJet_etaetaMoment.push_back(PatJet->etaetaMoment());
+	PFJet_etaphiMoment.push_back(PatJet->etaphiMoment());
+	std::vector<int> matches;
+	const edm::ProductID &TrID = trackCollection.id();
+	for (unsigned i = 0;  i <  PatJet->numberOfDaughters (); i++) {
+	  const reco::PFCandidatePtr pfcand = PatJet->getPFConstituent(i);
+	  reco::TrackRef trackref = pfcand->trackRef();
+	  if( trackref.isNonnull() ) {
+	    if(trackref.id() != TrID) continue;
+	    int match(-1);
+	    getTrackMatch(trackCollection,trackref,match);
+	    if(match>=0)matches.push_back(match);
+	  }
 	}
+	PFJet_Track_idx.push_back(matches);
+	edm::Handle<std::vector<reco::PFTau> > HPStaus;
+	iEvent.getByLabel(hpsTauProducer_, HPStaus);
+	unsigned int idx =0;
+	reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPatJet_p4,idx);
+	PFJet_MatchedHPS_idx.push_back(idx);
+	
+	///////////////////////////////////////////////
+	//
+	// B-Tagging
+	//
+	PFJet_partonFlavour.push_back(PatJet->partonFlavour());
+	PFJet_bDiscriminator.push_back(PatJet->bDiscriminator(BTagAlgorithim_));
+	std::vector<float> BTagWeights(0);
+	PFJet_BTagWeight.push_back(BTagWeights);
+	
+	//std::cout << "!!!!!!!! b-tagging !!!!!!!!" << std::endl;
+	//std::cout << "b-tag algorithm name: " << PatJet->getPairDiscri().first << ", value: " << PatJet->getPairDiscri().second << std::endl;
+	//PFJet_bTagAlgorithmName.push_back(PatJet->getPairDiscri().first);
+	//PFJet_bTagAlgorithmValue.push_back(PatJet->getPairDiscri().second);
+	//std::cout << "name size: " << PFJet_bTagAlgorithmName.size() << ", value size: " << PFJet_bTagAlgorithmValue.size() << std::endl;
+	
       }
-      PFJet_Track_idx.push_back(matches);
-      edm::Handle<std::vector<reco::PFTau> > HPStaus;
-      iEvent.getByLabel(hpsTauProducer_, HPStaus);
-      unsigned int idx =0;
-      reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus,iPatJet_p4,idx);
-      PFJet_MatchedHPS_idx.push_back(idx);
-    
-      ///////////////////////////////////////////////
-      //
-      // B-Tagging
-      //
-      PFJet_partonFlavour.push_back(PatJet->partonFlavour());
-      PFJet_bDiscriminator.push_back(PatJet->bDiscriminator(BTagAlgorithim_));
-      std::vector<float> BTagWeights(0);
-      PFJet_BTagWeight.push_back(BTagWeights);
-      
-      //std::cout << "!!!!!!!! b-tagging !!!!!!!!" << std::endl;
-      //std::cout << "b-tag algorithm name: " << PatJet->getPairDiscri().first << ", value: " << PatJet->getPairDiscri().second << std::endl;
-      //PFJet_bTagAlgorithmName.push_back(PatJet->getPairDiscri().first);
-      //PFJet_bTagAlgorithmValue.push_back(PatJet->getPairDiscri().second);
-      //std::cout << "name size: " << PFJet_bTagAlgorithmName.size() << ", value size: " << PFJet_bTagAlgorithmValue.size() << std::endl;
-
     }
   }
 }

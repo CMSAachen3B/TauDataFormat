@@ -13,7 +13,7 @@
 //
 // Original Author:  Ian Nugent  and  Vladimir Cherepanov
 //         Created:  Mon Nov 14 13:49:02 CET 2011
-// $Id: TauNtuple.h,v 1.38 2013/07/02 21:03:00 inugent Exp $
+// $Id: TauNtuple.h,v 1.39 2013/07/04 17:15:33 bkargoll Exp $
 //
 //
 #ifndef TauNtuple_h
@@ -143,7 +143,7 @@
 #include "DataFormats/L1GlobalTrigger/interface/L1GlobalTriggerObjectMap.h"
 #include "TauDataFormat/TauNtuple/interface/SkimmingCuts.h"
 #include "TauDataFormat/TauNtuple/interface/MultiTriggerFilter.h"
-
+#include <DataFormats/PatCandidates/interface/Jet.h>
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "L1Trigger/GlobalTriggerAnalyzer/interface/L1GtUtils.h"
 
@@ -204,6 +204,8 @@ private:
   static bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator>  &Dis1,edm::Handle<reco::PFTauDiscriminator>  &Dis2);
   static bool isGoodElectron(reco::GsfElectronRef &RefElectron);
   static bool isGoodVertex(const reco::Vertex &pv);
+  static bool isGoodJet(reco::PFJetRef &RefJet);
+  static bool isGoodJet(pat::JetRef &RefJet);
 
   EGammaMvaEleEstimator* myMVATrigNoIP2012;
   std::vector<std::string> myManualCatWeightsTrigNoIP2012;
@@ -214,6 +216,9 @@ private:
   static double TauEtaCut_;
   static double ElectronPtCut_;
   static double ElectronEtaCut_;
+  static double JetPtCut_;
+  static double JetEtaCut_;
+
 
   bool RemoveMuonTracks_;
   bool RemoveElectronTracks_;
