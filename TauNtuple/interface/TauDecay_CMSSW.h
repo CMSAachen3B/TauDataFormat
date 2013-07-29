@@ -19,7 +19,7 @@
 #ifndef TauDecay_CMSSW_h
 #define TauDecay_CMSSW_h
 
-#include "Validation/EventGenerator/interface/TauDecay.h"
+#include "TauDataFormat/TauNtuple/interface/interface/TauDecay.h"
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"

@@ -1,6 +1,6 @@
 #include "TauDataFormat/TauNtuple/interface/DataMCType.h"
-#include "Validation/EventGenerator/interface/PdtPdgMini.h"
-#include "Validation/EventGenerator/interface/TauDecay.h"
+#include "SimpleFits/FitSoftware/interface/PDGInfo.h"
+#include "TauDataFormat/TauNtuple/interface/TauDecay.h"
 #include <iostream>
 #include <cstdlib>
 
@@ -76,7 +76,7 @@ void DataMCType::DecodeSignal(unsigned int code,unsigned int &type,unsigned int 
 
 bool DataMCType::isSignalParticle(int pdg_id){
   unsigned int pdgid=abs(pdg_id);
-  if(pdgid==PdtPdgMini::Z0 || pdgid==PdtPdgMini::W_plus || pdgid==PdtPdgMini::Higgs0 || pdgid==PdtPdgMini::Higgs_plus){
+  if(pdgid==PDGInfo::Z0 || pdgid==PDGInfo::W_plus || pdgid==PDGInfo::Higgs0 || pdgid==PDGInfo::Higgs_plus){
     return true;
   }
   return false;
