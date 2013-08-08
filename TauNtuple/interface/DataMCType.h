@@ -5,8 +5,10 @@
 
 class DataMCType{
  public:
-  enum Type {Data=1, 
-	     H_tautau=10, 
+  enum Type {Data=1,
+	  	 H_tautau=10,
+	     H_tautau_ggF=11,
+	     H_tautau_VBF=12,
 	     Hpm_taunu=15, 
 	     W_lnu=20,
 	     W_enu=21,
