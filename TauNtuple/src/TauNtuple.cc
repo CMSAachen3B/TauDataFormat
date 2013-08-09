@@ -62,12 +62,12 @@
 
 
 
-double TauNtuple::MuonPtCut_(18.0);
-double TauNtuple::MuonEtaCut_(2.2);
+double TauNtuple::MuonPtCut_(3.0);
+double TauNtuple::MuonEtaCut_(2.5);
 double TauNtuple::TauPtCut_(18.0);
-double TauNtuple::TauEtaCut_(2.2);
-double TauNtuple::ElectronPtCut_(28.0);
-double TauNtuple::ElectronEtaCut_(2.3);
+double TauNtuple::TauEtaCut_(2.4);
+double TauNtuple::ElectronPtCut_(10.0);
+double TauNtuple::ElectronEtaCut_(2.5);
 double TauNtuple::JetPtCut_(18.0); 
 double TauNtuple::JetEtaCut_(4.7);
 
@@ -149,12 +149,12 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   BTagAlgorithim_(iConfig.getUntrackedParameter("BTagAlgorithim",(std::string)"trackCountingHighEffBJetTags")),
   srcPatMET_(iConfig.getUntrackedParameter("srcPatMET",(std::string)"patMETsPF"))
 {   
-  MuonPtCut_=iConfig.getUntrackedParameter("MuonPtCut",(double)18.0);
-  MuonEtaCut_=iConfig.getUntrackedParameter("MuonEtaCut",(double)2.2);
+  MuonPtCut_=iConfig.getUntrackedParameter("MuonPtCut",(double)3.0);
+  MuonEtaCut_=iConfig.getUntrackedParameter("MuonEtaCut",(double)2.5);
   TauPtCut_=iConfig.getUntrackedParameter("TauPtCut",(double)18.0);
   TauEtaCut_=iConfig.getUntrackedParameter("TauEtaCut",(double)2.0);
-  ElectronPtCut_=iConfig.getUntrackedParameter("ElectronPtCut",(double)28.0);
-  ElectronEtaCut_=iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.3);
+  ElectronPtCut_=iConfig.getUntrackedParameter("ElectronPtCut",(double)10.0);
+  ElectronEtaCut_=iConfig.getUntrackedParameter("ElectronEtaCut",(double)2.5);
   JetPtCut_=iConfig.getUntrackedParameter("JetPtCut",(double)18.0);
   JetEtaCut_=iConfig.getUntrackedParameter("JetEtaCut",(double)4.7);
 
@@ -1457,7 +1457,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup,edm
      
      double myMVATrigNoIP2012Method1 = -1.;
      
-     if(RefElectron->pt()>=ElectronMVAPtCut_){
+     if(RefElectron->et()>=ElectronMVAPtCut_){
     	 Bool_t validKF = true;
          reco::TrackRef myTrackRef = RefElectron->closestCtfTrackRef();
          validKF = (myTrackRef.isAvailable());
