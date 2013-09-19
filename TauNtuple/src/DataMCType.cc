@@ -20,6 +20,8 @@ unsigned int DataMCType::GetType(TString name){
   if(name=="h_tautau")  return H_tautau;
   if(name=="hpm_taunu") return Hpm_taunu;
   if(name=="ttbar")     return ttbar;
+  if(name=="tw")        return tw;
+  if(name=="tbarw")     return tbarw;
   if(name=="w_lnu")     return W_lnu;
   if(name=="w_enu")     return W_enu;
   if(name=="w_munu")    return W_munu;
