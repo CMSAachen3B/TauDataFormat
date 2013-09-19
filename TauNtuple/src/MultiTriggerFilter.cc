@@ -40,6 +40,7 @@ MultiTriggerFilter::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
       }
     }
   }
+if(passed==false)std::cout << "NO TRIGGER PASSED" << std::endl;
   return passed;
 }
 
