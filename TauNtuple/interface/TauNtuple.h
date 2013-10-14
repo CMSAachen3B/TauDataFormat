@@ -78,6 +78,7 @@
 #include "DataFormats/JetReco/interface/GenJet.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include <DataFormats/Common/interface/Ptr.h>
+#include "SimDataFormats/JetMatching/interface/JetFlavourMatching.h"
 
 // MET stuff
 #include "DataFormats/METReco/interface/CaloMET.h"
@@ -254,6 +255,7 @@ private:
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
+  edm::InputTag jetFlavourTag_;
   bool Embedded_; //embedding
   //edm::InputTag reducedEBRecHitCollection_;
   //edm::InputTag reducedEERecHitCollection_;
@@ -317,7 +319,7 @@ private:
   // Pat objects
   std::string srcPatJets_;
   std::string PatJetScale_;
-  std::string BTagAlgorithim_;
+  std::string BTagAlgorithm_;
   std::string srcPatMET_;
 
   // outputfile

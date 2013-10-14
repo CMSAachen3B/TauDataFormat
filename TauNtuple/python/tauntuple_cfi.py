@@ -35,6 +35,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              generalTracks  = cms.InputTag("generalTracks"),
                              gensrc         = cms.InputTag('genParticles'),
                              GenEventInfo   = cms.InputTag('generator'),
+                             jetFlavour     = cms.InputTag('patJetFlavourAssociation'),
                              discriminators = cms.vstring("PFRecoTauDiscriminationByKinematicFit","PFRecoTauDiscriminationByKinematicFitQuality"),
                              do_MCComplete  = cms.untracked.bool(True),
                              do_MCSummary   = cms.untracked.bool(True),
@@ -54,7 +55,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              TriggerMuonMatchingdr = cms.untracked.double(0.3),
                              TriggerElectronMatchingdr = cms.untracked.double(0.3),
                              TriggerTauMatchingdr = cms.untracked.double(0.3),
-                             BTagAlgorithim = cms.untracked.string("trackCountingHighEffBJetTags")
+                             BTagAlgorithm = cms.untracked.string("combinedSecondaryVertexBJetTags")
 
                              )                                                                   
  
