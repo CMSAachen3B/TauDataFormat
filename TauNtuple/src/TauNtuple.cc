@@ -1220,7 +1220,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
 					edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
 					iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
-					double bTagValue = (*jetDiscriminator)[PFJet];
+					double bTagValue = (*jetDiscriminator)[edm::RefToBase<reco::Jet>(PFJet)];
 					PFJet_bDiscriminator.push_back(bTagValue);
 
 					//jet flavour (needed for weights)
