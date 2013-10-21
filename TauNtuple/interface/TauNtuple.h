@@ -193,8 +193,9 @@ private:
   void TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent,unsigned int triggerIndex,T obj,double drmax,std::vector<float> &match);
   void fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup);
   std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef);
-  reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &UnmodifiedTau, unsigned int &match);
-  reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &Jet, unsigned int &match);
+  reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &UnmodifiedTau, int &match);
+  reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &Jet, int &match);
+  reco::JetBaseRef getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float>  &Jet, int &match, double maxDeltaR);
 
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match);
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::GsfTrackRef &refTrack, int &match);
@@ -255,7 +256,6 @@ private:
   edm::InputTag generalTracks_;
   edm::InputTag gensrc_;
   edm::InputTag GenEventInfo_;
-  edm::InputTag jetFlavourTag_;
   bool Embedded_; //embedding
   //edm::InputTag reducedEBRecHitCollection_;
   //edm::InputTag reducedEERecHitCollection_;
@@ -319,8 +319,13 @@ private:
   // Pat objects
   std::string srcPatJets_;
   std::string PatJetScale_;
-  std::string BTagAlgorithm_;
   std::string srcPatMET_;
+
+  // b-tagging
+  std::string BTagAlgorithm_;
+  edm::InputTag BTagJetCollection_;
+  edm::InputTag jetFlavourTag_;
+
 
   // outputfile
   TFile *output;
@@ -592,7 +597,7 @@ private:
   std::vector<float> PFJet_etaetaMoment;
   std::vector<float> PFJet_etaphiMoment;
   std::vector<std::vector<int> > PFJet_Track_idx;
-  std::vector<unsigned int> PFJet_MatchedHPS_idx;
+  std::vector<int> PFJet_MatchedHPS_idx;
 
 
   std::vector<std::vector<std::vector<float> > > PFJet_TracksP4;

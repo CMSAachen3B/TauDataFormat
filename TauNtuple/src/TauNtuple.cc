@@ -77,50 +77,78 @@ edm::InputTag TauNtuple::PFElectronTag_;
 std::vector<std::string> TauNtuple::MyTriggerInfoNames;
 
 TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
-		RemoveMuonTracks_(iConfig.getUntrackedParameter("RemoveMuonTracks", (bool) true)), RemoveElectronTracks_(iConfig.getUntrackedParameter("RemoveuonTracks", (bool) true)), beamSpotTag_(
-				iConfig.getParameter<edm::InputTag>("beamSpot")), useBeamSpot_(iConfig.getUntrackedParameter("useBeamSpot", (bool) true)), hpsPFTauDiscriminationByTightIsolation_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByTightIsolation")), hpsPFTauDiscriminationByMediumIsolation_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByMediumIsolation")), hpsPFTauDiscriminationByLooseIsolation_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByLooseIsolation")), hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr")), hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr")), hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr")), hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr")), hpsPFTauDiscriminationAgainstElectronLoose_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstElectronLoose")), hpsPFTauDiscriminationAgainstElectronMedium_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstElectronMedium")), hpsPFTauDiscriminationAgainstElectronTight_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstElectronTight")), hpsPFTauDiscriminationAgainstMuonLoose_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonLoose")), hpsPFTauDiscriminationAgainstMuonMedium_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonMedium")), hpsPFTauDiscriminationAgainstMuonTight_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonTight")), hpsPFTauDiscriminationByDecayModeFinding_(
-				iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByDecayModeFinding")), pfMETTag_(iConfig.getParameter<edm::InputTag>("pfMet")), pfjetsTag_(
-				iConfig.getParameter<edm::InputTag>("pfjets")), rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")), generalTracks_(
-				iConfig.getParameter<edm::InputTag>("generalTracks")), gensrc_(iConfig.getParameter<edm::InputTag>("gensrc")), GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
-				jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour")), Embedded_(
-				iConfig.getUntrackedParameter("Embedded", (bool) false)), //embedding
+		RemoveMuonTracks_(iConfig.getUntrackedParameter("RemoveMuonTracks", (bool) true)),
+		RemoveElectronTracks_(iConfig.getUntrackedParameter("RemoveuonTracks", (bool) true)),
+		beamSpotTag_(iConfig.getParameter<edm::InputTag>("beamSpot")),
+		useBeamSpot_(iConfig.getUntrackedParameter("useBeamSpot", (bool) true)),
+		hpsPFTauDiscriminationByTightIsolation_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByTightIsolation")),
+		hpsPFTauDiscriminationByMediumIsolation_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByMediumIsolation")),
+		hpsPFTauDiscriminationByLooseIsolation_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByLooseIsolation")),
+		hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr")),
+		hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr")),
+		hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr")),
+		hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr")),
+		hpsPFTauDiscriminationAgainstElectronLoose_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstElectronLoose")),
+		hpsPFTauDiscriminationAgainstElectronMedium_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstElectronMedium")),
+		hpsPFTauDiscriminationAgainstElectronTight_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstElectronTight")),
+		hpsPFTauDiscriminationAgainstMuonLoose_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonLoose")),
+		hpsPFTauDiscriminationAgainstMuonMedium_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonMedium")),
+		hpsPFTauDiscriminationAgainstMuonTight_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonTight")),
+		hpsPFTauDiscriminationByDecayModeFinding_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByDecayModeFinding")),
+		pfMETTag_(iConfig.getParameter<edm::InputTag>("pfMet")),
+		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
+		rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")),
+		generalTracks_(iConfig.getParameter<edm::InputTag>("generalTracks")),
+		gensrc_(iConfig.getParameter<edm::InputTag>("gensrc")),
+		GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
+		Embedded_(iConfig.getUntrackedParameter("Embedded", (bool) false)), //embedding
 		ElectronMVAWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights1")), // Electron MVA ID
 		ElectronMVAWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights2")), //  |
 		ElectronMVAWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights3")), //  |
 		ElectronMVAWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights4")), // \ /
-		ElectronMVAWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights5")), ElectronMVAWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights6")), ElectronMVAPtCut_(
-				iConfig.getParameter<double>("ElectronMVAPtCut")), discriminators_(iConfig.getParameter<std::vector<std::string> >("discriminators")), ScaleFactor_(
-				iConfig.getUntrackedParameter<std::string>("ScaleFactor")), PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")), PUInputHistoMC_(
-				iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")), PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")), PUOutputFile_(
-				iConfig.getUntrackedParameter("PUOutputFile", (std::string) ("Weight3D.root"))), do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary", (bool) (true))), do_MCComplete_(
-				iConfig.getUntrackedParameter("do_MCComplete", (bool) (true))), processName_(iConfig.getUntrackedParameter("TriggerProcessName", (std::string) "HLT")), TriggerInfoName_(
-				iConfig.getParameter<edm::InputTag>("TriggerInfoName")), TriggerEvent_(iConfig.getParameter<edm::InputTag>("TriggerEvent")), TriggerResults_(
-				iConfig.getParameter<edm::InputTag>("TriggerResults")), l1GtTriggerMenuLite_(iConfig.getParameter<edm::InputTag>("L1GtTriggerMenuLite")), doL1Triggers_(
-				iConfig.getUntrackedParameter("doL1Triggers_", (bool) (false))), l1TriggerNames_(iConfig.getParameter<std::vector<std::string> >("l1TriggerNames")), TriggerJetMatchingdr_(
-				iConfig.getUntrackedParameter("TriggerJetMatchingdr", (double) 0.3)), TriggerMuonMatchingdr_(iConfig.getUntrackedParameter("TriggerMuonMatchingdr", (double) 0.3)), TriggerElectronMatchingdr_(
-				iConfig.getUntrackedParameter("TriggerElectronMatchingdr", (double) 0.3)), TriggerTauMatchingdr_(iConfig.getUntrackedParameter("TriggerTauMatchingdr", (double) 0.3)), doBJets_(
-				iConfig.getUntrackedParameter("doBJets", (bool) (true))), doPFJets_(iConfig.getUntrackedParameter("doPFJets", (bool) (true))), doMuons_(
-				iConfig.getUntrackedParameter("doMuons", (bool) (true))), doElectrons_(iConfig.getUntrackedParameter("doElectrons", (bool) (true))), doPFTaus_(
-				iConfig.getUntrackedParameter("doPFTaus", (bool) (true))), doTracks_(iConfig.getUntrackedParameter("doTrack", (bool) (true))), doTrigger_(
-				iConfig.getUntrackedParameter("doTrigger", (bool) (true))), doPrimeVertex_(iConfig.getUntrackedParameter("doPrimeVertex", (bool) (true))), doMET_(
-				iConfig.getUntrackedParameter("doMET", (bool) (true))), doMC_(iConfig.getUntrackedParameter("doMC", (bool) (true))), doPatJets_(
-				iConfig.getUntrackedParameter("doPatJets", (bool) (false))), doPatElectrons_(iConfig.getUntrackedParameter("doPatElectrons", (bool) (false))), doPatMuons_(
-				iConfig.getUntrackedParameter("doPatMuons", (bool) (false))), doPatMET_(iConfig.getUntrackedParameter("doPatMET", (bool) (false))), srcPatJets_(
-				iConfig.getUntrackedParameter("srcPatJets", (std::string) "selectedPatJets")), PatJetScale_(iConfig.getUntrackedParameter("PatJetScale", (std::string) "L3Absolute")), BTagAlgorithm_(
-				iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")), srcPatMET_(iConfig.getUntrackedParameter("srcPatMET", (std::string) "patMETsPF")) {
+		ElectronMVAWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights5")),
+		ElectronMVAWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights6")),
+		ElectronMVAPtCut_(iConfig.getParameter<double>("ElectronMVAPtCut")),
+		discriminators_(iConfig.getParameter<std::vector<std::string> >("discriminators")),
+		ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
+		PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
+		PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
+		PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
+		PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile", (std::string) ("Weight3D.root"))),
+		do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary", (bool) (true))),
+		do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete", (bool) (true))),
+		processName_(iConfig.getUntrackedParameter("TriggerProcessName", (std::string) "HLT")),
+		TriggerInfoName_(iConfig.getParameter<edm::InputTag>("TriggerInfoName")),
+		TriggerEvent_(iConfig.getParameter<edm::InputTag>("TriggerEvent")),
+		TriggerResults_(iConfig.getParameter<edm::InputTag>("TriggerResults")),
+		l1GtTriggerMenuLite_(iConfig.getParameter<edm::InputTag>("L1GtTriggerMenuLite")),
+		doL1Triggers_(iConfig.getUntrackedParameter("doL1Triggers_", (bool) (false))),
+		l1TriggerNames_(iConfig.getParameter<std::vector<std::string> >("l1TriggerNames")),
+		TriggerJetMatchingdr_(iConfig.getUntrackedParameter("TriggerJetMatchingdr", (double) 0.3)),
+		TriggerMuonMatchingdr_(iConfig.getUntrackedParameter("TriggerMuonMatchingdr", (double) 0.3)),
+		TriggerElectronMatchingdr_(iConfig.getUntrackedParameter("TriggerElectronMatchingdr", (double) 0.3)),
+		TriggerTauMatchingdr_(iConfig.getUntrackedParameter("TriggerTauMatchingdr", (double) 0.3)),
+		doBJets_(iConfig.getUntrackedParameter("doBJets", (bool) (true))),
+		doPFJets_(iConfig.getUntrackedParameter("doPFJets", (bool) (true))),
+		doMuons_(iConfig.getUntrackedParameter("doMuons", (bool) (true))),
+		doElectrons_(iConfig.getUntrackedParameter("doElectrons", (bool) (true))),
+		doPFTaus_(iConfig.getUntrackedParameter("doPFTaus", (bool) (true))),
+		doTracks_(iConfig.getUntrackedParameter("doTrack", (bool) (true))),
+		doTrigger_(iConfig.getUntrackedParameter("doTrigger", (bool) (true))),
+		doPrimeVertex_(iConfig.getUntrackedParameter("doPrimeVertex", (bool) (true))),
+		doMET_(iConfig.getUntrackedParameter("doMET", (bool) (true))),
+		doMC_(iConfig.getUntrackedParameter("doMC", (bool) (true))),
+		doPatJets_(iConfig.getUntrackedParameter("doPatJets", (bool) (false))),
+		doPatElectrons_(iConfig.getUntrackedParameter("doPatElectrons", (bool) (false))),
+		doPatMuons_(iConfig.getUntrackedParameter("doPatMuons", (bool) (false))),
+		doPatMET_(iConfig.getUntrackedParameter("doPatMET", (bool) (false))),
+		srcPatJets_(iConfig.getUntrackedParameter("srcPatJets", (std::string) "selectedPatJets")),
+		PatJetScale_(iConfig.getUntrackedParameter("PatJetScale", (std::string) "L3Absolute")),
+		srcPatMET_(iConfig.getUntrackedParameter("srcPatMET", (std::string) "patMETsPF")),
+		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
+		BTagJetCollection_(iConfig.getParameter<edm::InputTag>("BTagJetCollection")),
+		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour"))
+{
 	MuonPtCut_ = iConfig.getUntrackedParameter("MuonPtCut", (double) 3.0);
 	MuonEtaCut_ = iConfig.getUntrackedParameter("MuonEtaCut", (double) 2.5);
 	TauPtCut_ = iConfig.getUntrackedParameter("TauPtCut", (double) 18.0);
@@ -1212,22 +1240,34 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 
 				edm::Handle<std::vector<reco::PFTau> > HPStaus;
 				iEvent.getByLabel(hpsTauProducer_, HPStaus);
-				unsigned int idx = 0;
+				int idx = -1;
 				reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus, iPFJet_p4, idx);
 				PFJet_MatchedHPS_idx.push_back(idx);
 
 				if(doBJets_){
-					edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
-					edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
-					iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
-					double bTagValue = (*jetDiscriminator)[edm::RefToBase<reco::Jet>(PFJet)];
-					PFJet_bDiscriminator.push_back(bTagValue);
-
+					// b-tagging is performed using CaloJets, so find corresponding CaloJet
+					edm::Handle<edm::View<reco::Jet> > bJetCollection;
+					iEvent.getByLabel(BTagJetCollection_, bJetCollection);
+					int bJetIdx = -1;
+					reco::JetBaseRef bJet = getMatchedBTagJet(bJetCollection,iPFJet_p4,bJetIdx,0.5);
+					std::cout << "     jet pt = " << PFJet->p4().Pt() << std::endl;
+					if (bJetIdx == -1){
+						PFJet_bDiscriminator.push_back(-1);
+					}
+					else {
+						edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
+						edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
+						iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
+						std::cout << "Access bTag value..." << std::endl;
+						double bTagValue = reco::JetFloatAssociation::getValue(*jetDiscriminator,bJet);
+						PFJet_bDiscriminator.push_back(bTagValue);
+					}
 					//jet flavour (needed for weights)
-					if (!iEvent.isRealData()) {
+					if (!iEvent.isRealData() && bJetIdx != -1) {
 						edm::Handle<reco::JetFlavourMatchingCollection> jetFlavMatch;
 						iEvent.getByLabel(jetFlavourTag_, jetFlavMatch);
-						PFJet_partonFlavour.push_back((*jetFlavMatch)[edm::RefToBase<reco::Jet>(PFJet)].getFlavour());
+						std::cout << "Access flavour value..." << std::endl;
+						PFJet_partonFlavour.push_back((*jetFlavMatch)[bJet].getFlavour());
 					}
 				}
 			}
@@ -1302,7 +1342,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				PFJet_Track_idx.push_back(matches);
 				edm::Handle<std::vector<reco::PFTau> > HPStaus;
 				iEvent.getByLabel(hpsTauProducer_, HPStaus);
-				unsigned int idx = 0;
+				int idx = -1;
 				reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus, iPatJet_p4, idx);
 				PFJet_MatchedHPS_idx.push_back(idx);
 
@@ -2272,15 +2312,15 @@ std::vector<bool> TauNtuple::CheckTauDiscriminators(std::vector<edm::Handle<reco
 //
 // finds HPS tau candidate for a given KinFit tau candidate
 // the closest by deltaR HPS candidate is accepted
-reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &UnmodifiedTau, unsigned int &match) {
+reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &UnmodifiedTau, int &match) {
 	TLorentzVector TauVisible;
 	TauVisible.SetE(UnmodifiedTau.at(0));
 	TauVisible.SetPx(UnmodifiedTau.at(1));
 	TauVisible.SetPy(UnmodifiedTau.at(2));
 	TauVisible.SetPz(UnmodifiedTau.at(3));
 	reco::PFTauRef MatchedHPSTau;
-	double deltaR = 999;
-	match = 0;
+	double deltaR = 0.5; // only match if distance is less than 0.5
+	match = -1;
 	for (unsigned int iTau = 0; iTau < HPStaus->size(); ++iTau) {
 		reco::PFTauRef HPStauCandidate(HPStaus, iTau);
 		double dr = sqrt(pow(DeltaPhi(HPStauCandidate->p4().Phi(), TauVisible.Phi()), 2) + pow(HPStauCandidate->p4().Eta() - TauVisible.Eta(), 2));
@@ -2300,7 +2340,7 @@ reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> 
 //
 // finds HPS tau candidate for a given KinFit tau candidate
 // the closest by deltaR HPS candidate is accepted
-reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &Jet, unsigned int &match) {
+reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &Jet, int &match) {
 	TLorentzVector Jetp4;
 	;
 	Jetp4.SetE(Jet.at(0));
@@ -2309,8 +2349,8 @@ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PF
 	Jetp4.SetPz(Jet.at(3));
 
 	reco::PFTauRef MatchedHPSTau;
-	double deltaR = 999;
-	match = 0;
+	double deltaR = 0.5; // only match if distance is less than 0.5
+	match = -1;
 	for (unsigned int iTau = 0; iTau < HPStaus->size(); ++iTau) {
 		reco::PFTauRef HPStauCandidate(HPStaus, iTau);
 		double dr = sqrt(pow(DeltaPhi(HPStauCandidate->p4().Phi(), Jetp4.Phi()), 2) + pow(HPStauCandidate->p4().Eta() - Jetp4.Eta(), 2));
@@ -2322,6 +2362,41 @@ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PF
 
 	}
 	return MatchedHPSTau;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// finds a jet in the jet collection used for b-tagging to a given PFJet
+// the closest by deltaR Jet is accepted
+reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float>  &Jet, int & match, double maxDeltaR = 0.5) {
+	std::cout << "!!!!!! Match new jet:" << std::endl;
+	TLorentzVector Jetp4;
+	Jetp4.SetE(Jet.at(0));
+	Jetp4.SetPx(Jet.at(1));
+	Jetp4.SetPy(Jet.at(2));
+	Jetp4.SetPz(Jet.at(3));
+
+	reco::JetBaseRef MatchedBTagJet;
+	double deltaR = maxDeltaR; // only match if distance is less than some predifined limit
+	for (unsigned int iJet = 0; iJet < bTagJets->size(); ++iJet) {
+		reco::JetBaseRef bTagJetCandidate(bTagJets, iJet);
+		double dr = sqrt(pow(DeltaPhi(bTagJetCandidate->p4().Phi(), Jetp4.Phi()), 2) + pow(bTagJetCandidate->p4().Eta() - Jetp4.Eta(), 2));
+		std::cout << "     dR = " << dr << std::endl;
+		if (dr < deltaR) {
+			std::cout << "        Select this jet, idx = " << iJet << std::endl;
+			deltaR = dr;
+			MatchedBTagJet = bTagJetCandidate;
+			match = iJet;
+		}
+
+	}
+	if (match == -1) {
+		std::cout << "     Attention! No jet matched!" << std::endl;
+	}
+	else {
+		std::cout << "     Jet matched with dR = " << deltaR << std::endl;
+	}
+	return MatchedBTagJet;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -55,7 +55,8 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              TriggerMuonMatchingdr = cms.untracked.double(0.3),
                              TriggerElectronMatchingdr = cms.untracked.double(0.3),
                              TriggerTauMatchingdr = cms.untracked.double(0.3),
-                             BTagAlgorithm = cms.untracked.string("combinedSecondaryVertexBJetTags")
+                             BTagAlgorithm = cms.untracked.string("combinedSecondaryVertexBJetTags"),
+                             BTagJetCollection = cms.InputTag("ak5CaloJets")
 
                              )                                                                   
  
