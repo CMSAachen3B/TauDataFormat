@@ -249,7 +249,11 @@ private:
   edm::InputTag hpsPFTauDiscriminationAgainstMuonTight_;     
   edm::InputTag hpsPFTauDiscriminationByDecayModeFinding_;  
  
-  edm::InputTag pfMETTag_;
+  edm::InputTag	pfMETCorrT0T1_;
+  edm::InputTag	pfMETCorrT1_;
+  edm::InputTag	pfMETCorrMVA_;
+  edm::InputTag	pfMETUncorr_;
+
   edm::InputTag pfjetsTag_;
   static edm::InputTag PFElectronTag_;
   edm::InputTag rhoIsolAllInputTag_;
@@ -319,7 +323,6 @@ private:
   // Pat objects
   std::string srcPatJets_;
   std::string PatJetScale_;
-  std::string srcPatMET_;
 
   // b-tagging
   std::string BTagAlgorithm_;
@@ -599,6 +602,10 @@ private:
   std::vector<std::vector<int> > PFJet_Track_idx;
   std::vector<int> PFJet_MatchedHPS_idx;
 
+  std::vector<float> PFJet_PUJetID_discr;
+  std::vector<float> PFJet_PUJetID_looseWP;
+  std::vector<float> PFJet_PUJetID_mediumWP;
+  std::vector<float> PFJet_PUJetID_tightWP;
 
   std::vector<std::vector<std::vector<float> > > PFJet_TracksP4;
   std::vector<float > PFJet_nTrk;
@@ -617,21 +624,50 @@ private:
 
   //=======  MET ===
   // now only PFMET
-  float MET_et;
-  float MET_pt;
-  float MET_phi;
-  float MET_sumET;
-  float MET_metSignificance;
-  float MET_MuonEtFraction;
-  float MET_NeutralEMFraction;
-  float MET_NeutralHadEtFraction;
-  float MET_Type6EtFraction;
-  float MET_Type7EtFraction;
+  float MET_Uncorr_et;
+  float MET_Uncorr_pt;
+  float MET_Uncorr_phi;
+  float MET_Uncorr_sumET;
+  float MET_Uncorr_metSignificance;
+  float MET_Uncorr_MuonEtFraction;
+  float MET_Uncorr_NeutralEMFraction;
+  float MET_Uncorr_NeutralHadEtFraction;
+  float MET_Uncorr_Type6EtFraction;
+  float MET_Uncorr_Type7EtFraction;
 
-  float MET_Corr_pt;
-  float MET_Corr_et;
-  float MET_Corr_phi;
-  float MET_Corr_SumET;
+  float MET_CorrT0T1_et;
+  float MET_CorrT0T1_pt;
+  float MET_CorrT0T1_phi;
+  float MET_CorrT0T1_sumET;
+  float MET_CorrT0T1_metSignificance;
+  float MET_CorrT0T1_MuonEtFraction;
+  float MET_CorrT0T1_NeutralEMFraction;
+  float MET_CorrT0T1_NeutralHadEtFraction;
+  float MET_CorrT0T1_Type6EtFraction;
+  float MET_CorrT0T1_Type7EtFraction;
+
+  float MET_CorrT1_et;
+  float MET_CorrT1_pt;
+  float MET_CorrT1_phi;
+  float MET_CorrT1_sumET;
+  float MET_CorrT1_metSignificance;
+  float MET_CorrT1_MuonEtFraction;
+  float MET_CorrT1_NeutralEMFraction;
+  float MET_CorrT1_NeutralHadEtFraction;
+  float MET_CorrT1_Type6EtFraction;
+  float MET_CorrT1_Type7EtFraction;
+
+  float MET_CorrMVA_et;
+  float MET_CorrMVA_pt;
+  float MET_CorrMVA_phi;
+  float MET_CorrMVA_sumET;
+  float MET_CorrMVA_metSignificance;
+  float MET_CorrMVA_MuonEtFraction;
+  float MET_CorrMVA_NeutralEMFraction;
+  float MET_CorrMVA_NeutralHadEtFraction;
+  float MET_CorrMVA_Type6EtFraction;
+  float MET_CorrMVA_Type7EtFraction;
+
 
   //=======  Event ===
   int EventNumber;
