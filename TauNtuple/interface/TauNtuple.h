@@ -319,6 +319,7 @@ private:
   bool doPatElectrons_;
   bool doPatMuons_;
   bool doPatMET_;
+  bool doMVAMET_;
 
   // Pat objects
   std::string srcPatJets_;
