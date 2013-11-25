@@ -7,9 +7,9 @@
 #include "TMatrixT.h"
 
 //#include "CMGTools/External/plugins/PileupJetIdProducer.cc"
-// #include "CMGTools/External/interface/PileupJetIdentifier.h"
+#include "CMGTools/External/interface/PileupJetIdentifier.h"
 // #include "CMGTools/External/interface/PileupJetIdAlgo.h"
-#include "DataFormats/JetReco/interface/PileupJetIdentifier.h"
+//#include "DataFormats/JetReco/interface/PileupJetIdentifier.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
@@ -1581,7 +1581,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_Uncorr_pt = pfMETUncorr->front().pt();
 		MET_Uncorr_phi = pfMETUncorr->front().phi();
 		MET_Uncorr_sumET = pfMETUncorr->front().sumEt();
-		MET_Uncorr_metSignificance       = pfMETUncorr->front().significance();
+		MET_Uncorr_significance       = pfMETUncorr->front().significance();
 		MET_Uncorr_MuonEtFraction        = pfMETUncorr->front().muonEtFraction();
 		MET_Uncorr_NeutralEMFraction     = pfMETUncorr->front().NeutralEMFraction();
 		MET_Uncorr_NeutralHadEtFraction  = pfMETUncorr->front().NeutralHadEtFraction();
@@ -1592,7 +1592,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT0T1_pt 					 = pfMETCorrT0T1->front().pt();
 		MET_CorrT0T1_phi 					 = pfMETCorrT0T1->front().phi();
 		MET_CorrT0T1_sumET 				 	= pfMETCorrT0T1->front().sumEt();
-		MET_CorrT0T1_metSignificance       	= pfMETCorrT0T1->front().significance();
+		MET_CorrT0T1_significance       	= pfMETCorrT0T1->front().significance();
 		MET_CorrT0T1_MuonEtFraction       	 = pfMETCorrT0T1->front().muonEtFraction();
 		MET_CorrT0T1_NeutralEMFraction     	= pfMETCorrT0T1->front().NeutralEMFraction();
 		MET_CorrT0T1_NeutralHadEtFraction  = pfMETCorrT0T1->front().NeutralHadEtFraction();
@@ -1603,7 +1603,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT1_pt 					 = pfMETCorrT1->front().pt();
 		MET_CorrT1_phi 					 = pfMETCorrT1->front().phi();
 		MET_CorrT1_sumET 				 = pfMETCorrT1->front().sumEt();
-		MET_CorrT1_metSignificance       = pfMETCorrT1->front().significance();
+		MET_CorrT1_significance       = pfMETCorrT1->front().significance();
 		MET_CorrT1_MuonEtFraction        = pfMETCorrT1->front().muonEtFraction();
 		MET_CorrT1_NeutralEMFraction     = pfMETCorrT1->front().NeutralEMFraction();
 		MET_CorrT1_NeutralHadEtFraction  = pfMETCorrT1->front().NeutralHadEtFraction();
@@ -1612,62 +1612,72 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 	} else {
 
-		edm::Handle<pat::MET> patMETUncorr;
-		iEvent.getByLabel(pfMETUncorr_, patMETUncorr);
+		edm::Handle<std::vector<pat::MET>> patMETUncorrHandle;
+		iEvent.getByLabel(pfMETUncorr_, patMETUncorrHandle);
+		pat::MET patMETUncorr = patMETUncorrHandle->front();
 
-		edm::Handle<pat::MET> patMETCorrT0T1;
-		iEvent.getByLabel(pfMETCorrT0T1_, patMETCorrT0T1);
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0T1Handle;
+		iEvent.getByLabel(pfMETCorrT0T1_, patMETCorrT0T1Handle);
+		pat::MET patMETCorrT0T1 = patMETCorrT0T1Handle->front();
 
-		edm::Handle<pat::MET> patMETCorrT1;
-		iEvent.getByLabel(pfMETCorrT1_, patMETCorrT1);
+		edm::Handle<std::vector<pat::MET>> patMETCorrT1Handle;
+		iEvent.getByLabel(pfMETCorrT1_, patMETCorrT1Handle);
+		pat::MET patMETCorrT1 = patMETCorrT1Handle->front();
 
-		MET_Uncorr_et = patMETUncorr->et();
-		MET_Uncorr_pt = patMETUncorr->pt();
-		MET_Uncorr_phi = patMETUncorr->phi();
-		MET_Uncorr_sumET = patMETUncorr->sumEt();
-		MET_Uncorr_metSignificance       = patMETUncorr->metSignificance();
-		MET_Uncorr_MuonEtFraction        = patMETUncorr->MuonEtFraction();
-		MET_Uncorr_NeutralEMFraction     = patMETUncorr->NeutralEMFraction();
-		MET_Uncorr_NeutralHadEtFraction  = patMETUncorr->NeutralHadEtFraction();
-		MET_Uncorr_Type6EtFraction       = patMETUncorr->Type6EtFraction();
-		MET_Uncorr_Type7EtFraction       = patMETUncorr->Type7EtFraction();
+		MET_Uncorr_et = patMETUncorr.et();
+		MET_Uncorr_pt = patMETUncorr.pt();
+		MET_Uncorr_phi = patMETUncorr.phi();
+		MET_Uncorr_sumET = patMETUncorr.sumEt();
+		MET_Uncorr_significance       = patMETUncorr.significance();
+		if (patMETUncorr.isPFMET()){
+			MET_Uncorr_MuonEtFraction        = patMETUncorr.MuonEtFraction();
+			MET_Uncorr_NeutralEMFraction     = patMETUncorr.NeutralEMFraction();
+			MET_Uncorr_NeutralHadEtFraction  = patMETUncorr.NeutralHadEtFraction();
+			MET_Uncorr_Type6EtFraction       = patMETUncorr.Type6EtFraction();
+			MET_Uncorr_Type7EtFraction       = patMETUncorr.Type7EtFraction();
+		}
 
-		MET_CorrT0T1_et 					 = patMETCorrT0T1->et();
-		MET_CorrT0T1_pt 					 = patMETCorrT0T1->pt();
-		MET_CorrT0T1_phi 					 = patMETCorrT0T1->phi();
-		MET_CorrT0T1_sumET 				 	= patMETCorrT0T1->sumEt();
-		MET_CorrT0T1_metSignificance       	= patMETCorrT0T1->metSignificance();
-		MET_CorrT0T1_MuonEtFraction       	 = patMETCorrT0T1->MuonEtFraction();
-		MET_CorrT0T1_NeutralEMFraction     	= patMETCorrT0T1->NeutralEMFraction();
-		MET_CorrT0T1_NeutralHadEtFraction  = patMETCorrT0T1->NeutralHadEtFraction();
-		MET_CorrT0T1_Type6EtFraction       = patMETCorrT0T1->Type6EtFraction();
-		MET_CorrT0T1_Type7EtFraction       = patMETCorrT0T1->Type7EtFraction();
+		MET_CorrT0T1_et 					 = patMETCorrT0T1.et();
+		MET_CorrT0T1_pt 					 = patMETCorrT0T1.pt();
+		MET_CorrT0T1_phi 					 = patMETCorrT0T1.phi();
+		MET_CorrT0T1_sumET 				 	= patMETCorrT0T1.sumEt();
+		MET_CorrT0T1_significance       	= patMETCorrT0T1.significance();
+		if (patMETCorrT0T1.isPFMET()){
+			MET_CorrT0T1_MuonEtFraction       	 = patMETCorrT0T1.MuonEtFraction();
+			MET_CorrT0T1_NeutralEMFraction     	= patMETCorrT0T1.NeutralEMFraction();
+			MET_CorrT0T1_NeutralHadEtFraction  = patMETCorrT0T1.NeutralHadEtFraction();
+			MET_CorrT0T1_Type6EtFraction       = patMETCorrT0T1.Type6EtFraction();
+			MET_CorrT0T1_Type7EtFraction       = patMETCorrT0T1.Type7EtFraction();
+		}
 
-		MET_CorrT1_et 					 = patMETCorrT1->et();
-		MET_CorrT1_pt 					 = patMETCorrT1->pt();
-		MET_CorrT1_phi 					 = patMETCorrT1->phi();
-		MET_CorrT1_sumET 				 = patMETCorrT1->sumEt();
-		MET_CorrT1_metSignificance       = patMETCorrT1->metSignificance();
-		MET_CorrT1_MuonEtFraction        = patMETCorrT1->MuonEtFraction();
-		MET_CorrT1_NeutralEMFraction     = patMETCorrT1->NeutralEMFraction();
-		MET_CorrT1_NeutralHadEtFraction  = patMETCorrT1->NeutralHadEtFraction();
-		MET_CorrT1_Type6EtFraction       = patMETCorrT1->Type6EtFraction();
-		MET_CorrT1_Type7EtFraction       = patMETCorrT1->Type7EtFraction();
+		MET_CorrT1_et 					 = patMETCorrT1.et();
+		MET_CorrT1_pt 					 = patMETCorrT1.pt();
+		MET_CorrT1_phi 					 = patMETCorrT1.phi();
+		MET_CorrT1_sumET 				 = patMETCorrT1.sumEt();
+		MET_CorrT1_significance       = patMETCorrT1.significance();
+		if (patMETCorrT1.isPFMET()){
+			MET_CorrT1_MuonEtFraction        = patMETCorrT1.MuonEtFraction();
+			MET_CorrT1_NeutralEMFraction     = patMETCorrT1.NeutralEMFraction();
+			MET_CorrT1_NeutralHadEtFraction  = patMETCorrT1.NeutralHadEtFraction();
+			MET_CorrT1_Type6EtFraction       = patMETCorrT1.Type6EtFraction();
+			MET_CorrT1_Type7EtFraction       = patMETCorrT1.Type7EtFraction();
+		}
 
 		if (doMVAMET_){
-			edm::Handle<pat::MET> patMETCorrMVA;
-			iEvent.getByLabel(pfMETCorrMVA_, patMETCorrMVA);
+			edm::Handle<std::vector<pat::MET>> patMETCorrMVAHandle;
+			iEvent.getByLabel(pfMETCorrMVA_, patMETCorrMVAHandle);
+			pat::MET patMETCorrMVA = patMETCorrMVAHandle->front();
 
-			MET_CorrMVA_et 					 = patMETCorrMVA->et();
-			MET_CorrMVA_pt 					 = patMETCorrMVA->pt();
-			MET_CorrMVA_phi 				= patMETCorrMVA->phi();
-			MET_CorrMVA_sumET 				 = patMETCorrMVA->sumEt();
-			MET_CorrMVA_metSignificance       = patMETCorrMVA->metSignificance();
-			MET_CorrMVA_MuonEtFraction        = patMETCorrMVA->MuonEtFraction();
-			MET_CorrMVA_NeutralEMFraction     = patMETCorrMVA->NeutralEMFraction();
-			MET_CorrMVA_NeutralHadEtFraction  = patMETCorrMVA->NeutralHadEtFraction();
-			MET_CorrMVA_Type6EtFraction       = patMETCorrMVA->Type6EtFraction();
-			MET_CorrMVA_Type7EtFraction       = patMETCorrMVA->Type7EtFraction();
+			MET_CorrMVA_et 					 = patMETCorrMVA.et();
+			MET_CorrMVA_pt 					 = patMETCorrMVA.pt();
+			MET_CorrMVA_phi 				= patMETCorrMVA.phi();
+			MET_CorrMVA_sumET 				 = patMETCorrMVA.sumEt();
+			MET_CorrMVA_significance       = patMETCorrMVA.significance();
+			MET_CorrMVA_MuonEtFraction        = patMETCorrMVA.MuonEtFraction();
+			MET_CorrMVA_NeutralEMFraction     = patMETCorrMVA.NeutralEMFraction();
+			MET_CorrMVA_NeutralHadEtFraction  = patMETCorrMVA.NeutralHadEtFraction();
+			MET_CorrMVA_Type6EtFraction       = patMETCorrMVA.Type6EtFraction();
+			MET_CorrMVA_Type7EtFraction       = patMETCorrMVA.Type7EtFraction();
 		}
 	}
 }
@@ -2258,7 +2268,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_Uncorr_pt", &MET_Uncorr_pt);
 	output_tree->Branch("MET_Uncorr_phi", &MET_Uncorr_phi);
 	output_tree->Branch("MET_Uncorr_sumET", &MET_Uncorr_sumET);
-	output_tree->Branch("MET_Uncorr_metSignificance", &MET_Uncorr_metSignificance);
+	output_tree->Branch("MET_Uncorr_significance", &MET_Uncorr_significance);
 	output_tree->Branch("MET_Uncorr_MuonEtFraction", &MET_Uncorr_MuonEtFraction);
 	output_tree->Branch("MET_Uncorr_NeutralEMFraction", &MET_Uncorr_NeutralEMFraction);
 	output_tree->Branch("MET_Uncorr_NeutralHadEtFraction", &MET_Uncorr_NeutralHadEtFraction);
@@ -2269,7 +2279,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrT0T1_pt", &MET_CorrT0T1_pt);
 	output_tree->Branch("MET_CorrT0T1_phi", &MET_CorrT0T1_phi);
 	output_tree->Branch("MET_CorrT0T1_sumET", &MET_CorrT0T1_sumET);
-	output_tree->Branch("MET_CorrT0T1_metSignificance", &MET_CorrT0T1_metSignificance);
+	output_tree->Branch("MET_CorrT0T1_significance", &MET_CorrT0T1_significance);
 	output_tree->Branch("MET_CorrT0T1_MuonEtFraction", &MET_CorrT0T1_MuonEtFraction);
 	output_tree->Branch("MET_CorrT0T1_NeutralEMFraction", &MET_CorrT0T1_NeutralEMFraction);
 	output_tree->Branch("MET_CorrT0T1_NeutralHadEtFraction", &MET_CorrT0T1_NeutralHadEtFraction);
@@ -2280,7 +2290,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrT1_pt", &MET_CorrT1_pt);
 	output_tree->Branch("MET_CorrT1_phi", &MET_CorrT1_phi);
 	output_tree->Branch("MET_CorrT1_sumET", &MET_CorrT1_sumET);
-	output_tree->Branch("MET_CorrT1_metSignificance", &MET_CorrT1_metSignificance);
+	output_tree->Branch("MET_CorrT1_significance", &MET_CorrT1_significance);
 	output_tree->Branch("MET_CorrT1_MuonEtFraction", &MET_CorrT1_MuonEtFraction);
 	output_tree->Branch("MET_CorrT1_NeutralEMFraction", &MET_CorrT1_NeutralEMFraction);
 	output_tree->Branch("MET_CorrT1_NeutralHadEtFraction", &MET_CorrT1_NeutralHadEtFraction);
@@ -2291,7 +2301,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVA_pt", &MET_CorrMVA_pt);
 	output_tree->Branch("MET_CorrMVA_phi", &MET_CorrMVA_phi);
 	output_tree->Branch("MET_CorrMVA_sumET", &MET_CorrMVA_sumET);
-	output_tree->Branch("MET_CorrMVA_metSignificance", &MET_CorrMVA_metSignificance);
+	output_tree->Branch("MET_CorrMVA_significance", &MET_CorrMVA_significance);
 	output_tree->Branch("MET_CorrMVA_MuonEtFraction", &MET_CorrMVA_MuonEtFraction);
 	output_tree->Branch("MET_CorrMVA_NeutralEMFraction", &MET_CorrMVA_NeutralEMFraction);
 	output_tree->Branch("MET_CorrMVA_NeutralHadEtFraction", &MET_CorrMVA_NeutralHadEtFraction);
