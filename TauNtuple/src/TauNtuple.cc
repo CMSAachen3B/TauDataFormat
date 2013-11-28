@@ -1254,7 +1254,6 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					iEvent.getByLabel(BTagJetCollection_, bJetCollection);
 					int bJetIdx = -1;
 					reco::JetBaseRef bJet = getMatchedBTagJet(bJetCollection,iPFJet_p4,bJetIdx,0.5);
-					std::cout << "     jet pt = " << PFJet->p4().Pt() << std::endl;
 					if (bJetIdx == -1){
 						PFJet_bDiscriminator.push_back(-1);
 					}
@@ -1262,7 +1261,6 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
 						edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
 						iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
-						std::cout << "Access bTag value..." << std::endl;
 						double bTagValue = reco::JetFloatAssociation::getValue(*jetDiscriminator,bJet);
 						PFJet_bDiscriminator.push_back(bTagValue);
 					}
@@ -1270,7 +1268,6 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					if (!iEvent.isRealData() && bJetIdx != -1) {
 						edm::Handle<reco::JetFlavourMatchingCollection> jetFlavMatch;
 						iEvent.getByLabel(jetFlavourTag_, jetFlavMatch);
-						std::cout << "Access flavour value..." << std::endl;
 						PFJet_partonFlavour.push_back((*jetFlavMatch)[bJet].getFlavour());
 					}
 				}
@@ -1283,6 +1280,15 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		//edm::Handle<edm::View<pat::Jet> > jetHandle;
 		//iEvent.getByLabel("PatJets", jetHandle);
 		//edm::View<pat::Jet> PatJet = *jetHandle;
+
+		edm::Handle<std::vector<reco::PFTau> > HPStaus;
+		iEvent.getByLabel(hpsTauProducer_, HPStaus);
+
+		edm::Handle<edm::ValueMap<float> > puJetIdMva;
+		iEvent.getByLabel("puJetMva","full53xDiscriminant",puJetIdMva);
+
+		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
+		iEvent.getByLabel("puJetMva","full53xId",puJetIdFlag);
 
 		for (pat::JetCollection::size_type iPatJet = 0; iPatJet < jets->size(); iPatJet++) {
 			//for(pat::JetCollection::size_type iPatJet = 0; iPatJet < PatJet.size(); iPatJet++){
@@ -1344,24 +1350,18 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					}
 				}
 				PFJet_Track_idx.push_back(matches);
-				edm::Handle<std::vector<reco::PFTau> > HPStaus;
-				iEvent.getByLabel(hpsTauProducer_, HPStaus);
 				int idx = -1;
 				reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus, iPatJet_p4, idx);
 				PFJet_MatchedHPS_idx.push_back(idx);
 
 				/////// PU Jet ID
-				edm::Handle<edm::ValueMap<float> > puJetIdMva;
-				iEvent.getByLabel("fullDiscriminant",puJetIdMva);
+				float	puJetID_discr  = (*puJetIdMva)[PatJet];
+				int		puJetID_idflag = (*puJetIdFlag)[PatJet];
 
-				edm::Handle<edm::ValueMap<int> > puJetIdFlag;
-				iEvent.getByLabel("fullId",puJetIdFlag);
-
-				PFJet_PUJetID_discr.push_back((*puJetIdMva)[PatJet]);
-				int    idflag = (*puJetIdFlag)[PatJet];
-				PFJet_PUJetID_looseWP .push_back( PileupJetIdentifier::passJetId(idflag, PileupJetIdentifier::kLoose) );
-				PFJet_PUJetID_mediumWP.push_back( PileupJetIdentifier::passJetId(idflag, PileupJetIdentifier::kMedium) );
-				PFJet_PUJetID_tightWP .push_back( PileupJetIdentifier::passJetId(idflag, PileupJetIdentifier::kTight) );
+				PFJet_PUJetID_discr   .push_back(puJetID_discr);
+				PFJet_PUJetID_looseWP .push_back( PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kLoose) );
+				PFJet_PUJetID_mediumWP.push_back( PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kMedium) );
+				PFJet_PUJetID_tightWP .push_back( PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kTight) );
 
 				///////////////////////////////////////////////
 				//
@@ -2252,6 +2252,11 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFJet_neutralHadronEnergyFraction", &PFJet_neutralHadronEnergyFraction);
 	output_tree->Branch("PFJet_neutralEmEnergyFraction", &PFJet_neutralEmEnergyFraction);
 
+	output_tree->Branch("PFJet_PUJetID_discr", &PFJet_PUJetID_discr);
+	output_tree->Branch("PFJet_PUJetID_looseWP", &PFJet_PUJetID_looseWP);
+	output_tree->Branch("PFJet_PUJetID_mediumWP", &PFJet_PUJetID_mediumWP);
+	output_tree->Branch("PFJet_PUJetID_tightWP", &PFJet_PUJetID_tightWP);
+
 	output_tree->Branch("PFJet_partonFlavour", &PFJet_partonFlavour);
 	output_tree->Branch("PFJet_bDiscriminator", &PFJet_bDiscriminator);
 	output_tree->Branch("PFJet_BTagWeight", &PFJet_BTagWeight);
@@ -2495,7 +2500,6 @@ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PF
 // finds a jet in the jet collection used for b-tagging to a given PFJet
 // the closest by deltaR Jet is accepted
 reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float>  &Jet, int & match, double maxDeltaR = 0.5) {
-	std::cout << "!!!!!! Match new jet:" << std::endl;
 	TLorentzVector Jetp4;
 	Jetp4.SetE(Jet.at(0));
 	Jetp4.SetPx(Jet.at(1));
@@ -2507,7 +2511,6 @@ reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> >
 	for (unsigned int iJet = 0; iJet < bTagJets->size(); ++iJet) {
 		reco::JetBaseRef bTagJetCandidate(bTagJets, iJet);
 		double dr = sqrt(pow(DeltaPhi(bTagJetCandidate->p4().Phi(), Jetp4.Phi()), 2) + pow(bTagJetCandidate->p4().Eta() - Jetp4.Eta(), 2));
-		std::cout << "     dR = " << dr << std::endl;
 		if (dr < deltaR) {
 			std::cout << "        Select this jet, idx = " << iJet << std::endl;
 			deltaR = dr;
@@ -2515,12 +2518,6 @@ reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> >
 			match = iJet;
 		}
 
-	}
-	if (match == -1) {
-		std::cout << "     Attention! No jet matched!" << std::endl;
-	}
-	else {
-		std::cout << "     Jet matched with dR = " << deltaR << std::endl;
 	}
 	return MatchedBTagJet;
 }
@@ -2889,6 +2886,11 @@ void TauNtuple::ClearEvent() {
 	PFJet_chargedHadronEnergyFraction.clear();
 	PFJet_neutralHadronEnergyFraction.clear();
 	PFJet_neutralEmEnergyFraction.clear();
+
+	PFJet_PUJetID_discr.clear();
+	PFJet_PUJetID_looseWP.clear();
+	PFJet_PUJetID_mediumWP.clear();
+	PFJet_PUJetID_tightWP.clear();
 
 	PFJet_partonFlavour.clear();
 	PFJet_bDiscriminator.clear();
