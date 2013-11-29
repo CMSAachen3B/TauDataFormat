@@ -208,7 +208,11 @@ private:
   static bool isGoodJet(pat::JetRef &RefJet);
 
   EGammaMvaEleEstimator* myMVATrigNoIP2012;
+  EGammaMvaEleEstimator* myMVATrig2012;
+  EGammaMvaEleEstimator* myMVANonTrig2012;
   std::vector<std::string> myManualCatWeightsTrigNoIP2012;
+  std::vector<std::string> myManualCatWeightsTrig2012;
+  std::vector<std::string> myManualCatWeightsNonTrig2012;
 
   static double MuonPtCut_;
   static double MuonEtaCut_;
@@ -258,23 +262,37 @@ private:
   //edm::InputTag reducedEBRecHitCollection_;
   //edm::InputTag reducedEERecHitCollection_;
   // Electron MVA ID
-  std::string ElectronMVAWeights1_;
-  std::string ElectronMVAWeights2_;
-  std::string ElectronMVAWeights3_;
-  std::string ElectronMVAWeights4_;
-  std::string ElectronMVAWeights5_;
-  std::string ElectronMVAWeights6_;
-  float ElectronMVAPtCut_;
-  std::vector<std::string> discriminators_; 
+  std::string ElectronMVATrigWeights1_;
+  std::string ElectronMVATrigWeights2_;
+  std::string ElectronMVATrigWeights3_;
+  std::string ElectronMVATrigWeights4_;
+  std::string ElectronMVATrigWeights5_;
+  std::string ElectronMVATrigWeights6_;
+  std::string ElectronMVATrigNoIPWeights1_;
+  std::string ElectronMVATrigNoIPWeights2_;
+  std::string ElectronMVATrigNoIPWeights3_;
+  std::string ElectronMVATrigNoIPWeights4_;
+  std::string ElectronMVATrigNoIPWeights5_;
+  std::string ElectronMVATrigNoIPWeights6_;
+  std::string ElectronMVANonTrigWeights1_;
+  std::string ElectronMVANonTrigWeights2_;
+  std::string ElectronMVANonTrigWeights3_;
+  std::string ElectronMVANonTrigWeights4_;
+  std::string ElectronMVANonTrigWeights5_;
+  std::string ElectronMVANonTrigWeights6_;
 
   // PU
   std::string ScaleFactor_;
   std::string PUInputFile_;
   std::string PUInputHistoMC_;
   std::string PUInputHistoData_;
+  std::string PUInputHistoData_p5_;
+  std::string PUInputHistoData_m5_;
   std::string PUOutputFile_;
 
   edm::Lumi3DReWeighting LumiWeights_;
+  edm::Lumi3DReWeighting LumiWeights_p5_;
+  edm::Lumi3DReWeighting LumiWeights_m5_;
 
   // MC Signal
   bool do_MCSummary_;
@@ -291,6 +309,7 @@ private:
   edm::Handle< L1GtTriggerMenuLite > triggerMenuLite_;
   bool doL1Triggers_;
   std::vector<std::string> l1TriggerNames_;
+  std::vector<std::string> useFilterModules_;
 
   float TriggerJetMatchingdr_;
   float TriggerMuonMatchingdr_;
@@ -552,7 +571,9 @@ private:
   std::vector<float> Electron_Track_dR;
   // Electron MVA ID
   std::vector<float> Electron_Rho_kt6PFJets;
-  std::vector<float> Electron_MVA_discriminator;
+  std::vector<float> Electron_MVA_Trig_discriminator;
+  std::vector<float> Electron_MVA_TrigNoIP_discriminator;
+  std::vector<float> Electron_MVA_NonTrig_discriminator;
 
   std::vector<int> Electron_charge;
   std::vector<int> Electron_pdgid;
@@ -639,6 +660,8 @@ private:
   int PileupInfo_NumInteractions_n0;
   int PileupInfo_NumInteractions_np1;
   float EvtWeight3D;
+  float EvtWeight3D_p5;
+  float EvtWeight3D_m5;
 
   std::vector<float> beamspot_par;
   std::vector<float> beamspot_cov;
@@ -689,6 +712,9 @@ private:
   std::vector<std::vector<float> > HLTTrigger_objs_Pt;
   std::vector<std::vector<float> > HLTTrigger_objs_Eta;
   std::vector<std::vector<float> > HLTTrigger_objs_Phi;
+  std::vector<std::vector<float> > HLTTrigger_objs_E;
+  std::vector<std::vector<int> > HLTTrigger_objs_Id;
+  std::vector<std::string> HLTTrigger_objs_trigger;
 
   std::vector<std::string>  L1TriggerName;
   std::vector<bool>         L1TriggerDecision;
