@@ -105,19 +105,32 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		generalTracks_(iConfig.getParameter<edm::InputTag>("generalTracks")),
 		gensrc_(iConfig.getParameter<edm::InputTag>("gensrc")),
 		GenEventInfo_(iConfig.getParameter<edm::InputTag>("GenEventInfo")),
-		Embedded_(iConfig.getUntrackedParameter("Embedded", (bool) false)), //embedding
-		ElectronMVAWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights1")), // Electron MVA ID
-		ElectronMVAWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights2")), //  |
-		ElectronMVAWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights3")), //  |
-		ElectronMVAWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights4")), // \ /
-		ElectronMVAWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights5")),
-		ElectronMVAWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVAWeights6")),
-		ElectronMVAPtCut_(iConfig.getParameter<double>("ElectronMVAPtCut")),
-		discriminators_(iConfig.getParameter<std::vector<std::string> >("discriminators")),
+		Embedded_(iConfig.getUntrackedParameter("Embedded", (bool) false)),
+		//embedding
+		ElectronMVATrigWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVATrigWeights1")), // Electron MVA ID
+		ElectronMVATrigWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVATrigWeights2")), //  |
+		ElectronMVATrigWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVATrigWeights3")), //  |
+		ElectronMVATrigWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVATrigWeights4")), // \ /
+		ElectronMVATrigWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVATrigWeights5")), //  v
+		ElectronMVATrigWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVATrigWeights6")),
+		ElectronMVATrigNoIPWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVATrigNoIPWeights1")),
+		ElectronMVATrigNoIPWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVATrigNoIPWeights2")),
+		ElectronMVATrigNoIPWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVATrigNoIPWeights3")),
+		ElectronMVATrigNoIPWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVATrigNoIPWeights4")),
+		ElectronMVATrigNoIPWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVATrigNoIPWeights5")),
+		ElectronMVATrigNoIPWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVATrigNoIPWeights6")),
+		ElectronMVANonTrigWeights1_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights1")),
+		ElectronMVANonTrigWeights2_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights2")),
+		ElectronMVANonTrigWeights3_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights3")),
+		ElectronMVANonTrigWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights4")),
+		ElectronMVANonTrigWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights5")),
+		ElectronMVANonTrigWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights6")),
 		ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
 		PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
 		PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
 		PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
+		PUInputHistoData_p5_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData_p5")),
+		PUInputHistoData_m5_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData_m5")),
 		PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile", (std::string) ("Weight3D.root"))),
 		do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary", (bool) (true))),
 		do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete", (bool) (true))),
@@ -128,6 +141,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		l1GtTriggerMenuLite_(iConfig.getParameter<edm::InputTag>("L1GtTriggerMenuLite")),
 		doL1Triggers_(iConfig.getUntrackedParameter("doL1Triggers_", (bool) (false))),
 		l1TriggerNames_(iConfig.getParameter<std::vector<std::string> >("l1TriggerNames")),
+		useFilterModules_(iConfig.getParameter<std::vector<std::string> >("useFilterModules")),
 		TriggerJetMatchingdr_(iConfig.getUntrackedParameter("TriggerJetMatchingdr", (double) 0.3)),
 		TriggerMuonMatchingdr_(iConfig.getUntrackedParameter("TriggerMuonMatchingdr", (double) 0.3)),
 		TriggerElectronMatchingdr_(iConfig.getUntrackedParameter("TriggerElectronMatchingdr", (double) 0.3)),
@@ -156,8 +170,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	MuonPtCut_ = iConfig.getUntrackedParameter("MuonPtCut", (double) 3.0);
 	MuonEtaCut_ = iConfig.getUntrackedParameter("MuonEtaCut", (double) 2.5);
 	TauPtCut_ = iConfig.getUntrackedParameter("TauPtCut", (double) 18.0);
-	TauEtaCut_ = iConfig.getUntrackedParameter("TauEtaCut", (double) 2.0);
-	ElectronPtCut_ = iConfig.getUntrackedParameter("ElectronPtCut", (double) 10.0);
+	TauEtaCut_ = iConfig.getUntrackedParameter("TauEtaCut", (double) 2.4);
+	ElectronPtCut_ = iConfig.getUntrackedParameter("ElectronPtCut", (double) 8.0);
 	ElectronEtaCut_ = iConfig.getUntrackedParameter("ElectronEtaCut", (double) 2.5);
 	JetPtCut_ = iConfig.getUntrackedParameter("JetPtCut", (double) 18.0);
 	JetEtaCut_ = iConfig.getUntrackedParameter("JetEtaCut", (double) 4.7);
@@ -175,21 +189,46 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 
 	LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
 	LumiWeights_.weight3D_init(1);
+	LumiWeights_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
+	LumiWeights_p5_.weight3D_init(1);
+	LumiWeights_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
+	LumiWeights_m5_.weight3D_init(1);
 
 	// Electron MVA ID
 
 	myManualCatWeightsTrigNoIP2012.clear();
-	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights1_);
-	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights2_);
-	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights3_);
-	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights4_);
-	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights5_);
-	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVAWeights6_);
+	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVATrigNoIPWeights1_);
+	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVATrigNoIPWeights2_);
+	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVATrigNoIPWeights3_);
+	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVATrigNoIPWeights4_);
+	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVATrigNoIPWeights5_);
+	myManualCatWeightsTrigNoIP2012.push_back(ElectronMVATrigNoIPWeights6_);
 
 	Bool_t manualCat = true;
 	myMVATrigNoIP2012 = new EGammaMvaEleEstimator();
-	myMVATrigNoIP2012->initialize("BDT", EGammaMvaEleEstimator::kTrigNoIP, //kNonTrig,
-			manualCat, myManualCatWeightsTrigNoIP2012);
+	myMVATrigNoIP2012->initialize("BDT", EGammaMvaEleEstimator::kTrigNoIP, manualCat, myManualCatWeightsTrigNoIP2012);
+
+	myManualCatWeightsTrig2012.clear();
+	myManualCatWeightsTrig2012.push_back(ElectronMVATrigWeights1_);
+	myManualCatWeightsTrig2012.push_back(ElectronMVATrigWeights2_);
+	myManualCatWeightsTrig2012.push_back(ElectronMVATrigWeights3_);
+	myManualCatWeightsTrig2012.push_back(ElectronMVATrigWeights4_);
+	myManualCatWeightsTrig2012.push_back(ElectronMVATrigWeights5_);
+	myManualCatWeightsTrig2012.push_back(ElectronMVATrigWeights6_);
+
+	myMVATrig2012 = new EGammaMvaEleEstimator();
+	myMVATrig2012->initialize("BDT", EGammaMvaEleEstimator::kTrig, manualCat, myManualCatWeightsTrig2012);
+
+	myManualCatWeightsNonTrig2012.clear();
+	myManualCatWeightsNonTrig2012.push_back(ElectronMVANonTrigWeights1_);
+	myManualCatWeightsNonTrig2012.push_back(ElectronMVANonTrigWeights2_);
+	myManualCatWeightsNonTrig2012.push_back(ElectronMVANonTrigWeights3_);
+	myManualCatWeightsNonTrig2012.push_back(ElectronMVANonTrigWeights4_);
+	myManualCatWeightsNonTrig2012.push_back(ElectronMVANonTrigWeights5_);
+	myManualCatWeightsNonTrig2012.push_back(ElectronMVANonTrigWeights6_);
+
+	myMVANonTrig2012 = new EGammaMvaEleEstimator();
+	myMVANonTrig2012->initialize("BDT", EGammaMvaEleEstimator::kNonTrig, manualCat, myManualCatWeightsNonTrig2012);
 
 }
 
@@ -216,7 +255,7 @@ bool TauNtuple::isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscrim
 bool TauNtuple::isGoodElectron(reco::GsfElectronRef &RefElectron) {
 	reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
 	if (RefElectron.isNonnull()) {
-		if (RefElectron->p4().Et() > ElectronPtCut_ && fabs(refSuperCluster->eta()) < ElectronEtaCut_)
+		if (RefElectron->p4().Et() > ElectronPtCut_ && fabs(refSuperCluster->eta()) < ElectronEtaCut_ && RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1)
 			return true;
 	}
 	return false;
@@ -1248,20 +1287,19 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus, iPFJet_p4, idx);
 				PFJet_MatchedHPS_idx.push_back(idx);
 
-				if(doBJets_){
+				if (doBJets_) {
 					// b-tagging is performed using CaloJets, so find corresponding CaloJet
 					edm::Handle<edm::View<reco::Jet> > bJetCollection;
 					iEvent.getByLabel(BTagJetCollection_, bJetCollection);
 					int bJetIdx = -1;
-					reco::JetBaseRef bJet = getMatchedBTagJet(bJetCollection,iPFJet_p4,bJetIdx,0.5);
-					if (bJetIdx == -1){
+					reco::JetBaseRef bJet = getMatchedBTagJet(bJetCollection, iPFJet_p4, bJetIdx, 0.5);
+					if (bJetIdx == -1) {
 						PFJet_bDiscriminator.push_back(-1);
-					}
-					else {
+					} else {
 						edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
 						edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
 						iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
-						double bTagValue = reco::JetFloatAssociation::getValue(*jetDiscriminator,bJet);
+						double bTagValue = reco::JetFloatAssociation::getValue(*jetDiscriminator, bJet);
 						PFJet_bDiscriminator.push_back(bTagValue);
 					}
 					//jet flavour (needed for weights)
@@ -1285,10 +1323,10 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		iEvent.getByLabel(hpsTauProducer_, HPStaus);
 
 		edm::Handle<edm::ValueMap<float> > puJetIdMva;
-		iEvent.getByLabel("puJetMva","full53xDiscriminant",puJetIdMva);
+		iEvent.getByLabel("puJetMva", "full53xDiscriminant", puJetIdMva);
 
 		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
-		iEvent.getByLabel("puJetMva","full53xId",puJetIdFlag);
+		iEvent.getByLabel("puJetMva", "full53xId", puJetIdFlag);
 
 		for (pat::JetCollection::size_type iPatJet = 0; iPatJet < jets->size(); iPatJet++) {
 			//for(pat::JetCollection::size_type iPatJet = 0; iPatJet < PatJet.size(); iPatJet++){
@@ -1355,13 +1393,13 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				PFJet_MatchedHPS_idx.push_back(idx);
 
 				/////// PU Jet ID
-				float	puJetID_discr  = (*puJetIdMva)[PatJet];
-				int		puJetID_idflag = (*puJetIdFlag)[PatJet];
+				float puJetID_discr = (*puJetIdMva)[PatJet];
+				int puJetID_idflag = (*puJetIdFlag)[PatJet];
 
-				PFJet_PUJetID_discr   .push_back(puJetID_discr);
-				PFJet_PUJetID_looseWP .push_back( PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kLoose) );
-				PFJet_PUJetID_mediumWP.push_back( PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kMedium) );
-				PFJet_PUJetID_tightWP .push_back( PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kTight) );
+				PFJet_PUJetID_discr.push_back(puJetID_discr);
+				PFJet_PUJetID_looseWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kLoose));
+				PFJet_PUJetID_mediumWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kMedium));
+				PFJet_PUJetID_tightWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kTight));
 
 				///////////////////////////////////////////////
 				//
@@ -1396,6 +1434,58 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 	const double *RhoIsolationRef = RhoIsolation.product();
 
 	RhoIsolationAllInputTags = *(RhoIsolationRef);
+
+	/////////////////////////////////////////////////////////////////////////////////////
+	//	                                                                              //
+	// MVA IDs from https://twiki.cern.ch/twiki/bin/view/CMS/ElectronMVAIDForH2Tau     //
+	//                                                                                 //
+	// and https://twiki.cern.ch/twiki/bin/view/CMS/MultivariateElectronIdentification //
+	//                                                                                 //
+	/////////////////////////////////////////////////////////////////////////////////////
+	const reco::GsfElectronCollection theEGamma = *(ElectronCollection.product());
+
+	edm::Handle<reco::VertexCollection> dummyVertexCollection;
+	iEvent.getByLabel("offlinePrimaryVertices", dummyVertexCollection);
+
+	reco::Vertex dummy;
+	const reco::Vertex *pv = &dummy;
+	for (unsigned i = 0; i < dummyVertexCollection->size(); i++) {
+		if (isGoodVertex(dummyVertexCollection->at(i))) {
+			pv = &dummyVertexCollection->at(i);
+			break;
+		}
+	}
+
+	edm::ESHandle<TransientTrackBuilder> builder;
+	iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", builder);
+	TransientTrackBuilder theBuilder = *(builder.product());
+
+	EcalClusterLazyTools EcalCluster(iEvent, iSetup, (edm::InputTag) "reducedEcalRecHitsEB", (edm::InputTag) "reducedEcalRecHitsEE");
+
+	Double_t _Rho = 0;
+	edm::Handle<double> rhoPtr;
+	const edm::InputTag eventrho("kt6PFJets", "rho");
+	iEvent.getByLabel(eventrho, rhoPtr);
+	_Rho = *rhoPtr;
+
+	double myMVATrig2012Method1 = -1;
+	double myMVATrigNoIP2012Method1 = -1;
+	double myMVANonTrig2012Method1 = -1;
+	for (unsigned i = 0; i < theEGamma.size(); i++) {
+		if (theEGamma[i].et() > ElectronPtCut_ && fabs(theEGamma[i].superCluster()->eta()) < ElectronEtaCut_ && theEGamma[i].gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1) {
+			myMVATrig2012Method1 = myMVATrig2012->mvaValue((theEGamma[i]), *pv, theBuilder, EcalCluster, false);
+			myMVATrigNoIP2012Method1 = myMVATrigNoIP2012->mvaValue((theEGamma[i]), *pv, _Rho, EcalCluster, false);
+			myMVANonTrig2012Method1 = myMVANonTrig2012->mvaValue((theEGamma[i]), *pv, theBuilder, EcalCluster, false);
+			Electron_MVA_Trig_discriminator.push_back(myMVATrig2012Method1);
+			Electron_MVA_TrigNoIP_discriminator.push_back(myMVATrigNoIP2012Method1);
+			Electron_MVA_NonTrig_discriminator.push_back(myMVANonTrig2012Method1);
+		}
+	}
+	///////////////////
+	//               //
+	// END OF MVA ID //
+	//               //
+	///////////////////
 
 	for (reco::PFCandidateCollection::size_type iPFElectron = 0; iPFElectron < ElectronCollection->size(); iPFElectron++) {
 		reco::GsfElectronRef RefElectron(ElectronCollection, iPFElectron);
@@ -1513,49 +1603,6 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			iEvent.getByLabel(erho, Rhokt6PFJets);
 			Electron_Rho_kt6PFJets.push_back(*Rhokt6PFJets);
 
-			////////////////////////////////////////////////////////////////////////////////
-			//	                                                                           //
-			// MVA ID from https://twiki.cern.ch/twiki/bin/view/CMS/ElectronMVAIDForH2Tau //
-			//                                                                            //
-			////////////////////////////////////////////////////////////////////////////////
-
-			double myMVATrigNoIP2012Method1 = -1.;
-
-			if (RefElectron->et() >= ElectronMVAPtCut_) {
-				Bool_t validKF = true;
-				reco::TrackRef myTrackRef = RefElectron->closestCtfTrackRef();
-				validKF = (myTrackRef.isAvailable());
-				validKF = (myTrackRef.isNonnull());
-
-				EcalClusterLazyTools myEcalCluster(iEvent, iSetup, (edm::InputTag) "reducedEcalRecHitsEB", (edm::InputTag) "reducedEcalRecHitsEE");
-
-				Double_t Var_spp;
-				std::vector<float> vCov = myEcalCluster.localCovariances(*(RefElectron->superCluster()->seed()));
-				if (!isnan(vCov[2]))
-					Var_spp = sqrt(vCov[2]);
-				else
-					Var_spp = 0.;
-
-				Double_t Var_R9 = myEcalCluster.e3x3(*(RefElectron->superCluster()->seed())) / RefElectron->superCluster()->rawEnergy();
-
-				edm::Handle<double> Rho;
-				const edm::InputTag eventrho("kt6PFJets", "rho");
-				iEvent.getByLabel(eventrho, Rho);
-				Double_t Var_rho = *Rho;
-
-				Bool_t printDebug = false;
-
-				myMVATrigNoIP2012Method1 = myMVATrigNoIP2012->mvaValue((Double_t) RefElectron->fbrem(), (Double_t) ((validKF) ? myTrackRef->normalizedChi2() : 0),
-						(Int_t) ((validKF) ? myTrackRef->hitPattern().trackerLayersWithMeasurement() : -1.), (Double_t) RefElectron->gsfTrack()->normalizedChi2(),
-						(Double_t) RefElectron->deltaEtaSuperClusterTrackAtVtx(), (Double_t) RefElectron->deltaPhiSuperClusterTrackAtVtx(), (Double_t) RefElectron->deltaEtaSeedClusterTrackAtCalo(),
-						(Double_t) RefElectron->sigmaIetaIeta(), (Double_t) Var_spp, (Double_t) RefElectron->superCluster()->etaWidth(), (Double_t) RefElectron->superCluster()->phiWidth(),
-						(Double_t) ((RefElectron->e5x5()) != 0. ? 1. - (RefElectron->e1x5() / RefElectron->e5x5()) : -1.), (Double_t) Var_R9, (Double_t) RefElectron->hadronicOverEm(),
-						(Double_t) RefElectron->eSuperClusterOverP(), (Double_t) ((1.0 / RefElectron->superCluster()->energy()) - (1.0 / RefElectron->gsfTrack()->p())),
-						(Double_t) RefElectron->eEleClusterOverPout(), (Double_t) Var_rho, (Double_t) (RefElectron->superCluster()->preshowerEnergy() / RefElectron->superCluster()->rawEnergy()),
-						(Double_t) RefElectron->superCluster()->eta(), (Double_t) RefElectron->pt(), (Bool_t) printDebug);
-			}
-
-			Electron_MVA_discriminator.push_back(myMVATrigNoIP2012Method1);
 		}
 	}
 }
@@ -1581,34 +1628,34 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_Uncorr_pt = pfMETUncorr->front().pt();
 		MET_Uncorr_phi = pfMETUncorr->front().phi();
 		MET_Uncorr_sumET = pfMETUncorr->front().sumEt();
-		MET_Uncorr_significance       = pfMETUncorr->front().significance();
-		MET_Uncorr_MuonEtFraction        = pfMETUncorr->front().muonEtFraction();
-		MET_Uncorr_NeutralEMFraction     = pfMETUncorr->front().NeutralEMFraction();
-		MET_Uncorr_NeutralHadEtFraction  = pfMETUncorr->front().NeutralHadEtFraction();
-		MET_Uncorr_Type6EtFraction       = pfMETUncorr->front().Type6EtFraction();
-		MET_Uncorr_Type7EtFraction       = pfMETUncorr->front().Type7EtFraction();
+		MET_Uncorr_significance = pfMETUncorr->front().significance();
+		MET_Uncorr_MuonEtFraction = pfMETUncorr->front().muonEtFraction();
+		MET_Uncorr_NeutralEMFraction = pfMETUncorr->front().NeutralEMFraction();
+		MET_Uncorr_NeutralHadEtFraction = pfMETUncorr->front().NeutralHadEtFraction();
+		MET_Uncorr_Type6EtFraction = pfMETUncorr->front().Type6EtFraction();
+		MET_Uncorr_Type7EtFraction = pfMETUncorr->front().Type7EtFraction();
 
-		MET_CorrT0T1_et 					 = pfMETCorrT0T1->front().et();
-		MET_CorrT0T1_pt 					 = pfMETCorrT0T1->front().pt();
-		MET_CorrT0T1_phi 					 = pfMETCorrT0T1->front().phi();
-		MET_CorrT0T1_sumET 				 	= pfMETCorrT0T1->front().sumEt();
-		MET_CorrT0T1_significance       	= pfMETCorrT0T1->front().significance();
-		MET_CorrT0T1_MuonEtFraction       	 = pfMETCorrT0T1->front().muonEtFraction();
-		MET_CorrT0T1_NeutralEMFraction     	= pfMETCorrT0T1->front().NeutralEMFraction();
-		MET_CorrT0T1_NeutralHadEtFraction  = pfMETCorrT0T1->front().NeutralHadEtFraction();
-		MET_CorrT0T1_Type6EtFraction       = pfMETCorrT0T1->front().Type6EtFraction();
-		MET_CorrT0T1_Type7EtFraction       = pfMETCorrT0T1->front().Type7EtFraction();
+		MET_CorrT0T1_et = pfMETCorrT0T1->front().et();
+		MET_CorrT0T1_pt = pfMETCorrT0T1->front().pt();
+		MET_CorrT0T1_phi = pfMETCorrT0T1->front().phi();
+		MET_CorrT0T1_sumET = pfMETCorrT0T1->front().sumEt();
+		MET_CorrT0T1_significance = pfMETCorrT0T1->front().significance();
+		MET_CorrT0T1_MuonEtFraction = pfMETCorrT0T1->front().muonEtFraction();
+		MET_CorrT0T1_NeutralEMFraction = pfMETCorrT0T1->front().NeutralEMFraction();
+		MET_CorrT0T1_NeutralHadEtFraction = pfMETCorrT0T1->front().NeutralHadEtFraction();
+		MET_CorrT0T1_Type6EtFraction = pfMETCorrT0T1->front().Type6EtFraction();
+		MET_CorrT0T1_Type7EtFraction = pfMETCorrT0T1->front().Type7EtFraction();
 
-		MET_CorrT1_et 					 = pfMETCorrT1->front().et();
-		MET_CorrT1_pt 					 = pfMETCorrT1->front().pt();
-		MET_CorrT1_phi 					 = pfMETCorrT1->front().phi();
-		MET_CorrT1_sumET 				 = pfMETCorrT1->front().sumEt();
-		MET_CorrT1_significance       = pfMETCorrT1->front().significance();
-		MET_CorrT1_MuonEtFraction        = pfMETCorrT1->front().muonEtFraction();
-		MET_CorrT1_NeutralEMFraction     = pfMETCorrT1->front().NeutralEMFraction();
-		MET_CorrT1_NeutralHadEtFraction  = pfMETCorrT1->front().NeutralHadEtFraction();
-		MET_CorrT1_Type6EtFraction       = pfMETCorrT1->front().Type6EtFraction();
-		MET_CorrT1_Type7EtFraction       = pfMETCorrT1->front().Type7EtFraction();
+		MET_CorrT1_et = pfMETCorrT1->front().et();
+		MET_CorrT1_pt = pfMETCorrT1->front().pt();
+		MET_CorrT1_phi = pfMETCorrT1->front().phi();
+		MET_CorrT1_sumET = pfMETCorrT1->front().sumEt();
+		MET_CorrT1_significance = pfMETCorrT1->front().significance();
+		MET_CorrT1_MuonEtFraction = pfMETCorrT1->front().muonEtFraction();
+		MET_CorrT1_NeutralEMFraction = pfMETCorrT1->front().NeutralEMFraction();
+		MET_CorrT1_NeutralHadEtFraction = pfMETCorrT1->front().NeutralHadEtFraction();
+		MET_CorrT1_Type6EtFraction = pfMETCorrT1->front().Type6EtFraction();
+		MET_CorrT1_Type7EtFraction = pfMETCorrT1->front().Type7EtFraction();
 
 	} else {
 
@@ -1628,56 +1675,56 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_Uncorr_pt = patMETUncorr.pt();
 		MET_Uncorr_phi = patMETUncorr.phi();
 		MET_Uncorr_sumET = patMETUncorr.sumEt();
-		MET_Uncorr_significance       = patMETUncorr.significance();
-		if (patMETUncorr.isPFMET()){
-			MET_Uncorr_MuonEtFraction        = patMETUncorr.MuonEtFraction();
-			MET_Uncorr_NeutralEMFraction     = patMETUncorr.NeutralEMFraction();
-			MET_Uncorr_NeutralHadEtFraction  = patMETUncorr.NeutralHadEtFraction();
-			MET_Uncorr_Type6EtFraction       = patMETUncorr.Type6EtFraction();
-			MET_Uncorr_Type7EtFraction       = patMETUncorr.Type7EtFraction();
+		MET_Uncorr_significance = patMETUncorr.significance();
+		if (patMETUncorr.isPFMET()) {
+			MET_Uncorr_MuonEtFraction = patMETUncorr.MuonEtFraction();
+			MET_Uncorr_NeutralEMFraction = patMETUncorr.NeutralEMFraction();
+			MET_Uncorr_NeutralHadEtFraction = patMETUncorr.NeutralHadEtFraction();
+			MET_Uncorr_Type6EtFraction = patMETUncorr.Type6EtFraction();
+			MET_Uncorr_Type7EtFraction = patMETUncorr.Type7EtFraction();
 		}
 
-		MET_CorrT0T1_et 					 = patMETCorrT0T1.et();
-		MET_CorrT0T1_pt 					 = patMETCorrT0T1.pt();
-		MET_CorrT0T1_phi 					 = patMETCorrT0T1.phi();
-		MET_CorrT0T1_sumET 				 	= patMETCorrT0T1.sumEt();
-		MET_CorrT0T1_significance       	= patMETCorrT0T1.significance();
-		if (patMETCorrT0T1.isPFMET()){
-			MET_CorrT0T1_MuonEtFraction       	 = patMETCorrT0T1.MuonEtFraction();
-			MET_CorrT0T1_NeutralEMFraction     	= patMETCorrT0T1.NeutralEMFraction();
-			MET_CorrT0T1_NeutralHadEtFraction  = patMETCorrT0T1.NeutralHadEtFraction();
-			MET_CorrT0T1_Type6EtFraction       = patMETCorrT0T1.Type6EtFraction();
-			MET_CorrT0T1_Type7EtFraction       = patMETCorrT0T1.Type7EtFraction();
+		MET_CorrT0T1_et = patMETCorrT0T1.et();
+		MET_CorrT0T1_pt = patMETCorrT0T1.pt();
+		MET_CorrT0T1_phi = patMETCorrT0T1.phi();
+		MET_CorrT0T1_sumET = patMETCorrT0T1.sumEt();
+		MET_CorrT0T1_significance = patMETCorrT0T1.significance();
+		if (patMETCorrT0T1.isPFMET()) {
+			MET_CorrT0T1_MuonEtFraction = patMETCorrT0T1.MuonEtFraction();
+			MET_CorrT0T1_NeutralEMFraction = patMETCorrT0T1.NeutralEMFraction();
+			MET_CorrT0T1_NeutralHadEtFraction = patMETCorrT0T1.NeutralHadEtFraction();
+			MET_CorrT0T1_Type6EtFraction = patMETCorrT0T1.Type6EtFraction();
+			MET_CorrT0T1_Type7EtFraction = patMETCorrT0T1.Type7EtFraction();
 		}
 
-		MET_CorrT1_et 					 = patMETCorrT1.et();
-		MET_CorrT1_pt 					 = patMETCorrT1.pt();
-		MET_CorrT1_phi 					 = patMETCorrT1.phi();
-		MET_CorrT1_sumET 				 = patMETCorrT1.sumEt();
-		MET_CorrT1_significance       = patMETCorrT1.significance();
-		if (patMETCorrT1.isPFMET()){
-			MET_CorrT1_MuonEtFraction        = patMETCorrT1.MuonEtFraction();
-			MET_CorrT1_NeutralEMFraction     = patMETCorrT1.NeutralEMFraction();
-			MET_CorrT1_NeutralHadEtFraction  = patMETCorrT1.NeutralHadEtFraction();
-			MET_CorrT1_Type6EtFraction       = patMETCorrT1.Type6EtFraction();
-			MET_CorrT1_Type7EtFraction       = patMETCorrT1.Type7EtFraction();
+		MET_CorrT1_et = patMETCorrT1.et();
+		MET_CorrT1_pt = patMETCorrT1.pt();
+		MET_CorrT1_phi = patMETCorrT1.phi();
+		MET_CorrT1_sumET = patMETCorrT1.sumEt();
+		MET_CorrT1_significance = patMETCorrT1.significance();
+		if (patMETCorrT1.isPFMET()) {
+			MET_CorrT1_MuonEtFraction = patMETCorrT1.MuonEtFraction();
+			MET_CorrT1_NeutralEMFraction = patMETCorrT1.NeutralEMFraction();
+			MET_CorrT1_NeutralHadEtFraction = patMETCorrT1.NeutralHadEtFraction();
+			MET_CorrT1_Type6EtFraction = patMETCorrT1.Type6EtFraction();
+			MET_CorrT1_Type7EtFraction = patMETCorrT1.Type7EtFraction();
 		}
 
-		if (doMVAMET_){
+		if (doMVAMET_) {
 			edm::Handle<std::vector<pat::MET>> patMETCorrMVAHandle;
 			iEvent.getByLabel(pfMETCorrMVA_, patMETCorrMVAHandle);
 			pat::MET patMETCorrMVA = patMETCorrMVAHandle->front();
 
-			MET_CorrMVA_et 					 = patMETCorrMVA.et();
-			MET_CorrMVA_pt 					 = patMETCorrMVA.pt();
-			MET_CorrMVA_phi 				= patMETCorrMVA.phi();
-			MET_CorrMVA_sumET 				 = patMETCorrMVA.sumEt();
-			MET_CorrMVA_significance       = patMETCorrMVA.significance();
-			MET_CorrMVA_MuonEtFraction        = patMETCorrMVA.MuonEtFraction();
-			MET_CorrMVA_NeutralEMFraction     = patMETCorrMVA.NeutralEMFraction();
-			MET_CorrMVA_NeutralHadEtFraction  = patMETCorrMVA.NeutralHadEtFraction();
-			MET_CorrMVA_Type6EtFraction       = patMETCorrMVA.Type6EtFraction();
-			MET_CorrMVA_Type7EtFraction       = patMETCorrMVA.Type7EtFraction();
+			MET_CorrMVA_et = patMETCorrMVA.et();
+			MET_CorrMVA_pt = patMETCorrMVA.pt();
+			MET_CorrMVA_phi = patMETCorrMVA.phi();
+			MET_CorrMVA_sumET = patMETCorrMVA.sumEt();
+			MET_CorrMVA_significance = patMETCorrMVA.significance();
+			MET_CorrMVA_MuonEtFraction = patMETCorrMVA.MuonEtFraction();
+			MET_CorrMVA_NeutralEMFraction = patMETCorrMVA.NeutralEMFraction();
+			MET_CorrMVA_NeutralHadEtFraction = patMETCorrMVA.NeutralHadEtFraction();
+			MET_CorrMVA_Type6EtFraction = patMETCorrMVA.Type6EtFraction();
+			MET_CorrMVA_Type7EtFraction = patMETCorrMVA.Type7EtFraction();
 		}
 	}
 }
@@ -1764,6 +1811,10 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
 			std::string filterName_ = "";
 			edm::InputTag filterTag;
 			std::vector<std::string> filters = hltConfig_.moduleLabels(HTLTriggerName.at(i));
+			/*std::cout << "Module names" << std::endl;
+			 for(unsigned int ilabel=0; ilabel<filters.size(); ilabel++){
+			 std::cout << filters.at(ilabel) << std::endl;
+			 }*/
 			for (std::vector<std::string>::iterator filter = filters.begin(); filter != filters.end(); ++filter) {
 				edm::InputTag testTag(*filter, "", "HLT");
 				int testindex = triggerEvent->filterIndex(testTag);
@@ -1805,24 +1856,69 @@ void TauNtuple::fillTriggerInfo(edm::Event& iEvent, const edm::EventSetup& iSetu
 			std::vector<float> TriggerObj_Pt;
 			std::vector<float> TriggerObj_Eta;
 			std::vector<float> TriggerObj_Phi;
+			std::vector<float> TriggerObj_E;
+			std::vector<int> TriggerObj_Id;
 			std::vector<trigger::TriggerObject> trgobjs = triggerEvent->getObjects();
-			const trigger::Keys& KEYS(triggerEvent->filterKeys(index));
-			for (unsigned int ipart = 0; ipart < KEYS.size(); ipart++) {
-				TriggerObj_Pt.push_back(trgobjs.at(KEYS.at(ipart)).pt());
-				TriggerObj_Eta.push_back(trgobjs.at(KEYS.at(ipart)).eta());
-				TriggerObj_Phi.push_back(trgobjs.at(KEYS.at(ipart)).phi());
+			// old version
+			/*const trigger::Keys& KEYS(triggerEvent->filterKeys(index));
+			 for (unsigned int ipart = 0; ipart < KEYS.size(); ipart++) {
+			 TriggerObj_Pt.push_back(trgobjs.at(KEYS.at(ipart)).pt());
+			 TriggerObj_Eta.push_back(trgobjs.at(KEYS.at(ipart)).eta());
+			 TriggerObj_Phi.push_back(trgobjs.at(KEYS.at(ipart)).phi());
+			 TriggerObj_E.push_back(trgobjs.at(KEYS.at(ipart)).energy());
+			 std::cout << trgobjs.at(KEYS.at(ipart)).pt() << std::endl;
+			 }*/
+			// couple trigger objects to their trigger path and save their information *** new version ***
+			//std::cout << MyTriggerInfoNames.at(i) << std::endl;
+			if (triggerEvent.isValid()) {
+				for (unsigned int imodule = 0; imodule < useFilterModules_.size(); imodule++) {
+					for (unsigned int ifilter = 0; ifilter < filters.size(); ifilter++) {
+						if (filters.at(ifilter) == useFilterModules_.at(imodule)) {
+							//std::cout << useFilterModules_.at(imodule) << std::endl;
+							edm::InputTag tagEv(useFilterModules_.at(imodule), "", "HLT");
+							int ID = triggerEvent->filterIndex(tagEv);
+							if (ID != triggerEvent->sizeFilters()) {
+								const trigger::Vids& ids(triggerEvent->filterIds(ID));
+								const trigger::Keys& keys(triggerEvent->filterKeys(ID));
+								//std::cout << "#vids = " << ids.size() << std::endl;
+								for (unsigned int ivid = 0; ivid < ids.size(); ivid++) {
+									//std::cout << "vid: " << ids.at(ivid) << std::endl;
+
+									// Trigger objects have Ids in range [+81,+96]
+									if (ids.at(ivid) >= 81 && ids.at(ivid) <= 96) {
+										TriggerObj_Pt.push_back(trgobjs.at(keys.at(ivid)).pt());
+										TriggerObj_Eta.push_back(trgobjs.at(keys.at(ivid)).eta());
+										TriggerObj_Phi.push_back(trgobjs.at(keys.at(ivid)).phi());
+										TriggerObj_E.push_back(trgobjs.at(keys.at(ivid)).energy());
+										TriggerObj_Id.push_back(ids.at(ivid));
+									}
+								}
+							}
+						}
+					}
+				}
+			} else {
+				std::cout << "triggerEvent NOT valid" << std::endl;
 			}
+			//
 			HLTTrigger_objs_Pt.push_back(TriggerObj_Pt);
 			HLTTrigger_objs_Eta.push_back(TriggerObj_Eta);
 			HLTTrigger_objs_Phi.push_back(TriggerObj_Phi);
-		} else {
-			MuonTriggerMatch.push_back(std::vector<float>());
-			JetTriggerMatch.push_back(std::vector<float>());
-			TauTriggerMatch.push_back(std::vector<float>());
-			HLTTrigger_objs_Pt.push_back(std::vector<float>());
-			HLTTrigger_objs_Eta.push_back(std::vector<float>());
-			HLTTrigger_objs_Phi.push_back(std::vector<float>());
+			HLTTrigger_objs_E.push_back(TriggerObj_E);
+			HLTTrigger_objs_Id.push_back(TriggerObj_Id);
+			HLTTrigger_objs_trigger.push_back(MyTriggerInfoNames.at(i));
 		}
+		/*else{
+		 MuonTriggerMatch.push_back(std::vector<float>());
+		 JetTriggerMatch.push_back(std::vector<float>());
+		 TauTriggerMatch.push_back(std::vector<float>());
+		 HLTTrigger_objs_Pt.push_back(std::vector<float>());
+		 HLTTrigger_objs_Eta.push_back(std::vector<float>());
+		 HLTTrigger_objs_Phi.push_back(std::vector<float>());
+		 HLTTrigger_objs_E.push_back(std::vector<float>());
+		 HLTTrigger_objs_Id.push_back(std::vector<int>());
+		 HLTTrigger_objs_trigger.push_back(std::string());
+		 }*/
 		////////////////////////////////////
 		// Now do L1 TriggerSeeds if requested
 		if (doL1Triggers_) {
@@ -1916,6 +2012,8 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				PileupInfo_NumInteractions_np1 = PVI->getPU_NumInteractions();
 		}
 		EvtWeight3D = LumiWeights_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
+		EvtWeight3D_p5 = LumiWeights_p5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
+		EvtWeight3D_m5 = LumiWeights_m5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
 	}
 	if (!Embedded_) {
 		TauSpinnerWeight = 1.;
@@ -2130,7 +2228,9 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Electron_Track_dR", &Electron_Track_dR);
 	// Electron MVA ID
 	output_tree->Branch("Electron_Rho_kt6PFJets", &Electron_Rho_kt6PFJets);
-	output_tree->Branch("Electron_MVA_discriminator", &Electron_MVA_discriminator);
+	output_tree->Branch("Electron_MVA_TrigNoIP_discriminator", &Electron_MVA_TrigNoIP_discriminator);
+	output_tree->Branch("Electron_MVA_NonTrig_discriminator", &Electron_MVA_NonTrig_discriminator);
+	output_tree->Branch("Electron_MVA_Trig_discriminator", &Electron_MVA_Trig_discriminator);
 
 	//================  PFTau block ==========
 	output_tree->Branch("PFTau_p4", &PFTau_p4);
@@ -2313,7 +2413,6 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVA_Type6EtFraction", &MET_CorrMVA_Type6EtFraction);
 	output_tree->Branch("MET_CorrMVA_Type7EtFraction", &MET_CorrMVA_Type7EtFraction);
 
-
 	//=============== Event Block ==============
 	output_tree->Branch("Event_EventNumber", &Event_EventNumber);
 	output_tree->Branch("Event_RunNumber", &Event_RunNumber);
@@ -2326,6 +2425,8 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PileupInfo_NumInteractions_n0", &PileupInfo_NumInteractions_n0);
 	output_tree->Branch("PileupInfo_NumInteractions_np1", &PileupInfo_NumInteractions_np1);
 	output_tree->Branch("EvtWeight3D", &EvtWeight3D);
+	output_tree->Branch("EvtWeight3D_p5", &EvtWeight3D_p5);
+	output_tree->Branch("EvtWeight3D_m5", &EvtWeight3D_m5);
 
 	// for embbeded samples
 	output_tree->Branch("TauSpinnerWeight", &TauSpinnerWeight);
@@ -2402,6 +2503,9 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("HLTTrigger_objs_Pt", &HLTTrigger_objs_Pt);
 	output_tree->Branch("HLTTrigger_objs_Eta", &HLTTrigger_objs_Eta);
 	output_tree->Branch("HLTTrigger_objs_Phi", &HLTTrigger_objs_Phi);
+	output_tree->Branch("HLTTrigger_objs_E", &HLTTrigger_objs_E);
+	output_tree->Branch("HLTTrigger_objs_Id", &HLTTrigger_objs_Id);
+	output_tree->Branch("HLTTrigger_objs_trigger", &HLTTrigger_objs_trigger);
 
 	output_tree->Branch("L1TriggerName", &L1TriggerName);
 	output_tree->Branch("L1TriggerDecision", &L1TriggerDecision);
@@ -2473,7 +2577,6 @@ reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> 
 // the closest by deltaR HPS candidate is accepted
 reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &Jet, int &match) {
 	TLorentzVector Jetp4;
-	;
 	Jetp4.SetE(Jet.at(0));
 	Jetp4.SetPx(Jet.at(1));
 	Jetp4.SetPy(Jet.at(2));
@@ -2499,7 +2602,7 @@ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PF
 //
 // finds a jet in the jet collection used for b-tagging to a given PFJet
 // the closest by deltaR Jet is accepted
-reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float>  &Jet, int & match, double maxDeltaR = 0.5) {
+reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float> &Jet, int & match, double maxDeltaR = 0.5) {
 	TLorentzVector Jetp4;
 	Jetp4.SetE(Jet.at(0));
 	Jetp4.SetPx(Jet.at(1));
@@ -2849,7 +2952,9 @@ void TauNtuple::ClearEvent() {
 	Electron_HasMatchedConversions.clear();
 
 	Electron_Track_dR.clear();
-	Electron_MVA_discriminator.clear();
+	Electron_MVA_TrigNoIP_discriminator.clear();
+	Electron_MVA_NonTrig_discriminator.clear();
+	Electron_MVA_Trig_discriminator.clear();
 
 	//=======  PFJets ===
 	PFJet_p4.clear();
@@ -2920,6 +3025,8 @@ void TauNtuple::ClearEvent() {
 
 	// Event Block
 	EvtWeight3D = 0;
+	EvtWeight3D_p5 = 0;
+	EvtWeight3D_m5 = 0;
 
 	//=============== MC Block ==============
 
@@ -2969,6 +3076,9 @@ void TauNtuple::ClearEvent() {
 	HLTTrigger_objs_Pt.clear();
 	HLTTrigger_objs_Eta.clear();
 	HLTTrigger_objs_Phi.clear();
+	HLTTrigger_objs_E.clear();
+	HLTTrigger_objs_Id.clear();
+	HLTTrigger_objs_trigger.clear();
 
 	L1TriggerName.clear();
 	L1TriggerDecision.clear();
