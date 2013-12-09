@@ -133,7 +133,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig):
   doBJets_(iConfig.getUntrackedParameter("doBJets",(bool)(false))),
   doPFJets_(iConfig.getUntrackedParameter("doPFJets",(bool)(true))),
   doMuons_(iConfig.getUntrackedParameter("doMuons",(bool)(true))),
-  doElectrons_(iConfig.getUntrackedParameter("doElectrons",(bool)(true))),
+  doElectrons_(iConfig.getUntrackedParameter("doElectrons",(bool)(false))),
   doPFTaus_(iConfig.getUntrackedParameter("doPFTaus",(bool)(true))),
   doTracks_(iConfig.getUntrackedParameter("doTrack",(bool)(true))),
   doTrigger_(iConfig.getUntrackedParameter("doTrigger",(bool)(true))),
@@ -739,6 +739,9 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
    edm::Handle<reco::BeamSpot> beamSpot;
    iEvent.getByLabel(beamSpotTag_,beamSpot);
 
+
+
+
    for ( unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau ){
      reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
      if(isGoodTau(HPStauCandidate,HPSPFTauDiscriminationByMediumIsolationMVA,HPSByDecayModeFinding)){
@@ -796,8 +799,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        PFTau_isHPSByDecayModeFinding.push_back((*HPSByDecayModeFinding)[HPStauCandidate]);
        PFTau_hpsDecayMode.push_back(HPStauCandidate->decayMode());
        PFTau_Charge.push_back(HPStauCandidate->charge());
-
-       ////////////////////////////////////////////////////////////////////////////////     
+              ////////////////////////////////////////////////////////////////////////////////     
        int Ntau=PFTau_daughterTracks.size();
        PFTau_TIP_secondaryVertex_vtxchi2.push_back(std::vector<float>());
        PFTau_TIP_secondaryVertex_vtxndof.push_back(std::vector<float>());
@@ -871,6 +873,91 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 	   }
 	 }
        }
+
+       //>>>>>>>>>>>>>>>>>>>>>  Debugging of PiZero include -----------------------
+
+
+       std::vector<float> iPFTau_MatchedPFJetP4;
+       std::vector<std::vector<float> > iPFGamma_p4;
+       std::vector<std::vector<float> > iSCVariables;
+       std::vector<std::vector<float> > iPhotVariables;
+       std::vector<int> hasSC;
+       std::vector<int> hasPhoton;
+       float jetphotonEnergyFraction(0);
+
+       edm::Handle<reco::PFJetCollection> JetCollection;
+       iEvent.getByLabel(pfjetsTag_,  JetCollection);
+       unsigned int idx=0;
+       reco::PFJetRef MatchedPFjet = getJetIndexMatchedToGivenHPSTauCandidate(JetCollection,   iPFTau_p4, idx);
+       if(MatchedPFjet.isNonnull()){
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().E());
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Px());
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Py());
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Pz());
+	 
+	 jetphotonEnergyFraction = MatchedPFjet->photonEnergyFraction();
+	 
+	 std::vector<reco::PFCandidatePtr> PFJetGammas =  pfphotons(*MatchedPFjet);
+	 
+	 for(unsigned int iGamma =0 ; iGamma < PFJetGammas.size(); iGamma++){
+	   std::vector<float> iiPFGamma_p4;
+	   std::vector<float> iiSCVariables;
+	   std::vector<float> iiPhotVariables;
+
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().E());
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Px());
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Py());
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Pz());
+	   
+	   iPFGamma_p4.push_back(iiPFGamma_p4);
+
+
+
+	 
+	   reco::PhotonRef ReferenceToPhoton = PFJetGammas.at(iGamma)->photonRef();
+	   reco::SuperClusterRef 	 ReferenceToSC = PFJetGammas.at(iGamma)->superClusterRef();
+	   
+// 	   hasSC.push_back(ReferenceToSC.isNonnull());
+// 	   hasPhoton.push_back(ReferenceToPhoton.isNonnull());
+
+
+	   if(ReferenceToSC.isNonnull()){
+	     iiSCVariables.push_back(ReferenceToSC->energy());
+	     iiSCVariables.push_back(ReferenceToSC->eta());
+	     iiSCVariables.push_back(ReferenceToSC->etaWidth());
+	     iiSCVariables.push_back(ReferenceToSC->phi());
+	     iiSCVariables.push_back(ReferenceToSC->phiWidth());
+	   }
+	   
+	   if(ReferenceToPhoton.isNonnull()){
+	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().X());
+	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Y());
+	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Z());
+	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Px());
+	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Py());
+	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Pz());
+	   }
+	   iSCVariables.push_back(iiSCVariables);
+	   iPhotVariables.push_back(iiPhotVariables);
+	 }
+       }
+
+       PFTau_MatchedPFJetP4.push_back(iPFTau_MatchedPFJetP4);
+       PFTau_PhotonEnergyFraction.push_back(jetphotonEnergyFraction);
+
+       PFTau_MatchedPFJetGammasP4.push_back(iPFGamma_p4);
+
+  
+//        PFTau_hasSC.push_back(hasSC);
+//        PFTau_hasPhoton.push_back(hasPhoton);
+  
+        PFTau_MatchedPFJetSCVariables.push_back(iSCVariables);
+        PFTau_MatchedPFJetPhotonVariables.push_back(iPhotVariables);
+  
+
+
+       //<<<<<<<<<<<<<<<<<<<<<  Debugging -----------------------
+
        ///////////////////////////////////////////////////////////////////////////////////////////////
        // Get Non-Tau tracks 
        reco::TrackCollection nonTauTracks;
@@ -910,7 +997,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 	 FitOk=false;
        }
        if(FitOk)primaryVertex=transVtx;
-       
+     
        //TVector3 pv(primaryVertex.position().x(),primaryVertex.position().y(),primaryVertex.position().z());
        PFTau_TIP_primaryVertex_pos.at(Ntau).push_back(primaryVertex.position().x());
        PFTau_TIP_primaryVertex_pos.at(Ntau).push_back(primaryVertex.position().y());
@@ -1061,7 +1148,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        std::vector<int> iPFTau_PiZeroNumOfPhotons;
        std::vector<int> iPFTau_PiZeroNumOfElectrons;
        
-       
+       //       std::cout<<"N pi0   "<<PiZeroCandiate.size()<<std::endl;
        if(PiZeroCandiate.size()!=0){
 	 for(unsigned int Pi0Index=0; Pi0Index <PiZeroCandiate.size(); Pi0Index++ ){
 	   reco::RecoTauPiZero iPi0 = PiZeroCandiate.at(Pi0Index);
@@ -1075,7 +1162,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
 	   
 	   iPFTau_PiZeroNumOfPhotons.push_back(iPi0.numberOfGammas());
 	   iPFTau_PiZeroNumOfElectrons.push_back(iPi0.numberOfElectrons());
-
+	   //  std::cout<<" pi0  kinematics  "<<iiPFTau_PiZeroP4.at(0) <<"  "<<iiPFTau_PiZeroP4.at(1) <<"  "<<iiPFTau_PiZeroP4.at(2) <<"  "<<iiPFTau_PiZeroP4.at(3) <<std::endl;
 	
 	 }
        }
@@ -1083,8 +1170,10 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        PFTau_PiZeroNumOfPhotons.push_back(iPFTau_PiZeroNumOfPhotons);
        PFTau_PiZeroNumOfElectrons.push_back(iPFTau_PiZeroNumOfElectrons);
        
-       
+     
        std::vector<std::vector<float> > iPFTau_GammaP4;
+
+       //std::cout<<"N gammas   "<<GammaCandidate.size()<<std::endl;
        if(GammaCandidate.size()!=0){
 	 for(unsigned int iGamma = 0; iGamma<GammaCandidate.size(); iGamma++){
 	   reco::PFCandidateRef GammaCand(GammaCandidate,iGamma);
@@ -1101,6 +1190,7 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        
        std::vector<std::vector<float> > iPFTau_ChargedHadronP4;
        std::vector<std::vector<int> > iPFTau_ChargedHadronsCharge;
+       //  std::cout<<"Ncharged   "<<ChargedHadrCand.size()<<std::endl;
        if(ChargedHadrCand.size()!=0){
 	 for(unsigned int iChargedHadron = 0; iChargedHadron<ChargedHadrCand.size(); iChargedHadron++){
 	   reco::PFCandidateRef ChargeHadronCand(ChargedHadrCand,iChargedHadron);
@@ -1121,9 +1211,6 @@ void TauNtuple::fillTracks(edm::Handle< std::vector<reco::Track>  > &trackCollec
        PFTau_ChargedHadronsP4.push_back(iPFTau_ChargedHadronP4);
        PFTau_ChargedHadronsCharge.push_back(iPFTau_ChargedHadronsCharge);
        
-       
-     
-
        ////////////////////////////////////////////////////////////////////////////////
        //const reco::PFCandidateRefVector  ChargedHadrCand=HPStauCandidate->signalPFChargedHadrCands();
        std::vector<int> matches;
@@ -2096,6 +2183,14 @@ void TauNtuple::beginJob() {
    output_tree->Branch("PFTau_ChargedHadronsCharge",&PFTau_ChargedHadronsCharge); 
    output_tree->Branch("PFTau_GammaP4",&PFTau_GammaP4);    
 
+   output_tree->Branch("PFTau_MatchedPFJetP4",&PFTau_MatchedPFJetP4);    
+   output_tree->Branch("PFTau_MatchedPFJetGammasP4",&PFTau_MatchedPFJetGammasP4);    
+   output_tree->Branch("PFTau_MatchedPFJetSCVariables",&PFTau_MatchedPFJetSCVariables);    
+   output_tree->Branch("PFTau_MatchedPFJetPhotonVariables",&PFTau_MatchedPFJetPhotonVariables);    
+
+   output_tree->Branch("PFTau_PhotonEnergyFraction",&PFTau_PhotonEnergyFraction);    
+//    output_tree->Branch("PFTau_hasSC",&PFTau_hasSC);    
+//    output_tree->Branch("PFTau_hasPhoton",&PFTau_hasPhoton);    
 
 
   //=======  PFJets ===
@@ -2311,6 +2406,43 @@ void TauNtuple::beginJob() {
    }
    return MatchedHPSTau;
  }
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
+ //
+ // finds HPS tau candidate for a given KinFit tau candidate
+ // the closest by deltaR HPS candidate is accepted
+
+
+std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet,
+    int particleId, bool sort) {
+  std::vector<reco::PFCandidatePtr> pfCands = jet.getPFConstituents();
+  std::vector<reco::PFCandidatePtr> selectedPFCands;
+
+  for(std::vector<reco::PFCandidatePtr>::const_iterator iter = pfCands.begin(); iter != pfCands.end(); ++iter) {
+    reco::PFCandidatePtr ptr(*iter);
+    if (ptr->particleId() == particleId)
+      selectedPFCands.push_back(ptr);
+  }
+  return selectedPFCands;
+}
+
+std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet,
+    const std::vector<int>& particleIds, bool sort) {
+  std::vector<reco::PFCandidatePtr> output;
+  // Get each desired candidate type, unsorted for now
+  for(std::vector<int>::const_iterator particleId = particleIds.begin();
+      particleId != particleIds.end(); ++particleId) {
+    std::vector<reco::PFCandidatePtr> selectedPFCands = pfCandidates(jet, *particleId, false);
+    output.insert(output.end(), selectedPFCands.begin(), selectedPFCands.end());
+  }
+
+  return output;
+}
+
+std::vector<reco::PFCandidatePtr> TauNtuple::pfphotons(const reco::PFJet& jet, bool sort) {
+  return pfCandidates(jet, reco::PFCandidate::gamma, sort);
+}
 
 
 
@@ -2341,6 +2473,36 @@ void TauNtuple::beginJob() {
 
    }
    return MatchedHPSTau;
+ }
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
+ //
+ // finds HPS tau candidate for a given KinFit tau candidate
+ // the closest by deltaR HPS candidate is accepted
+reco::PFJetRef TauNtuple::getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets,   std::vector<float>  &Tau, unsigned int &match){
+   reco::PFJetRef MatchedPFJet;
+   double deltaR = 999;
+
+   TLorentzVector TauLV;
+   TauLV.SetE(Tau.at(0));
+   TauLV.SetPx(Tau.at(1));
+   TauLV.SetPy(Tau.at(2));
+   TauLV.SetPz(Tau.at(3));
+
+   match=0;
+
+   for ( unsigned int iJet = 0; iJet < PFJets->size(); ++iJet ) {
+     reco::PFJetRef JetRefCandidate(PFJets, iJet);
+     double dr=sqrt( pow(DeltaPhi(JetRefCandidate->p4().Phi(),TauLV.Phi()),2) + pow(JetRefCandidate->p4().Eta() - TauLV.Eta(),2));
+     if(dr < deltaR){
+       deltaR = dr;
+       match=iJet;
+       MatchedPFJet = JetRefCandidate;
+     }
+     
+   }
+   return MatchedPFJet;
  }
 
 
@@ -2621,7 +2783,14 @@ TauNtuple::ClearEvent(){
   PFTau_ChargedHadronsP4.clear(); 
   PFTau_ChargedHadronsCharge.clear();  
   PFTau_GammaP4.clear();   
-
+  PFTau_MatchedPFJetP4.clear();
+  PFTau_MatchedPFJetGammasP4.clear();
+  PFTau_MatchedPFJetSCVariables.clear();
+  PFTau_MatchedPFJetPhotonVariables.clear();
+  PFTau_PhotonEnergyFraction.clear();
+//   PFTau_hasSC.clear();  
+//   PFTau_hasPhoton.clear();
+  
   //=======  Electrons ===
   Electron_p4.clear();
   Electron_Poca.clear();
