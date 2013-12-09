@@ -194,6 +194,12 @@ private:
   std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef);
   reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &UnmodifiedTau, unsigned int &match);
   reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   std::vector<float>  &Jet, unsigned int &match);
+  reco::PFJetRef getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets,   std::vector<float>  &Tau, unsigned int &match);
+
+  std::vector<reco::PFCandidatePtr> pfCandidates(const reco::PFJet& jet,int particleId, bool sort=true);
+  std::vector<reco::PFCandidatePtr> pfCandidates(const reco::PFJet& jet, const std::vector<int>& particleIds, bool sort);
+  std::vector<reco::PFCandidatePtr> pfphotons(const reco::PFJet& jet, bool sort = true);
+
 
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::TrackRef &refTrack, int &match);
   bool getTrackMatch(edm::Handle< std::vector<reco::Track>  > &trackCollection, reco::GsfTrackRef &refTrack, int &match);
@@ -493,6 +499,18 @@ private:
   std::vector<std::vector<std::vector<int> > > PFTau_ChargedHadronsCharge;
   std::vector<std::vector<std::vector<float> > > PFTau_GammaP4;
 
+  //-------- Gamma information ---------
+  
+
+
+  std::vector<std::vector<float> > PFTau_MatchedPFJetP4;
+  std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetGammasP4;
+  std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetSCVariables;
+  std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetPhotonVariables;
+
+  std::vector<float> PFTau_PhotonEnergyFraction;
+//   std::vector<std::vector<int> > PFTau_hasSC;  
+//   std::vector<std::vector<int> > PFTau_hasPhoton;
 
   //=======  Electrons ===
   float RhoIsolationAllInputTags;
