@@ -910,6 +910,83 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					}
 				}
 			}
+
+       //PiZero stuff
+       std::vector<float> iPFTau_MatchedPFJetP4;
+       std::vector<std::vector<float> > iPFGamma_p4;
+       std::vector<std::vector<float> > iSCVariables;
+       std::vector<std::vector<float> > iPhotVariables;
+       std::vector<int> hasSC;
+       std::vector<int> hasPhoton;
+       float jetphotonEnergyFraction(0);
+
+       edm::Handle<reco::PFJetCollection> JetCollection;
+       iEvent.getByLabel(pfjetsTag_,  JetCollection);
+       unsigned int idx=0;
+       reco::PFJetRef MatchedPFjet = getJetIndexMatchedToGivenHPSTauCandidate(JetCollection,   iPFTau_p4, idx);
+       if(MatchedPFjet.isNonnull()){
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().E());
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Px());
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Py());
+	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Pz());
+	 
+	 jetphotonEnergyFraction = MatchedPFjet->photonEnergyFraction();
+	 
+	 std::vector<reco::PFCandidatePtr> PFJetGammas =  pfphotons(*MatchedPFjet);
+	 
+	 for(unsigned int iGamma =0 ; iGamma < PFJetGammas.size(); iGamma++){
+	   std::vector<float> iiPFGamma_p4;
+	   std::vector<float> iiSCVariables;
+	   std::vector<float> iiPhotVariables;
+
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().E());
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Px());
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Py());
+	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Pz());
+	   
+	   iPFGamma_p4.push_back(iiPFGamma_p4);
+	 
+	   reco::PhotonRef ReferenceToPhoton = PFJetGammas.at(iGamma)->photonRef();
+	   reco::SuperClusterRef 	 ReferenceToSC = PFJetGammas.at(iGamma)->superClusterRef();
+	   
+// 	   hasSC.push_back(ReferenceToSC.isNonnull());
+// 	   hasPhoton.push_back(ReferenceToPhoton.isNonnull());
+
+
+	   if(ReferenceToSC.isNonnull()){
+	     iiSCVariables.push_back(ReferenceToSC->energy());
+	     iiSCVariables.push_back(ReferenceToSC->eta());
+	     iiSCVariables.push_back(ReferenceToSC->etaWidth());
+	     iiSCVariables.push_back(ReferenceToSC->phi());
+	     iiSCVariables.push_back(ReferenceToSC->phiWidth());
+	   }
+	   
+	   if(ReferenceToPhoton.isNonnull()){
+	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().X());
+	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Y());
+	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Z());
+	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Px());
+	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Py());
+	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Pz());
+	   }
+	   iSCVariables.push_back(iiSCVariables);
+	   iPhotVariables.push_back(iiPhotVariables);
+	 }
+       }
+
+       PFTau_MatchedPFJetP4.push_back(iPFTau_MatchedPFJetP4);
+       PFTau_PhotonEnergyFraction.push_back(jetphotonEnergyFraction);
+
+       PFTau_MatchedPFJetGammasP4.push_back(iPFGamma_p4);
+
+  
+//        PFTau_hasSC.push_back(hasSC);
+//        PFTau_hasPhoton.push_back(hasPhoton);
+  
+        PFTau_MatchedPFJetSCVariables.push_back(iSCVariables);
+        PFTau_MatchedPFJetPhotonVariables.push_back(iPhotVariables);
+
+
 			///////////////////////////////////////////////////////////////////////////////////////////////
 			// Get Non-Tau tracks
 			reco::TrackCollection nonTauTracks;
@@ -2365,6 +2442,14 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFTau_ChargedHadronsCharge", &PFTau_ChargedHadronsCharge);
 	output_tree->Branch("PFTau_GammaP4", &PFTau_GammaP4);
 
+   output_tree->Branch("PFTau_MatchedPFJetP4",&PFTau_MatchedPFJetP4);    
+   output_tree->Branch("PFTau_MatchedPFJetGammasP4",&PFTau_MatchedPFJetGammasP4);    
+   output_tree->Branch("PFTau_MatchedPFJetSCVariables",&PFTau_MatchedPFJetSCVariables);    
+   output_tree->Branch("PFTau_MatchedPFJetPhotonVariables",&PFTau_MatchedPFJetPhotonVariables);    
+
+   output_tree->Branch("PFTau_PhotonEnergyFraction",&PFTau_PhotonEnergyFraction);    
+//    output_tree->Branch("PFTau_hasSC",&PFTau_hasSC);    
+//    output_tree->Branch("PFTau_hasPhoton",&PFTau_hasPhoton);    
 	//=======  PFJets ===
 	output_tree->Branch("isPatJet", &doPatJets_);
 	output_tree->Branch("PFJet_p4", &PFJet_p4);
@@ -2630,6 +2715,39 @@ reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> 
 	return MatchedHPSTau;
 }
 
+std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet,
+    int particleId, bool sort) {
+  std::vector<reco::PFCandidatePtr> pfCands = jet.getPFConstituents();
+  std::vector<reco::PFCandidatePtr> selectedPFCands;
+
+
+  for(std::vector<reco::PFCandidatePtr>::const_iterator iter = pfCands.begin(); iter != pfCands.end(); ++iter) {
+    reco::PFCandidatePtr ptr(*iter);
+    if (ptr->particleId() == particleId)
+      selectedPFCands.push_back(ptr);
+  }
+  return selectedPFCands;
+}
+
+std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet,
+    const std::vector<int>& particleIds, bool sort) {
+  std::vector<reco::PFCandidatePtr> output;
+  // Get each desired candidate type, unsorted for now
+  for(std::vector<int>::const_iterator particleId = particleIds.begin();
+      particleId != particleIds.end(); ++particleId) {
+    std::vector<reco::PFCandidatePtr> selectedPFCands = pfCandidates(jet, *particleId, false);
+    output.insert(output.end(), selectedPFCands.begin(), selectedPFCands.end());
+  }
+
+  return output;
+}
+
+std::vector<reco::PFCandidatePtr> TauNtuple::pfphotons(const reco::PFJet& jet, bool sort) {
+  return pfCandidates(jet, reco::PFCandidate::gamma, sort);
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
@@ -2658,7 +2776,36 @@ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PF
 	}
 	return MatchedHPSTau;
 }
+ ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ //
+ // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
+ //
+ // finds HPS tau candidate for a given KinFit tau candidate
+ // the closest by deltaR HPS candidate is accepted
+reco::PFJetRef TauNtuple::getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets,   std::vector<float>  &Tau, unsigned int &match){
+   reco::PFJetRef MatchedPFJet;
+   double deltaR = 999;
 
+   TLorentzVector TauLV;
+   TauLV.SetE(Tau.at(0));
+   TauLV.SetPx(Tau.at(1));
+   TauLV.SetPy(Tau.at(2));
+   TauLV.SetPz(Tau.at(3));
+
+   match=0;
+
+   for ( unsigned int iJet = 0; iJet < PFJets->size(); ++iJet ) {
+     reco::PFJetRef JetRefCandidate(PFJets, iJet);
+     double dr=sqrt( pow(DeltaPhi(JetRefCandidate->p4().Phi(),TauLV.Phi()),2) + pow(JetRefCandidate->p4().Eta() - TauLV.Eta(),2));
+     if(dr < deltaR){
+       deltaR = dr;
+       match=iJet;
+       MatchedPFJet = JetRefCandidate;
+     }
+     
+   }
+   return MatchedPFJet;
+ }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // finds a jet in the jet collection used for b-tagging to a given PFJet
@@ -2949,6 +3096,13 @@ void TauNtuple::ClearEvent() {
 	PFTau_ChargedHadronsP4.clear();
 	PFTau_ChargedHadronsCharge.clear();
 	PFTau_GammaP4.clear();
+  PFTau_MatchedPFJetP4.clear();
+  PFTau_MatchedPFJetGammasP4.clear();
+  PFTau_MatchedPFJetSCVariables.clear();
+  PFTau_MatchedPFJetPhotonVariables.clear();
+  PFTau_PhotonEnergyFraction.clear();
+//   PFTau_hasSC.clear();  
+//   PFTau_hasPhoton.clear();
 
 	//=======  Electrons ===
 	Electron_p4.clear();
