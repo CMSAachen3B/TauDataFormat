@@ -166,7 +166,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
 		BTagJetCollection_(iConfig.getParameter<edm::InputTag>("BTagJetCollection")),
 		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour"))
-{
+ {
 	MuonPtCut_ = iConfig.getUntrackedParameter("MuonPtCut", (double) 3.0);
 	MuonEtaCut_ = iConfig.getUntrackedParameter("MuonEtaCut", (double) 2.5);
 	TauPtCut_ = iConfig.getUntrackedParameter("TauPtCut", (double) 18.0);
@@ -911,81 +911,78 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				}
 			}
 
-       //PiZero stuff
-       std::vector<float> iPFTau_MatchedPFJetP4;
-       std::vector<std::vector<float> > iPFGamma_p4;
-       std::vector<std::vector<float> > iSCVariables;
-       std::vector<std::vector<float> > iPhotVariables;
-       std::vector<int> hasSC;
-       std::vector<int> hasPhoton;
-       float jetphotonEnergyFraction(0);
+			//PiZero stuff
+			std::vector<float> iPFTau_MatchedPFJetP4;
+			std::vector<std::vector<float> > iPFGamma_p4;
+			std::vector<std::vector<float> > iSCVariables;
+			std::vector<std::vector<float> > iPhotVariables;
+			std::vector<int> hasSC;
+			std::vector<int> hasPhoton;
+			float jetphotonEnergyFraction(0);
 
-       edm::Handle<reco::PFJetCollection> JetCollection;
-       iEvent.getByLabel(pfjetsTag_,  JetCollection);
-       unsigned int idx=0;
-       reco::PFJetRef MatchedPFjet = getJetIndexMatchedToGivenHPSTauCandidate(JetCollection,   iPFTau_p4, idx);
-       if(MatchedPFjet.isNonnull()){
-	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().E());
-	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Px());
-	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Py());
-	 iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Pz());
-	 
-	 jetphotonEnergyFraction = MatchedPFjet->photonEnergyFraction();
-	 
-	 std::vector<reco::PFCandidatePtr> PFJetGammas =  pfphotons(*MatchedPFjet);
-	 
-	 for(unsigned int iGamma =0 ; iGamma < PFJetGammas.size(); iGamma++){
-	   std::vector<float> iiPFGamma_p4;
-	   std::vector<float> iiSCVariables;
-	   std::vector<float> iiPhotVariables;
+			edm::Handle<reco::PFJetCollection> JetCollection;
+			iEvent.getByLabel(pfjetsTag_, JetCollection);
+			unsigned int idx = 0;
+			reco::PFJetRef MatchedPFjet = getJetIndexMatchedToGivenHPSTauCandidate(JetCollection, iPFTau_p4, idx);
+			if (MatchedPFjet.isNonnull()) {
+				iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().E());
+				iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Px());
+				iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Py());
+				iPFTau_MatchedPFJetP4.push_back(MatchedPFjet->p4().Pz());
 
-	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().E());
-	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Px());
-	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Py());
-	   iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Pz());
-	   
-	   iPFGamma_p4.push_back(iiPFGamma_p4);
-	 
-	   reco::PhotonRef ReferenceToPhoton = PFJetGammas.at(iGamma)->photonRef();
-	   reco::SuperClusterRef 	 ReferenceToSC = PFJetGammas.at(iGamma)->superClusterRef();
-	   
+				jetphotonEnergyFraction = MatchedPFjet->photonEnergyFraction();
+
+				std::vector<reco::PFCandidatePtr> PFJetGammas = pfphotons(*MatchedPFjet);
+
+				for (unsigned int iGamma = 0; iGamma < PFJetGammas.size(); iGamma++) {
+					std::vector<float> iiPFGamma_p4;
+					std::vector<float> iiSCVariables;
+					std::vector<float> iiPhotVariables;
+
+					iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().E());
+					iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Px());
+					iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Py());
+					iiPFGamma_p4.push_back(PFJetGammas.at(iGamma)->p4().Pz());
+
+					iPFGamma_p4.push_back(iiPFGamma_p4);
+
+					reco::PhotonRef ReferenceToPhoton = PFJetGammas.at(iGamma)->photonRef();
+					reco::SuperClusterRef ReferenceToSC = PFJetGammas.at(iGamma)->superClusterRef();
+
 // 	   hasSC.push_back(ReferenceToSC.isNonnull());
 // 	   hasPhoton.push_back(ReferenceToPhoton.isNonnull());
 
+					if (ReferenceToSC.isNonnull()) {
+						iiSCVariables.push_back(ReferenceToSC->energy());
+						iiSCVariables.push_back(ReferenceToSC->eta());
+						iiSCVariables.push_back(ReferenceToSC->etaWidth());
+						iiSCVariables.push_back(ReferenceToSC->phi());
+						iiSCVariables.push_back(ReferenceToSC->phiWidth());
+					}
 
-	   if(ReferenceToSC.isNonnull()){
-	     iiSCVariables.push_back(ReferenceToSC->energy());
-	     iiSCVariables.push_back(ReferenceToSC->eta());
-	     iiSCVariables.push_back(ReferenceToSC->etaWidth());
-	     iiSCVariables.push_back(ReferenceToSC->phi());
-	     iiSCVariables.push_back(ReferenceToSC->phiWidth());
-	   }
-	   
-	   if(ReferenceToPhoton.isNonnull()){
-	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().X());
-	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Y());
-	     iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Z());
-	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Px());
-	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Py());
-	     iiPhotVariables.push_back(ReferenceToPhoton->p4().Pz());
-	   }
-	   iSCVariables.push_back(iiSCVariables);
-	   iPhotVariables.push_back(iiPhotVariables);
-	 }
-       }
+					if (ReferenceToPhoton.isNonnull()) {
+						iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().X());
+						iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Y());
+						iiPhotVariables.push_back(ReferenceToPhoton->caloPosition().Z());
+						iiPhotVariables.push_back(ReferenceToPhoton->p4().Px());
+						iiPhotVariables.push_back(ReferenceToPhoton->p4().Py());
+						iiPhotVariables.push_back(ReferenceToPhoton->p4().Pz());
+					}
+					iSCVariables.push_back(iiSCVariables);
+					iPhotVariables.push_back(iiPhotVariables);
+				}
+			}
 
-       PFTau_MatchedPFJetP4.push_back(iPFTau_MatchedPFJetP4);
-       PFTau_PhotonEnergyFraction.push_back(jetphotonEnergyFraction);
+			PFTau_MatchedPFJetP4.push_back(iPFTau_MatchedPFJetP4);
+			PFTau_PhotonEnergyFraction.push_back(jetphotonEnergyFraction);
 
-       PFTau_MatchedPFJetGammasP4.push_back(iPFGamma_p4);
+			PFTau_MatchedPFJetGammasP4.push_back(iPFGamma_p4);
 
-  
 //        PFTau_hasSC.push_back(hasSC);
 //        PFTau_hasPhoton.push_back(hasPhoton);
-  
-        PFTau_MatchedPFJetSCVariables.push_back(iSCVariables);
-        PFTau_MatchedPFJetPhotonVariables.push_back(iPhotVariables);
 
+			PFTau_MatchedPFJetSCVariables.push_back(iSCVariables);
+			PFTau_MatchedPFJetPhotonVariables.push_back(iPhotVariables);
 
 			///////////////////////////////////////////////////////////////////////////////////////////////
 			// Get Non-Tau tracks
@@ -1701,7 +1698,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 //     std::cout<<"Corrected  et  pt  and phi "<< CorrectedPFMET->at(0).et() << "  " <<  CorrectedPFMET->at(0).pt()<<"  " <<  CorrectedPFMET->at(0).phi()<<std::endl;
 //     std::cout<<"Un Corrected et   pt and phi "<< pfMETUncorr->front().et()<< "  " <<  pfMETUncorr->front().pt()<< "  " << pfMETUncorr->front().phi()<<std::endl;
 
-		TMatrixD sigMat(2,2);
+		TMatrixD sigMat(2, 2);
 
 		MET_Uncorr_et = pfMETUncorr->front().et();
 		MET_Uncorr_pt = pfMETUncorr->front().pt();
@@ -1709,11 +1706,11 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_Uncorr_sumET = pfMETUncorr->front().sumEt();
 		MET_Uncorr_significance = pfMETUncorr->front().significance();
 		sigMat = pfMETUncorr->front().getSignificanceMatrix();
-		if (sigMat(0,1) != sigMat(1,0))
+		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		MET_Uncorr_significance_xx = sigMat(0,0);
-		MET_Uncorr_significance_xy = sigMat(0,1);
-		MET_Uncorr_significance_yy = sigMat(1,1);
+		MET_Uncorr_significance_xx = sigMat(0, 0);
+		MET_Uncorr_significance_xy = sigMat(0, 1);
+		MET_Uncorr_significance_yy = sigMat(1, 1);
 		MET_Uncorr_MuonEtFraction = pfMETUncorr->front().muonEtFraction();
 		MET_Uncorr_NeutralEMFraction = pfMETUncorr->front().NeutralEMFraction();
 		MET_Uncorr_NeutralHadEtFraction = pfMETUncorr->front().NeutralHadEtFraction();
@@ -1726,11 +1723,11 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT0T1_sumET = pfMETCorrT0T1->front().sumEt();
 		MET_CorrT0T1_significance = pfMETCorrT0T1->front().significance();
 		sigMat = pfMETCorrT0T1->front().getSignificanceMatrix();
-		if (sigMat(0,1) != sigMat(1,0))
+		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		MET_CorrT0T1_significance_xx = sigMat(0,0);
-		MET_CorrT0T1_significance_xy = sigMat(0,1);
-		MET_CorrT0T1_significance_yy = sigMat(1,1);
+		MET_CorrT0T1_significance_xx = sigMat(0, 0);
+		MET_CorrT0T1_significance_xy = sigMat(0, 1);
+		MET_CorrT0T1_significance_yy = sigMat(1, 1);
 		MET_CorrT0T1_MuonEtFraction = pfMETCorrT0T1->front().muonEtFraction();
 		MET_CorrT0T1_NeutralEMFraction = pfMETCorrT0T1->front().NeutralEMFraction();
 		MET_CorrT0T1_NeutralHadEtFraction = pfMETCorrT0T1->front().NeutralHadEtFraction();
@@ -1743,11 +1740,11 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT1_sumET = pfMETCorrT1->front().sumEt();
 		MET_CorrT1_significance = pfMETCorrT1->front().significance();
 		sigMat = pfMETCorrT1->front().getSignificanceMatrix();
-		if (sigMat(0,1) != sigMat(1,0))
+		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		MET_CorrT1_significance_xx = sigMat(0,0);
-		MET_CorrT1_significance_xy = sigMat(0,1);
-		MET_CorrT1_significance_yy = sigMat(1,1);
+		MET_CorrT1_significance_xx = sigMat(0, 0);
+		MET_CorrT1_significance_xy = sigMat(0, 1);
+		MET_CorrT1_significance_yy = sigMat(1, 1);
 		MET_CorrT1_MuonEtFraction = pfMETCorrT1->front().muonEtFraction();
 		MET_CorrT1_NeutralEMFraction = pfMETCorrT1->front().NeutralEMFraction();
 		MET_CorrT1_NeutralHadEtFraction = pfMETCorrT1->front().NeutralHadEtFraction();
@@ -1768,7 +1765,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		iEvent.getByLabel(pfMETCorrT1_, patMETCorrT1Handle);
 		pat::MET patMETCorrT1 = patMETCorrT1Handle->front();
 
-		TMatrixD sigMat(2,2);
+		TMatrixD sigMat(2, 2);
 
 		MET_Uncorr_et = patMETUncorr.et();
 		MET_Uncorr_pt = patMETUncorr.pt();
@@ -1776,12 +1773,12 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_Uncorr_sumET = patMETUncorr.sumEt();
 		MET_Uncorr_significance = patMETUncorr.significance();
 		sigMat = patMETUncorr.getSignificanceMatrix();
-		if (sigMat(0,1) != sigMat(1,0))
+		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		std::cout << "MET_Uncorr sigMat = " << sigMat(0,0) << " " << sigMat(0,1) << " " << sigMat(1,1) << std::endl;
-		MET_Uncorr_significance_xx = sigMat(0,0);
-		MET_Uncorr_significance_xy = sigMat(0,1);
-		MET_Uncorr_significance_yy = sigMat(1,1);
+		std::cout << "MET_Uncorr sigMat = " << sigMat(0, 0) << " " << sigMat(0, 1) << " " << sigMat(1, 1) << std::endl;
+		MET_Uncorr_significance_xx = sigMat(0, 0);
+		MET_Uncorr_significance_xy = sigMat(0, 1);
+		MET_Uncorr_significance_yy = sigMat(1, 1);
 		if (patMETUncorr.isPFMET()) {
 			MET_Uncorr_MuonEtFraction = patMETUncorr.MuonEtFraction();
 			MET_Uncorr_NeutralEMFraction = patMETUncorr.NeutralEMFraction();
@@ -1796,12 +1793,12 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT0T1_sumET = patMETCorrT0T1.sumEt();
 		MET_CorrT0T1_significance = patMETCorrT0T1.significance();
 		sigMat = patMETCorrT0T1.getSignificanceMatrix();
-		if (sigMat(0,1) != sigMat(1,0))
+		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		std::cout << "MET_ToT1 sigMat = " << sigMat(0,0) << " " << sigMat(0,1) << " " << sigMat(1,1) << std::endl;
-		MET_CorrT0T1_significance_xx = sigMat(0,0);
-		MET_CorrT0T1_significance_xy = sigMat(0,1);
-		MET_CorrT0T1_significance_yy = sigMat(1,1);
+		std::cout << "MET_ToT1 sigMat = " << sigMat(0, 0) << " " << sigMat(0, 1) << " " << sigMat(1, 1) << std::endl;
+		MET_CorrT0T1_significance_xx = sigMat(0, 0);
+		MET_CorrT0T1_significance_xy = sigMat(0, 1);
+		MET_CorrT0T1_significance_yy = sigMat(1, 1);
 		if (patMETCorrT0T1.isPFMET()) {
 			MET_CorrT0T1_MuonEtFraction = patMETCorrT0T1.MuonEtFraction();
 			MET_CorrT0T1_NeutralEMFraction = patMETCorrT0T1.NeutralEMFraction();
@@ -1816,12 +1813,12 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT1_sumET = patMETCorrT1.sumEt();
 		MET_CorrT1_significance = patMETCorrT1.significance();
 		sigMat = patMETCorrT1.getSignificanceMatrix();
-		if (sigMat(0,1) != sigMat(1,0))
+		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		std::cout << "MET_T1 sigMat = " << sigMat(0,0) << " " << sigMat(0,1) << " " << sigMat(1,1) << std::endl;
-		MET_CorrT1_significance_xx = sigMat(0,0);
-		MET_CorrT1_significance_xy = sigMat(0,1);
-		MET_CorrT1_significance_yy = sigMat(1,1);
+		std::cout << "MET_T1 sigMat = " << sigMat(0, 0) << " " << sigMat(0, 1) << " " << sigMat(1, 1) << std::endl;
+		MET_CorrT1_significance_xx = sigMat(0, 0);
+		MET_CorrT1_significance_xy = sigMat(0, 1);
+		MET_CorrT1_significance_yy = sigMat(1, 1);
 		if (patMETCorrT1.isPFMET()) {
 			MET_CorrT1_MuonEtFraction = patMETCorrT1.MuonEtFraction();
 			MET_CorrT1_NeutralEMFraction = patMETCorrT1.NeutralEMFraction();
@@ -1841,11 +1838,11 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_sumET = patMETCorrMVA.sumEt();
 			MET_CorrMVA_significance = patMETCorrMVA.significance();
 			sigMat = patMETCorrMVA.getSignificanceMatrix();
-			if (sigMat(0,1) != sigMat(1,0))
+			if (sigMat(0, 1) != sigMat(1, 0))
 				std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-			MET_CorrMVA_significance_xx = sigMat(0,0);
-			MET_CorrMVA_significance_xy = sigMat(0,1);
-			MET_CorrMVA_significance_yy = sigMat(1,1);
+			MET_CorrMVA_significance_xx = sigMat(0, 0);
+			MET_CorrMVA_significance_xy = sigMat(0, 1);
+			MET_CorrMVA_significance_yy = sigMat(1, 1);
 			MET_CorrMVA_MuonEtFraction = patMETCorrMVA.MuonEtFraction();
 			MET_CorrMVA_NeutralEMFraction = patMETCorrMVA.NeutralEMFraction();
 			MET_CorrMVA_NeutralHadEtFraction = patMETCorrMVA.NeutralHadEtFraction();
@@ -2442,12 +2439,12 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFTau_ChargedHadronsCharge", &PFTau_ChargedHadronsCharge);
 	output_tree->Branch("PFTau_GammaP4", &PFTau_GammaP4);
 
-   output_tree->Branch("PFTau_MatchedPFJetP4",&PFTau_MatchedPFJetP4);    
-   output_tree->Branch("PFTau_MatchedPFJetGammasP4",&PFTau_MatchedPFJetGammasP4);    
-   output_tree->Branch("PFTau_MatchedPFJetSCVariables",&PFTau_MatchedPFJetSCVariables);    
-   output_tree->Branch("PFTau_MatchedPFJetPhotonVariables",&PFTau_MatchedPFJetPhotonVariables);    
+	output_tree->Branch("PFTau_MatchedPFJetP4", &PFTau_MatchedPFJetP4);
+	output_tree->Branch("PFTau_MatchedPFJetGammasP4", &PFTau_MatchedPFJetGammasP4);
+	output_tree->Branch("PFTau_MatchedPFJetSCVariables", &PFTau_MatchedPFJetSCVariables);
+	output_tree->Branch("PFTau_MatchedPFJetPhotonVariables", &PFTau_MatchedPFJetPhotonVariables);
 
-   output_tree->Branch("PFTau_PhotonEnergyFraction",&PFTau_PhotonEnergyFraction);    
+	output_tree->Branch("PFTau_PhotonEnergyFraction", &PFTau_PhotonEnergyFraction);
 //    output_tree->Branch("PFTau_hasSC",&PFTau_hasSC);    
 //    output_tree->Branch("PFTau_hasPhoton",&PFTau_hasPhoton);    
 	//=======  PFJets ===
@@ -2715,38 +2712,32 @@ reco::PFTauRef TauNtuple::getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> 
 	return MatchedHPSTau;
 }
 
-std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet,
-    int particleId, bool sort) {
-  std::vector<reco::PFCandidatePtr> pfCands = jet.getPFConstituents();
-  std::vector<reco::PFCandidatePtr> selectedPFCands;
+std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet, int particleId, bool sort) {
+	std::vector<reco::PFCandidatePtr> pfCands = jet.getPFConstituents();
+	std::vector<reco::PFCandidatePtr> selectedPFCands;
 
-
-  for(std::vector<reco::PFCandidatePtr>::const_iterator iter = pfCands.begin(); iter != pfCands.end(); ++iter) {
-    reco::PFCandidatePtr ptr(*iter);
-    if (ptr->particleId() == particleId)
-      selectedPFCands.push_back(ptr);
-  }
-  return selectedPFCands;
+	for (std::vector<reco::PFCandidatePtr>::const_iterator iter = pfCands.begin(); iter != pfCands.end(); ++iter) {
+		reco::PFCandidatePtr ptr(*iter);
+		if (ptr->particleId() == particleId)
+			selectedPFCands.push_back(ptr);
+	}
+	return selectedPFCands;
 }
 
-std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet,
-    const std::vector<int>& particleIds, bool sort) {
-  std::vector<reco::PFCandidatePtr> output;
-  // Get each desired candidate type, unsorted for now
-  for(std::vector<int>::const_iterator particleId = particleIds.begin();
-      particleId != particleIds.end(); ++particleId) {
-    std::vector<reco::PFCandidatePtr> selectedPFCands = pfCandidates(jet, *particleId, false);
-    output.insert(output.end(), selectedPFCands.begin(), selectedPFCands.end());
-  }
+std::vector<reco::PFCandidatePtr> TauNtuple::pfCandidates(const reco::PFJet& jet, const std::vector<int>& particleIds, bool sort) {
+	std::vector<reco::PFCandidatePtr> output;
+	// Get each desired candidate type, unsorted for now
+	for (std::vector<int>::const_iterator particleId = particleIds.begin(); particleId != particleIds.end(); ++particleId) {
+		std::vector<reco::PFCandidatePtr> selectedPFCands = pfCandidates(jet, *particleId, false);
+		output.insert(output.end(), selectedPFCands.begin(), selectedPFCands.end());
+	}
 
-  return output;
+	return output;
 }
 
 std::vector<reco::PFCandidatePtr> TauNtuple::pfphotons(const reco::PFJet& jet, bool sort) {
-  return pfCandidates(jet, reco::PFCandidate::gamma, sort);
+	return pfCandidates(jet, reco::PFCandidate::gamma, sort);
 }
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -2776,36 +2767,36 @@ reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PF
 	}
 	return MatchedHPSTau;
 }
- ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
- //
- // reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
- //
- // finds HPS tau candidate for a given KinFit tau candidate
- // the closest by deltaR HPS candidate is accepted
-reco::PFJetRef TauNtuple::getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets,   std::vector<float>  &Tau, unsigned int &match){
-   reco::PFJetRef MatchedPFJet;
-   double deltaR = 999;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+// reco::PFTauRef TauNtuple::getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus,   ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> >  &Jet, unsigned int &match)
+//
+// finds HPS tau candidate for a given KinFit tau candidate
+// the closest by deltaR HPS candidate is accepted
+reco::PFJetRef TauNtuple::getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets, std::vector<float> &Tau, unsigned int &match) {
+	reco::PFJetRef MatchedPFJet;
+	double deltaR = 999;
 
-   TLorentzVector TauLV;
-   TauLV.SetE(Tau.at(0));
-   TauLV.SetPx(Tau.at(1));
-   TauLV.SetPy(Tau.at(2));
-   TauLV.SetPz(Tau.at(3));
+	TLorentzVector TauLV;
+	TauLV.SetE(Tau.at(0));
+	TauLV.SetPx(Tau.at(1));
+	TauLV.SetPy(Tau.at(2));
+	TauLV.SetPz(Tau.at(3));
 
-   match=0;
+	match = 0;
 
-   for ( unsigned int iJet = 0; iJet < PFJets->size(); ++iJet ) {
-     reco::PFJetRef JetRefCandidate(PFJets, iJet);
-     double dr=sqrt( pow(DeltaPhi(JetRefCandidate->p4().Phi(),TauLV.Phi()),2) + pow(JetRefCandidate->p4().Eta() - TauLV.Eta(),2));
-     if(dr < deltaR){
-       deltaR = dr;
-       match=iJet;
-       MatchedPFJet = JetRefCandidate;
-     }
-     
-   }
-   return MatchedPFJet;
- }
+	for (unsigned int iJet = 0; iJet < PFJets->size(); ++iJet) {
+		reco::PFJetRef JetRefCandidate(PFJets, iJet);
+		double dr = sqrt(pow(DeltaPhi(JetRefCandidate->p4().Phi(), TauLV.Phi()), 2) + pow(JetRefCandidate->p4().Eta() - TauLV.Eta(), 2));
+		if (dr < deltaR) {
+			deltaR = dr;
+			match = iJet;
+			MatchedPFJet = JetRefCandidate;
+		}
+
+	}
+	return MatchedPFJet;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // finds a jet in the jet collection used for b-tagging to a given PFJet
@@ -3096,11 +3087,11 @@ void TauNtuple::ClearEvent() {
 	PFTau_ChargedHadronsP4.clear();
 	PFTau_ChargedHadronsCharge.clear();
 	PFTau_GammaP4.clear();
-  PFTau_MatchedPFJetP4.clear();
-  PFTau_MatchedPFJetGammasP4.clear();
-  PFTau_MatchedPFJetSCVariables.clear();
-  PFTau_MatchedPFJetPhotonVariables.clear();
-  PFTau_PhotonEnergyFraction.clear();
+	PFTau_MatchedPFJetP4.clear();
+	PFTau_MatchedPFJetGammasP4.clear();
+	PFTau_MatchedPFJetSCVariables.clear();
+	PFTau_MatchedPFJetPhotonVariables.clear();
+	PFTau_PhotonEnergyFraction.clear();
 //   PFTau_hasSC.clear();  
 //   PFTau_hasPhoton.clear();
 
