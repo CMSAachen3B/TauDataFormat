@@ -651,6 +651,9 @@ private:
   float MET_Uncorr_phi;
   float MET_Uncorr_sumET;
   float MET_Uncorr_significance;
+  float MET_Uncorr_significance_xx;
+  float MET_Uncorr_significance_xy;
+  float MET_Uncorr_significance_yy;
   float MET_Uncorr_MuonEtFraction;
   float MET_Uncorr_NeutralEMFraction;
   float MET_Uncorr_NeutralHadEtFraction;
@@ -662,6 +665,9 @@ private:
   float MET_CorrT0T1_phi;
   float MET_CorrT0T1_sumET;
   float MET_CorrT0T1_significance;
+  float MET_CorrT0T1_significance_xx;
+  float MET_CorrT0T1_significance_xy;
+  float MET_CorrT0T1_significance_yy;
   float MET_CorrT0T1_MuonEtFraction;
   float MET_CorrT0T1_NeutralEMFraction;
   float MET_CorrT0T1_NeutralHadEtFraction;
@@ -673,6 +679,9 @@ private:
   float MET_CorrT1_phi;
   float MET_CorrT1_sumET;
   float MET_CorrT1_significance;
+  float MET_CorrT1_significance_xx;
+  float MET_CorrT1_significance_xy;
+  float MET_CorrT1_significance_yy;
   float MET_CorrT1_MuonEtFraction;
   float MET_CorrT1_NeutralEMFraction;
   float MET_CorrT1_NeutralHadEtFraction;
@@ -684,6 +693,9 @@ private:
   float MET_CorrMVA_phi;
   float MET_CorrMVA_sumET;
   float MET_CorrMVA_significance;
+  float MET_CorrMVA_significance_xx;
+  float MET_CorrMVA_significance_xy;
+  float MET_CorrMVA_significance_yy;
   float MET_CorrMVA_MuonEtFraction;
   float MET_CorrMVA_NeutralEMFraction;
   float MET_CorrMVA_NeutralHadEtFraction;
