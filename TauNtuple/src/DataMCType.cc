@@ -46,13 +46,13 @@ unsigned int DataMCType::SignalCode(unsigned int type,unsigned int JAK_ID1, unsi
 //   if(JAK_ID1==TauDecay::JAK_A1_3PI && nprong1==3 && (nprong2==1 || (JAK_ID2==TauDecay::JAK_A1_3PI && nprong2==3))) return type+(JAK_ID1+100*nprong1)*100+(JAK_ID2+nprong2*100)*1000*100;
 //   if(JAK_ID2==TauDecay::JAK_A1_3PI && nprong2==3 && (nprong1==1 || (JAK_ID2==TauDecay::JAK_A1_3PI && nprong1==3))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
   if(JAK_ID1==TauDecay::JAK_PION && nprong1==1 && (nprong2==1 || (JAK_ID2==TauDecay::JAK_PION && nprong2==1))) return type+(JAK_ID1+100*nprong1)*100+(JAK_ID2+nprong2*100)*1000*100;
-  if(JAK_ID2==TauDecay::JAK_PION && nprong2==1 && (nprong1==1 || (JAK_ID2==TauDecay::JAK_PION && nprong1==1))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
+  if(JAK_ID2==TauDecay::JAK_PION && nprong2==1 && (nprong1==1 || (JAK_ID1==TauDecay::JAK_PION && nprong1==1))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
 
   if(JAK_ID1==TauDecay::JAK_RHO_PIPI0 && nprong1==1 && (nprong2==1 || (JAK_ID2==TauDecay::JAK_RHO_PIPI0 && nprong2==1))) return type+(JAK_ID1+100*nprong1)*100+(JAK_ID2+nprong2*100)*1000*100;
-  if(JAK_ID2==TauDecay::JAK_RHO_PIPI0 && nprong2==1 && (nprong1==1 || (JAK_ID2==TauDecay::JAK_RHO_PIPI0 && nprong1==1))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
+  if(JAK_ID2==TauDecay::JAK_RHO_PIPI0 && nprong2==1 && (nprong1==1 || (JAK_ID1==TauDecay::JAK_RHO_PIPI0 && nprong1==1))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
 
   if(JAK_ID1==TauDecay::JAK_A1_3PI && nprong1==3 && (nprong2==1 || (JAK_ID2==TauDecay::JAK_A1_3PI && nprong2==3))) return type+(JAK_ID1+100*nprong1)*100+(JAK_ID2+nprong2*100)*1000*100;
-  if(JAK_ID2==TauDecay::JAK_A1_3PI && nprong2==3 && (nprong1==1 || (JAK_ID2==TauDecay::JAK_A1_3PI && nprong1==3))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
+  if(JAK_ID2==TauDecay::JAK_A1_3PI && nprong2==3 && (nprong1==1 || (JAK_ID1==TauDecay::JAK_A1_3PI && nprong1==3))) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
                                                                                                                   
   if(JAK_ID1==TauDecay::JAK_3PIPI0 && nprong1==3 && (JAK_ID2==TauDecay::JAK_MUON && nprong2==1)) return type+(JAK_ID1+100*nprong1)*100+(JAK_ID2+nprong2*100)*1000*100;
   if(JAK_ID2==TauDecay::JAK_3PIPI0 && nprong2==3 && (JAK_ID1==TauDecay::JAK_MUON && nprong1==1)) return type+(JAK_ID2+100*nprong2)*100+(JAK_ID1+nprong1*100)*1000*100;
