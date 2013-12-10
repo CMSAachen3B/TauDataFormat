@@ -1775,7 +1775,6 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		sigMat = patMETUncorr.getSignificanceMatrix();
 		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		std::cout << "MET_Uncorr sigMat = " << sigMat(0, 0) << " " << sigMat(0, 1) << " " << sigMat(1, 1) << std::endl;
 		MET_Uncorr_significance_xx = sigMat(0, 0);
 		MET_Uncorr_significance_xy = sigMat(0, 1);
 		MET_Uncorr_significance_yy = sigMat(1, 1);
@@ -1795,7 +1794,6 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		sigMat = patMETCorrT0T1.getSignificanceMatrix();
 		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		std::cout << "MET_ToT1 sigMat = " << sigMat(0, 0) << " " << sigMat(0, 1) << " " << sigMat(1, 1) << std::endl;
 		MET_CorrT0T1_significance_xx = sigMat(0, 0);
 		MET_CorrT0T1_significance_xy = sigMat(0, 1);
 		MET_CorrT0T1_significance_yy = sigMat(1, 1);
@@ -1815,7 +1813,6 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		sigMat = patMETCorrT1.getSignificanceMatrix();
 		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		std::cout << "MET_T1 sigMat = " << sigMat(0, 0) << " " << sigMat(0, 1) << " " << sigMat(1, 1) << std::endl;
 		MET_CorrT1_significance_xx = sigMat(0, 0);
 		MET_CorrT1_significance_xy = sigMat(0, 1);
 		MET_CorrT1_significance_yy = sigMat(1, 1);
