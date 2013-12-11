@@ -96,8 +96,18 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		hpsPFTauDiscriminationAgainstMuonMedium_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonMedium")),
 		hpsPFTauDiscriminationAgainstMuonTight_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationAgainstMuonTight")),
 		hpsPFTauDiscriminationByDecayModeFinding_(iConfig.getParameter<edm::InputTag>("hpsPFTauDiscriminationByDecayModeFinding")),
-		pfMETCorrT0T1_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0T1")),
+		pfMETCorrT0rt_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0rt")),
+		pfMETCorrT0rtT1_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0rtT1")),
+		pfMETCorrT0pc_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0pc")),
+		pfMETCorrT0pcT1_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0pcT1")),
+		pfMETCorrT0rtTxy_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0rtTxy")),
+		pfMETCorrT0rtT1Txy_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0rtT1Txy")),
+		pfMETCorrT0pcTxy_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0pcTxy")),
+		pfMETCorrT0pcT1Txy_(iConfig.getParameter<edm::InputTag>("pfMetCorrT0pcT1Txy")),
 		pfMETCorrT1_(iConfig.getParameter<edm::InputTag>("pfMetCorrT1")),
+		pfMETCorrT1Txy_(iConfig.getParameter<edm::InputTag>("pfMetCorrT1Txy")),
+		caloMETCorrT1_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1")),
+		caloMETCorrT1T2_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1T2")),
 		pfMETCorrMVA_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVA")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
@@ -1686,11 +1696,41 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		edm::Handle<edm::View<reco::PFMET> > pfMETUncorr;
 		iEvent.getByLabel(pfMETUncorr_, pfMETUncorr);
 
-		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0T1;
-		iEvent.getByLabel(pfMETCorrT0T1_, pfMETCorrT0T1);
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0rt;
+		iEvent.getByLabel(pfMETCorrT0rt_, pfMETCorrT0rt);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0rtT1;
+		iEvent.getByLabel(pfMETCorrT0rtT1_, pfMETCorrT0rtT1);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0pc;
+		iEvent.getByLabel(pfMETCorrT0pc_, pfMETCorrT0pc);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0pcT1;
+		iEvent.getByLabel(pfMETCorrT0pcT1_, pfMETCorrT0pcT1);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0rtTxy;
+		iEvent.getByLabel(pfMETCorrT0rtTxy_, pfMETCorrT0rtTxy);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0rtT1Txy;
+		iEvent.getByLabel(pfMETCorrT0rtT1Txy_, pfMETCorrT0rtT1Txy);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0pcTxy;
+		iEvent.getByLabel(pfMETCorrT0pcTxy_, pfMETCorrT0pcTxy);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT0pcT1Txy;
+		iEvent.getByLabel(pfMETCorrT0pcT1Txy_, pfMETCorrT0pcT1Txy);
 
 		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT1;
 		iEvent.getByLabel(pfMETCorrT1_, pfMETCorrT1);
+
+		edm::Handle<std::vector<reco::PFMET> > pfMETCorrT1Txy;
+		iEvent.getByLabel(pfMETCorrT1Txy_, pfMETCorrT1Txy);
+
+		edm::Handle<std::vector<reco::PFMET> > caloMETCorrT1;
+		iEvent.getByLabel(caloMETCorrT1_, caloMETCorrT1);
+
+		edm::Handle<std::vector<reco::PFMET> > caloMETCorrT1T2;
+		iEvent.getByLabel(caloMETCorrT1T2_, caloMETCorrT1T2);
 
 		// MVA MET is only available in PAT
 
@@ -1717,22 +1757,141 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_Uncorr_Type6EtFraction = pfMETUncorr->front().Type6EtFraction();
 		MET_Uncorr_Type7EtFraction = pfMETUncorr->front().Type7EtFraction();
 
-		MET_CorrT0T1_et = pfMETCorrT0T1->front().et();
-		MET_CorrT0T1_pt = pfMETCorrT0T1->front().pt();
-		MET_CorrT0T1_phi = pfMETCorrT0T1->front().phi();
-		MET_CorrT0T1_sumET = pfMETCorrT0T1->front().sumEt();
-		MET_CorrT0T1_significance = pfMETCorrT0T1->front().significance();
-		sigMat = pfMETCorrT0T1->front().getSignificanceMatrix();
+		MET_CorrT0rt_et = pfMETCorrT0rt->front().et();
+		MET_CorrT0rt_pt = pfMETCorrT0rt->front().pt();
+		MET_CorrT0rt_phi = pfMETCorrT0rt->front().phi();
+		MET_CorrT0rt_sumET = pfMETCorrT0rt->front().sumEt();
+		MET_CorrT0rt_significance = pfMETCorrT0rt->front().significance();
+		sigMat = pfMETCorrT0rt->front().getSignificanceMatrix();
 		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		MET_CorrT0T1_significance_xx = sigMat(0, 0);
-		MET_CorrT0T1_significance_xy = sigMat(0, 1);
-		MET_CorrT0T1_significance_yy = sigMat(1, 1);
-		MET_CorrT0T1_MuonEtFraction = pfMETCorrT0T1->front().muonEtFraction();
-		MET_CorrT0T1_NeutralEMFraction = pfMETCorrT0T1->front().NeutralEMFraction();
-		MET_CorrT0T1_NeutralHadEtFraction = pfMETCorrT0T1->front().NeutralHadEtFraction();
-		MET_CorrT0T1_Type6EtFraction = pfMETCorrT0T1->front().Type6EtFraction();
-		MET_CorrT0T1_Type7EtFraction = pfMETCorrT0T1->front().Type7EtFraction();
+		MET_CorrT0rt_significance_xx = sigMat(0, 0);
+		MET_CorrT0rt_significance_xy = sigMat(0, 1);
+		MET_CorrT0rt_significance_yy = sigMat(1, 1);
+		MET_CorrT0rt_MuonEtFraction = pfMETCorrT0rt->front().muonEtFraction();
+		MET_CorrT0rt_NeutralEMFraction = pfMETCorrT0rt->front().NeutralEMFraction();
+		MET_CorrT0rt_NeutralHadEtFraction = pfMETCorrT0rt->front().NeutralHadEtFraction();
+		MET_CorrT0rt_Type6EtFraction = pfMETCorrT0rt->front().Type6EtFraction();
+		MET_CorrT0rt_Type7EtFraction = pfMETCorrT0rt->front().Type7EtFraction();
+
+		MET_CorrT0rtT1_et = pfMETCorrT0rtT1->front().et();
+		MET_CorrT0rtT1_pt = pfMETCorrT0rtT1->front().pt();
+		MET_CorrT0rtT1_phi = pfMETCorrT0rtT1->front().phi();
+		MET_CorrT0rtT1_sumET = pfMETCorrT0rtT1->front().sumEt();
+		MET_CorrT0rtT1_significance = pfMETCorrT0rtT1->front().significance();
+		sigMat = pfMETCorrT0rtT1->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0rtT1_significance_xx = sigMat(0, 0);
+		MET_CorrT0rtT1_significance_xy = sigMat(0, 1);
+		MET_CorrT0rtT1_significance_yy = sigMat(1, 1);
+		MET_CorrT0rtT1_MuonEtFraction = pfMETCorrT0rtT1->front().muonEtFraction();
+		MET_CorrT0rtT1_NeutralEMFraction = pfMETCorrT0rtT1->front().NeutralEMFraction();
+		MET_CorrT0rtT1_NeutralHadEtFraction = pfMETCorrT0rtT1->front().NeutralHadEtFraction();
+		MET_CorrT0rtT1_Type6EtFraction = pfMETCorrT0rtT1->front().Type6EtFraction();
+		MET_CorrT0rtT1_Type7EtFraction = pfMETCorrT0rtT1->front().Type7EtFraction();
+
+		MET_CorrT0pc_et = pfMETCorrT0pc->front().et();
+		MET_CorrT0pc_pt = pfMETCorrT0pc->front().pt();
+		MET_CorrT0pc_phi = pfMETCorrT0pc->front().phi();
+		MET_CorrT0pc_sumET = pfMETCorrT0pc->front().sumEt();
+		MET_CorrT0pc_significance = pfMETCorrT0pc->front().significance();
+		sigMat = pfMETCorrT0pc->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pc_significance_xx = sigMat(0, 0);
+		MET_CorrT0pc_significance_xy = sigMat(0, 1);
+		MET_CorrT0pc_significance_yy = sigMat(1, 1);
+		MET_CorrT0pc_MuonEtFraction = pfMETCorrT0pc->front().muonEtFraction();
+		MET_CorrT0pc_NeutralEMFraction = pfMETCorrT0pc->front().NeutralEMFraction();
+		MET_CorrT0pc_NeutralHadEtFraction = pfMETCorrT0pc->front().NeutralHadEtFraction();
+		MET_CorrT0pc_Type6EtFraction = pfMETCorrT0pc->front().Type6EtFraction();
+		MET_CorrT0pc_Type7EtFraction = pfMETCorrT0pc->front().Type7EtFraction();
+
+		MET_CorrT0pcT1_et = pfMETCorrT0pcT1->front().et();
+		MET_CorrT0pcT1_pt = pfMETCorrT0pcT1->front().pt();
+		MET_CorrT0pcT1_phi = pfMETCorrT0pcT1->front().phi();
+		MET_CorrT0pcT1_sumET = pfMETCorrT0pcT1->front().sumEt();
+		MET_CorrT0pcT1_significance = pfMETCorrT0pcT1->front().significance();
+		sigMat = pfMETCorrT0pcT1->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pcT1_significance_xx = sigMat(0, 0);
+		MET_CorrT0pcT1_significance_xy = sigMat(0, 1);
+		MET_CorrT0pcT1_significance_yy = sigMat(1, 1);
+		MET_CorrT0pcT1_MuonEtFraction = pfMETCorrT0pcT1->front().muonEtFraction();
+		MET_CorrT0pcT1_NeutralEMFraction = pfMETCorrT0pcT1->front().NeutralEMFraction();
+		MET_CorrT0pcT1_NeutralHadEtFraction = pfMETCorrT0pcT1->front().NeutralHadEtFraction();
+		MET_CorrT0pcT1_Type6EtFraction = pfMETCorrT0pcT1->front().Type6EtFraction();
+		MET_CorrT0pcT1_Type7EtFraction = pfMETCorrT0pcT1->front().Type7EtFraction();
+
+		MET_CorrT0rtTxy_et = pfMETCorrT0rtTxy->front().et();
+		MET_CorrT0rtTxy_pt = pfMETCorrT0rtTxy->front().pt();
+		MET_CorrT0rtTxy_phi = pfMETCorrT0rtTxy->front().phi();
+		MET_CorrT0rtTxy_sumET = pfMETCorrT0rtTxy->front().sumEt();
+		MET_CorrT0rtTxy_significance = pfMETCorrT0rtTxy->front().significance();
+		sigMat = pfMETCorrT0rtTxy->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0rtTxy_significance_xx = sigMat(0, 0);
+		MET_CorrT0rtTxy_significance_xy = sigMat(0, 1);
+		MET_CorrT0rtTxy_significance_yy = sigMat(1, 1);
+		MET_CorrT0rtTxy_MuonEtFraction = pfMETCorrT0rtTxy->front().muonEtFraction();
+		MET_CorrT0rtTxy_NeutralEMFraction = pfMETCorrT0rtTxy->front().NeutralEMFraction();
+		MET_CorrT0rtTxy_NeutralHadEtFraction = pfMETCorrT0rtTxy->front().NeutralHadEtFraction();
+		MET_CorrT0rtTxy_Type6EtFraction = pfMETCorrT0rtTxy->front().Type6EtFraction();
+		MET_CorrT0rtTxy_Type7EtFraction = pfMETCorrT0rtTxy->front().Type7EtFraction();
+
+		MET_CorrT0rtT1Txy_et = pfMETCorrT0rtT1Txy->front().et();
+		MET_CorrT0rtT1Txy_pt = pfMETCorrT0rtT1Txy->front().pt();
+		MET_CorrT0rtT1Txy_phi = pfMETCorrT0rtT1Txy->front().phi();
+		MET_CorrT0rtT1Txy_sumET = pfMETCorrT0rtT1Txy->front().sumEt();
+		MET_CorrT0rtT1Txy_significance = pfMETCorrT0rtT1Txy->front().significance();
+		sigMat = pfMETCorrT0rtT1Txy->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0rtT1Txy_significance_xx = sigMat(0, 0);
+		MET_CorrT0rtT1Txy_significance_xy = sigMat(0, 1);
+		MET_CorrT0rtT1Txy_significance_yy = sigMat(1, 1);
+		MET_CorrT0rtT1Txy_MuonEtFraction = pfMETCorrT0rtT1Txy->front().muonEtFraction();
+		MET_CorrT0rtT1Txy_NeutralEMFraction = pfMETCorrT0rtT1Txy->front().NeutralEMFraction();
+		MET_CorrT0rtT1Txy_NeutralHadEtFraction = pfMETCorrT0rtT1Txy->front().NeutralHadEtFraction();
+		MET_CorrT0rtT1Txy_Type6EtFraction = pfMETCorrT0rtT1Txy->front().Type6EtFraction();
+		MET_CorrT0rtT1Txy_Type7EtFraction = pfMETCorrT0rtT1Txy->front().Type7EtFraction();
+
+		MET_CorrT0pcTxy_et = pfMETCorrT0pcTxy->front().et();
+		MET_CorrT0pcTxy_pt = pfMETCorrT0pcTxy->front().pt();
+		MET_CorrT0pcTxy_phi = pfMETCorrT0pcTxy->front().phi();
+		MET_CorrT0pcTxy_sumET = pfMETCorrT0pcTxy->front().sumEt();
+		MET_CorrT0pcTxy_significance = pfMETCorrT0pcTxy->front().significance();
+		sigMat = pfMETCorrT0pcTxy->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pcTxy_significance_xx = sigMat(0, 0);
+		MET_CorrT0pcTxy_significance_xy = sigMat(0, 1);
+		MET_CorrT0pcTxy_significance_yy = sigMat(1, 1);
+		MET_CorrT0pcTxy_MuonEtFraction = pfMETCorrT0pcTxy->front().muonEtFraction();
+		MET_CorrT0pcTxy_NeutralEMFraction = pfMETCorrT0pcTxy->front().NeutralEMFraction();
+		MET_CorrT0pcTxy_NeutralHadEtFraction = pfMETCorrT0pcTxy->front().NeutralHadEtFraction();
+		MET_CorrT0pcTxy_Type6EtFraction = pfMETCorrT0pcTxy->front().Type6EtFraction();
+		MET_CorrT0pcTxy_Type7EtFraction = pfMETCorrT0pcTxy->front().Type7EtFraction();
+
+		MET_CorrT0pcT1Txy_et = pfMETCorrT0pcT1Txy->front().et();
+		MET_CorrT0pcT1Txy_pt = pfMETCorrT0pcT1Txy->front().pt();
+		MET_CorrT0pcT1Txy_phi = pfMETCorrT0pcT1Txy->front().phi();
+		MET_CorrT0pcT1Txy_sumET = pfMETCorrT0pcT1Txy->front().sumEt();
+		MET_CorrT0pcT1Txy_significance = pfMETCorrT0pcT1Txy->front().significance();
+		sigMat = pfMETCorrT0pcT1Txy->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pcT1Txy_significance_xx = sigMat(0, 0);
+		MET_CorrT0pcT1Txy_significance_xy = sigMat(0, 1);
+		MET_CorrT0pcT1Txy_significance_yy = sigMat(1, 1);
+		MET_CorrT0pcT1Txy_MuonEtFraction = pfMETCorrT0pcT1Txy->front().muonEtFraction();
+		MET_CorrT0pcT1Txy_NeutralEMFraction = pfMETCorrT0pcT1Txy->front().NeutralEMFraction();
+		MET_CorrT0pcT1Txy_NeutralHadEtFraction = pfMETCorrT0pcT1Txy->front().NeutralHadEtFraction();
+		MET_CorrT0pcT1Txy_Type6EtFraction = pfMETCorrT0pcT1Txy->front().Type6EtFraction();
+		MET_CorrT0pcT1Txy_Type7EtFraction = pfMETCorrT0pcT1Txy->front().Type7EtFraction();
 
 		MET_CorrT1_et = pfMETCorrT1->front().et();
 		MET_CorrT1_pt = pfMETCorrT1->front().pt();
@@ -1751,19 +1910,112 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrT1_Type6EtFraction = pfMETCorrT1->front().Type6EtFraction();
 		MET_CorrT1_Type7EtFraction = pfMETCorrT1->front().Type7EtFraction();
 
+		MET_CorrT1Txy_et = pfMETCorrT1Txy->front().et();
+		MET_CorrT1Txy_pt = pfMETCorrT1Txy->front().pt();
+		MET_CorrT1Txy_phi = pfMETCorrT1Txy->front().phi();
+		MET_CorrT1Txy_sumET = pfMETCorrT1Txy->front().sumEt();
+		MET_CorrT1Txy_significance = pfMETCorrT1Txy->front().significance();
+		sigMat = pfMETCorrT1Txy->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT1Txy_significance_xx = sigMat(0, 0);
+		MET_CorrT1Txy_significance_xy = sigMat(0, 1);
+		MET_CorrT1Txy_significance_yy = sigMat(1, 1);
+		MET_CorrT1Txy_MuonEtFraction = pfMETCorrT1Txy->front().muonEtFraction();
+		MET_CorrT1Txy_NeutralEMFraction = pfMETCorrT1Txy->front().NeutralEMFraction();
+		MET_CorrT1Txy_NeutralHadEtFraction = pfMETCorrT1Txy->front().NeutralHadEtFraction();
+		MET_CorrT1Txy_Type6EtFraction = pfMETCorrT1Txy->front().Type6EtFraction();
+		MET_CorrT1Txy_Type7EtFraction = pfMETCorrT1Txy->front().Type7EtFraction();
+
+		MET_CorrCaloT1_et = caloMETCorrT1->front().et();
+		MET_CorrCaloT1_pt = caloMETCorrT1->front().pt();
+		MET_CorrCaloT1_phi = caloMETCorrT1->front().phi();
+		MET_CorrCaloT1_sumET = caloMETCorrT1->front().sumEt();
+		MET_CorrCaloT1_significance = caloMETCorrT1->front().significance();
+		sigMat = caloMETCorrT1->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrCaloT1_significance_xx = sigMat(0, 0);
+		MET_CorrCaloT1_significance_xy = sigMat(0, 1);
+		MET_CorrCaloT1_significance_yy = sigMat(1, 1);
+		MET_CorrCaloT1_MuonEtFraction = caloMETCorrT1->front().muonEtFraction();
+		MET_CorrCaloT1_NeutralEMFraction = caloMETCorrT1->front().NeutralEMFraction();
+		MET_CorrCaloT1_NeutralHadEtFraction = caloMETCorrT1->front().NeutralHadEtFraction();
+		MET_CorrCaloT1_Type6EtFraction = caloMETCorrT1->front().Type6EtFraction();
+		MET_CorrCaloT1_Type7EtFraction = caloMETCorrT1->front().Type7EtFraction();
+
+		MET_CorrCaloT1T2_et = caloMETCorrT1T2->front().et();
+		MET_CorrCaloT1T2_pt = caloMETCorrT1T2->front().pt();
+		MET_CorrCaloT1T2_phi = caloMETCorrT1T2->front().phi();
+		MET_CorrCaloT1T2_sumET = caloMETCorrT1T2->front().sumEt();
+		MET_CorrCaloT1T2_significance = caloMETCorrT1T2->front().significance();
+		sigMat = caloMETCorrT1T2->front().getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrCaloT1T2_significance_xx = sigMat(0, 0);
+		MET_CorrCaloT1T2_significance_xy = sigMat(0, 1);
+		MET_CorrCaloT1T2_significance_yy = sigMat(1, 1);
+		MET_CorrCaloT1T2_MuonEtFraction = caloMETCorrT1T2->front().muonEtFraction();
+		MET_CorrCaloT1T2_NeutralEMFraction = caloMETCorrT1T2->front().NeutralEMFraction();
+		MET_CorrCaloT1T2_NeutralHadEtFraction = caloMETCorrT1T2->front().NeutralHadEtFraction();
+		MET_CorrCaloT1T2_Type6EtFraction = caloMETCorrT1T2->front().Type6EtFraction();
+		MET_CorrCaloT1T2_Type7EtFraction = caloMETCorrT1T2->front().Type7EtFraction();
+
+
+
 	} else {
 
 		edm::Handle<std::vector<pat::MET>> patMETUncorrHandle;
 		iEvent.getByLabel(pfMETUncorr_, patMETUncorrHandle);
 		pat::MET patMETUncorr = patMETUncorrHandle->front();
 
-		edm::Handle<std::vector<pat::MET>> patMETCorrT0T1Handle;
-		iEvent.getByLabel(pfMETCorrT0T1_, patMETCorrT0T1Handle);
-		pat::MET patMETCorrT0T1 = patMETCorrT0T1Handle->front();
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtHandle;
+		iEvent.getByLabel(pfMETCorrT0rt_, patMETCorrT0rtHandle);
+		pat::MET patMETCorrT0rt = patMETCorrT0rtHandle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtT1Handle;
+		iEvent.getByLabel(pfMETCorrT0rtT1_, patMETCorrT0rtT1Handle);
+		pat::MET patMETCorrT0rtT1 = patMETCorrT0rtT1Handle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcHandle;
+		iEvent.getByLabel(pfMETCorrT0pc_, patMETCorrT0pcHandle);
+		pat::MET patMETCorrT0pc = patMETCorrT0pcHandle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcT1Handle;
+		iEvent.getByLabel(pfMETCorrT0pcT1_, patMETCorrT0pcT1Handle);
+		pat::MET patMETCorrT0pcT1 = patMETCorrT0pcT1Handle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtTxyHandle;
+		iEvent.getByLabel(pfMETCorrT0rtTxy_, patMETCorrT0rtTxyHandle);
+		pat::MET patMETCorrT0rtTxy = patMETCorrT0rtTxyHandle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtT1TxyHandle;
+		iEvent.getByLabel(pfMETCorrT0rtT1Txy_, patMETCorrT0rtT1TxyHandle);
+		pat::MET patMETCorrT0rtT1Txy = patMETCorrT0rtT1TxyHandle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcTxyHandle;
+		iEvent.getByLabel(pfMETCorrT0pcTxy_, patMETCorrT0pcTxyHandle);
+		pat::MET patMETCorrT0pcTxy = patMETCorrT0pcTxyHandle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcT1TxyHandle;
+		iEvent.getByLabel(pfMETCorrT0pcT1Txy_, patMETCorrT0pcT1TxyHandle);
+		pat::MET patMETCorrT0pcT1Txy = patMETCorrT0pcT1TxyHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT1Handle;
 		iEvent.getByLabel(pfMETCorrT1_, patMETCorrT1Handle);
 		pat::MET patMETCorrT1 = patMETCorrT1Handle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrT1TxyHandle;
+		iEvent.getByLabel(pfMETCorrT1Txy_, patMETCorrT1TxyHandle);
+		pat::MET patMETCorrT1Txy = patMETCorrT1TxyHandle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrCaloT1Handle;
+		iEvent.getByLabel(caloMETCorrT1_, patMETCorrCaloT1Handle);
+		pat::MET patMETCorrCaloT1 = patMETCorrCaloT1Handle->front();
+
+		edm::Handle<std::vector<pat::MET>> patMETCorrCaloT1T2Handle;
+		iEvent.getByLabel(caloMETCorrT1T2_, patMETCorrCaloT1T2Handle);
+		pat::MET patMETCorrCaloT1T2 = patMETCorrCaloT1T2Handle->front();
 
 		TMatrixD sigMat(2, 2);
 
@@ -1786,23 +2038,156 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_Uncorr_Type7EtFraction = patMETUncorr.Type7EtFraction();
 		}
 
-		MET_CorrT0T1_et = patMETCorrT0T1.et();
-		MET_CorrT0T1_pt = patMETCorrT0T1.pt();
-		MET_CorrT0T1_phi = patMETCorrT0T1.phi();
-		MET_CorrT0T1_sumET = patMETCorrT0T1.sumEt();
-		MET_CorrT0T1_significance = patMETCorrT0T1.significance();
-		sigMat = patMETCorrT0T1.getSignificanceMatrix();
+		MET_CorrT0rt_et = patMETCorrT0rt.et();
+		MET_CorrT0rt_pt = patMETCorrT0rt.pt();
+		MET_CorrT0rt_phi = patMETCorrT0rt.phi();
+		MET_CorrT0rt_sumET = patMETCorrT0rt.sumEt();
+		MET_CorrT0rt_significance = patMETCorrT0rt.significance();
+		sigMat = patMETCorrT0rt.getSignificanceMatrix();
 		if (sigMat(0, 1) != sigMat(1, 0))
 			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
-		MET_CorrT0T1_significance_xx = sigMat(0, 0);
-		MET_CorrT0T1_significance_xy = sigMat(0, 1);
-		MET_CorrT0T1_significance_yy = sigMat(1, 1);
-		if (patMETCorrT0T1.isPFMET()) {
-			MET_CorrT0T1_MuonEtFraction = patMETCorrT0T1.MuonEtFraction();
-			MET_CorrT0T1_NeutralEMFraction = patMETCorrT0T1.NeutralEMFraction();
-			MET_CorrT0T1_NeutralHadEtFraction = patMETCorrT0T1.NeutralHadEtFraction();
-			MET_CorrT0T1_Type6EtFraction = patMETCorrT0T1.Type6EtFraction();
-			MET_CorrT0T1_Type7EtFraction = patMETCorrT0T1.Type7EtFraction();
+		MET_CorrT0rt_significance_xx = sigMat(0, 0);
+		MET_CorrT0rt_significance_xy = sigMat(0, 1);
+		MET_CorrT0rt_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0rt.isPFMET()) {
+			MET_CorrT0rt_MuonEtFraction = patMETCorrT0rt.MuonEtFraction();
+			MET_CorrT0rt_NeutralEMFraction = patMETCorrT0rt.NeutralEMFraction();
+			MET_CorrT0rt_NeutralHadEtFraction = patMETCorrT0rt.NeutralHadEtFraction();
+			MET_CorrT0rt_Type6EtFraction = patMETCorrT0rt.Type6EtFraction();
+			MET_CorrT0rt_Type7EtFraction = patMETCorrT0rt.Type7EtFraction();
+		}
+
+		MET_CorrT0rtT1_et = patMETCorrT0rtT1.et();
+		MET_CorrT0rtT1_pt = patMETCorrT0rtT1.pt();
+		MET_CorrT0rtT1_phi = patMETCorrT0rtT1.phi();
+		MET_CorrT0rtT1_sumET = patMETCorrT0rtT1.sumEt();
+		MET_CorrT0rtT1_significance = patMETCorrT0rtT1.significance();
+		sigMat = patMETCorrT0rtT1.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0rtT1_significance_xx = sigMat(0, 0);
+		MET_CorrT0rtT1_significance_xy = sigMat(0, 1);
+		MET_CorrT0rtT1_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0rtT1.isPFMET()) {
+			MET_CorrT0rtT1_MuonEtFraction = patMETCorrT0rtT1.MuonEtFraction();
+			MET_CorrT0rtT1_NeutralEMFraction = patMETCorrT0rtT1.NeutralEMFraction();
+			MET_CorrT0rtT1_NeutralHadEtFraction = patMETCorrT0rtT1.NeutralHadEtFraction();
+			MET_CorrT0rtT1_Type6EtFraction = patMETCorrT0rtT1.Type6EtFraction();
+			MET_CorrT0rtT1_Type7EtFraction = patMETCorrT0rtT1.Type7EtFraction();
+		}
+
+		MET_CorrT0pc_et = patMETCorrT0pc.et();
+		MET_CorrT0pc_pt = patMETCorrT0pc.pt();
+		MET_CorrT0pc_phi = patMETCorrT0pc.phi();
+		MET_CorrT0pc_sumET = patMETCorrT0pc.sumEt();
+		MET_CorrT0pc_significance = patMETCorrT0pc.significance();
+		sigMat = patMETCorrT0pc.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pc_significance_xx = sigMat(0, 0);
+		MET_CorrT0pc_significance_xy = sigMat(0, 1);
+		MET_CorrT0pc_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0pc.isPFMET()) {
+			MET_CorrT0pc_MuonEtFraction = patMETCorrT0pc.MuonEtFraction();
+			MET_CorrT0pc_NeutralEMFraction = patMETCorrT0pc.NeutralEMFraction();
+			MET_CorrT0pc_NeutralHadEtFraction = patMETCorrT0pc.NeutralHadEtFraction();
+			MET_CorrT0pc_Type6EtFraction = patMETCorrT0pc.Type6EtFraction();
+			MET_CorrT0pc_Type7EtFraction = patMETCorrT0pc.Type7EtFraction();
+		}
+
+		MET_CorrT0pcT1_et = patMETCorrT0pcT1.et();
+		MET_CorrT0pcT1_pt = patMETCorrT0pcT1.pt();
+		MET_CorrT0pcT1_phi = patMETCorrT0pcT1.phi();
+		MET_CorrT0pcT1_sumET = patMETCorrT0pcT1.sumEt();
+		MET_CorrT0pcT1_significance = patMETCorrT0pcT1.significance();
+		sigMat = patMETCorrT0pcT1.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pcT1_significance_xx = sigMat(0, 0);
+		MET_CorrT0pcT1_significance_xy = sigMat(0, 1);
+		MET_CorrT0pcT1_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0pcT1.isPFMET()) {
+			MET_CorrT0pcT1_MuonEtFraction = patMETCorrT0pcT1.MuonEtFraction();
+			MET_CorrT0pcT1_NeutralEMFraction = patMETCorrT0pcT1.NeutralEMFraction();
+			MET_CorrT0pcT1_NeutralHadEtFraction = patMETCorrT0pcT1.NeutralHadEtFraction();
+			MET_CorrT0pcT1_Type6EtFraction = patMETCorrT0pcT1.Type6EtFraction();
+			MET_CorrT0pcT1_Type7EtFraction = patMETCorrT0pcT1.Type7EtFraction();
+		}
+
+		MET_CorrT0rtTxy_et = patMETCorrT0rtTxy.et();
+		MET_CorrT0rtTxy_pt = patMETCorrT0rtTxy.pt();
+		MET_CorrT0rtTxy_phi = patMETCorrT0rtTxy.phi();
+		MET_CorrT0rtTxy_sumET = patMETCorrT0rtTxy.sumEt();
+		MET_CorrT0rtTxy_significance = patMETCorrT0rtTxy.significance();
+		sigMat = patMETCorrT0rtTxy.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0rtTxy_significance_xx = sigMat(0, 0);
+		MET_CorrT0rtTxy_significance_xy = sigMat(0, 1);
+		MET_CorrT0rtTxy_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0rtTxy.isPFMET()) {
+			MET_CorrT0rtTxy_MuonEtFraction = patMETCorrT0rtTxy.MuonEtFraction();
+			MET_CorrT0rtTxy_NeutralEMFraction = patMETCorrT0rtTxy.NeutralEMFraction();
+			MET_CorrT0rtTxy_NeutralHadEtFraction = patMETCorrT0rtTxy.NeutralHadEtFraction();
+			MET_CorrT0rtTxy_Type6EtFraction = patMETCorrT0rtTxy.Type6EtFraction();
+			MET_CorrT0rtTxy_Type7EtFraction = patMETCorrT0rtTxy.Type7EtFraction();
+		}
+
+		MET_CorrT0rtT1Txy_et = patMETCorrT0rtT1Txy.et();
+		MET_CorrT0rtT1Txy_pt = patMETCorrT0rtT1Txy.pt();
+		MET_CorrT0rtT1Txy_phi = patMETCorrT0rtT1Txy.phi();
+		MET_CorrT0rtT1Txy_sumET = patMETCorrT0rtT1Txy.sumEt();
+		MET_CorrT0rtT1Txy_significance = patMETCorrT0rtT1Txy.significance();
+		sigMat = patMETCorrT0rtT1Txy.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0rtT1Txy_significance_xx = sigMat(0, 0);
+		MET_CorrT0rtT1Txy_significance_xy = sigMat(0, 1);
+		MET_CorrT0rtT1Txy_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0rtT1Txy.isPFMET()) {
+			MET_CorrT0rtT1Txy_MuonEtFraction = patMETCorrT0rtT1Txy.MuonEtFraction();
+			MET_CorrT0rtT1Txy_NeutralEMFraction = patMETCorrT0rtT1Txy.NeutralEMFraction();
+			MET_CorrT0rtT1Txy_NeutralHadEtFraction = patMETCorrT0rtT1Txy.NeutralHadEtFraction();
+			MET_CorrT0rtT1Txy_Type6EtFraction = patMETCorrT0rtT1Txy.Type6EtFraction();
+			MET_CorrT0rtT1Txy_Type7EtFraction = patMETCorrT0rtT1Txy.Type7EtFraction();
+		}
+
+		MET_CorrT0pcTxy_et = patMETCorrT0pcTxy.et();
+		MET_CorrT0pcTxy_pt = patMETCorrT0pcTxy.pt();
+		MET_CorrT0pcTxy_phi = patMETCorrT0pcTxy.phi();
+		MET_CorrT0pcTxy_sumET = patMETCorrT0pcTxy.sumEt();
+		MET_CorrT0pcTxy_significance = patMETCorrT0pcTxy.significance();
+		sigMat = patMETCorrT0pcTxy.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pcTxy_significance_xx = sigMat(0, 0);
+		MET_CorrT0pcTxy_significance_xy = sigMat(0, 1);
+		MET_CorrT0pcTxy_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0pcTxy.isPFMET()) {
+			MET_CorrT0pcTxy_MuonEtFraction = patMETCorrT0pcTxy.MuonEtFraction();
+			MET_CorrT0pcTxy_NeutralEMFraction = patMETCorrT0pcTxy.NeutralEMFraction();
+			MET_CorrT0pcTxy_NeutralHadEtFraction = patMETCorrT0pcTxy.NeutralHadEtFraction();
+			MET_CorrT0pcTxy_Type6EtFraction = patMETCorrT0pcTxy.Type6EtFraction();
+			MET_CorrT0pcTxy_Type7EtFraction = patMETCorrT0pcTxy.Type7EtFraction();
+		}
+
+		MET_CorrT0pcT1Txy_et = patMETCorrT0pcT1Txy.et();
+		MET_CorrT0pcT1Txy_pt = patMETCorrT0pcT1Txy.pt();
+		MET_CorrT0pcT1Txy_phi = patMETCorrT0pcT1Txy.phi();
+		MET_CorrT0pcT1Txy_sumET = patMETCorrT0pcT1Txy.sumEt();
+		MET_CorrT0pcT1Txy_significance = patMETCorrT0pcT1Txy.significance();
+		sigMat = patMETCorrT0pcT1Txy.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT0pcT1Txy_significance_xx = sigMat(0, 0);
+		MET_CorrT0pcT1Txy_significance_xy = sigMat(0, 1);
+		MET_CorrT0pcT1Txy_significance_yy = sigMat(1, 1);
+		if (patMETCorrT0pcT1Txy.isPFMET()) {
+			MET_CorrT0pcT1Txy_MuonEtFraction = patMETCorrT0pcT1Txy.MuonEtFraction();
+			MET_CorrT0pcT1Txy_NeutralEMFraction = patMETCorrT0pcT1Txy.NeutralEMFraction();
+			MET_CorrT0pcT1Txy_NeutralHadEtFraction = patMETCorrT0pcT1Txy.NeutralHadEtFraction();
+			MET_CorrT0pcT1Txy_Type6EtFraction = patMETCorrT0pcT1Txy.Type6EtFraction();
+			MET_CorrT0pcT1Txy_Type7EtFraction = patMETCorrT0pcT1Txy.Type7EtFraction();
 		}
 
 		MET_CorrT1_et = patMETCorrT1.et();
@@ -1822,6 +2207,62 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrT1_NeutralHadEtFraction = patMETCorrT1.NeutralHadEtFraction();
 			MET_CorrT1_Type6EtFraction = patMETCorrT1.Type6EtFraction();
 			MET_CorrT1_Type7EtFraction = patMETCorrT1.Type7EtFraction();
+		}
+
+		MET_CorrT1Txy_et = patMETCorrT1Txy.et();
+		MET_CorrT1Txy_pt = patMETCorrT1Txy.pt();
+		MET_CorrT1Txy_phi = patMETCorrT1Txy.phi();
+		MET_CorrT1Txy_sumET = patMETCorrT1Txy.sumEt();
+		MET_CorrT1Txy_significance = patMETCorrT1Txy.significance();
+		sigMat = patMETCorrT1Txy.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrT1Txy_significance_xx = sigMat(0, 0);
+		MET_CorrT1Txy_significance_xy = sigMat(0, 1);
+		MET_CorrT1Txy_significance_yy = sigMat(1, 1);
+		if (patMETCorrT1Txy.isPFMET()) {
+			MET_CorrT1Txy_MuonEtFraction = patMETCorrT1Txy.MuonEtFraction();
+			MET_CorrT1Txy_NeutralEMFraction = patMETCorrT1Txy.NeutralEMFraction();
+			MET_CorrT1Txy_NeutralHadEtFraction = patMETCorrT1Txy.NeutralHadEtFraction();
+			MET_CorrT1Txy_Type6EtFraction = patMETCorrT1Txy.Type6EtFraction();
+			MET_CorrT1Txy_Type7EtFraction = patMETCorrT1Txy.Type7EtFraction();
+		}
+
+		MET_CorrCaloT1_et = patMETCorrCaloT1.et();
+		MET_CorrCaloT1_pt = patMETCorrCaloT1.pt();
+		MET_CorrCaloT1_phi = patMETCorrCaloT1.phi();
+		MET_CorrCaloT1_sumET = patMETCorrCaloT1.sumEt();
+		MET_CorrCaloT1_significance = patMETCorrCaloT1.significance();
+		sigMat = patMETCorrCaloT1.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrCaloT1_significance_xx = sigMat(0, 0);
+		MET_CorrCaloT1_significance_xy = sigMat(0, 1);
+		MET_CorrCaloT1_significance_yy = sigMat(1, 1);
+		if (patMETCorrCaloT1.isPFMET()) {
+			MET_CorrCaloT1_MuonEtFraction = patMETCorrCaloT1.MuonEtFraction();
+			MET_CorrCaloT1_NeutralEMFraction = patMETCorrCaloT1.NeutralEMFraction();
+			MET_CorrCaloT1_NeutralHadEtFraction = patMETCorrCaloT1.NeutralHadEtFraction();
+			MET_CorrCaloT1_Type6EtFraction = patMETCorrCaloT1.Type6EtFraction();
+			MET_CorrCaloT1_Type7EtFraction = patMETCorrCaloT1.Type7EtFraction();
+		}
+		MET_CorrCaloT1T2_et = patMETCorrCaloT1T2.et();
+		MET_CorrCaloT1T2_pt = patMETCorrCaloT1T2.pt();
+		MET_CorrCaloT1T2_phi = patMETCorrCaloT1T2.phi();
+		MET_CorrCaloT1T2_sumET = patMETCorrCaloT1T2.sumEt();
+		MET_CorrCaloT1T2_significance = patMETCorrCaloT1T2.significance();
+		sigMat = patMETCorrCaloT1T2.getSignificanceMatrix();
+		if (sigMat(0, 1) != sigMat(1, 0))
+			std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+		MET_CorrCaloT1T2_significance_xx = sigMat(0, 0);
+		MET_CorrCaloT1T2_significance_xy = sigMat(0, 1);
+		MET_CorrCaloT1T2_significance_yy = sigMat(1, 1);
+		if (patMETCorrCaloT1T2.isPFMET()) {
+			MET_CorrCaloT1T2_MuonEtFraction = patMETCorrCaloT1T2.MuonEtFraction();
+			MET_CorrCaloT1T2_NeutralEMFraction = patMETCorrCaloT1T2.NeutralEMFraction();
+			MET_CorrCaloT1T2_NeutralHadEtFraction = patMETCorrCaloT1T2.NeutralHadEtFraction();
+			MET_CorrCaloT1T2_Type6EtFraction = patMETCorrCaloT1T2.Type6EtFraction();
+			MET_CorrCaloT1T2_Type7EtFraction = patMETCorrCaloT1T2.Type7EtFraction();
 		}
 
 		if (doMVAMET_) {
@@ -2511,19 +2952,117 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_Uncorr_Type6EtFraction", &MET_Uncorr_Type6EtFraction);
 	output_tree->Branch("MET_Uncorr_Type7EtFraction", &MET_Uncorr_Type7EtFraction);
 
-	output_tree->Branch("MET_CorrT0T1_et", &MET_CorrT0T1_et);
-	output_tree->Branch("MET_CorrT0T1_pt", &MET_CorrT0T1_pt);
-	output_tree->Branch("MET_CorrT0T1_phi", &MET_CorrT0T1_phi);
-	output_tree->Branch("MET_CorrT0T1_sumET", &MET_CorrT0T1_sumET);
-	output_tree->Branch("MET_CorrT0T1_significance", &MET_CorrT0T1_significance);
-	output_tree->Branch("MET_CorrT0T1_significance_xx", &MET_CorrT0T1_significance_xx);
-	output_tree->Branch("MET_CorrT0T1_significance_xy", &MET_CorrT0T1_significance_xy);
-	output_tree->Branch("MET_CorrT0T1_significance_yy", &MET_CorrT0T1_significance_yy);
-	output_tree->Branch("MET_CorrT0T1_MuonEtFraction", &MET_CorrT0T1_MuonEtFraction);
-	output_tree->Branch("MET_CorrT0T1_NeutralEMFraction", &MET_CorrT0T1_NeutralEMFraction);
-	output_tree->Branch("MET_CorrT0T1_NeutralHadEtFraction", &MET_CorrT0T1_NeutralHadEtFraction);
-	output_tree->Branch("MET_CorrT0T1_Type6EtFraction", &MET_CorrT0T1_Type6EtFraction);
-	output_tree->Branch("MET_CorrT0T1_Type7EtFraction", &MET_CorrT0T1_Type7EtFraction);
+	output_tree->Branch("MET_CorrT0rt_et", &MET_CorrT0rt_et);
+	output_tree->Branch("MET_CorrT0rt_pt", &MET_CorrT0rt_pt);
+	output_tree->Branch("MET_CorrT0rt_phi", &MET_CorrT0rt_phi);
+	output_tree->Branch("MET_CorrT0rt_sumET", &MET_CorrT0rt_sumET);
+	output_tree->Branch("MET_CorrT0rt_significance", &MET_CorrT0rt_significance);
+	output_tree->Branch("MET_CorrT0rt_significance_xx", &MET_CorrT0rt_significance_xx);
+	output_tree->Branch("MET_CorrT0rt_significance_xy", &MET_CorrT0rt_significance_xy);
+	output_tree->Branch("MET_CorrT0rt_significance_yy", &MET_CorrT0rt_significance_yy);
+	output_tree->Branch("MET_CorrT0rt_MuonEtFraction", &MET_CorrT0rt_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0rt_NeutralEMFraction", &MET_CorrT0rt_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0rt_NeutralHadEtFraction", &MET_CorrT0rt_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0rt_Type6EtFraction", &MET_CorrT0rt_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0rt_Type7EtFraction", &MET_CorrT0rt_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0rtT1_et", &MET_CorrT0rtT1_et);
+	output_tree->Branch("MET_CorrT0rtT1_pt", &MET_CorrT0rtT1_pt);
+	output_tree->Branch("MET_CorrT0rtT1_phi", &MET_CorrT0rtT1_phi);
+	output_tree->Branch("MET_CorrT0rtT1_sumET", &MET_CorrT0rtT1_sumET);
+	output_tree->Branch("MET_CorrT0rtT1_significance", &MET_CorrT0rtT1_significance);
+	output_tree->Branch("MET_CorrT0rtT1_significance_xx", &MET_CorrT0rtT1_significance_xx);
+	output_tree->Branch("MET_CorrT0rtT1_significance_xy", &MET_CorrT0rtT1_significance_xy);
+	output_tree->Branch("MET_CorrT0rtT1_significance_yy", &MET_CorrT0rtT1_significance_yy);
+	output_tree->Branch("MET_CorrT0rtT1_MuonEtFraction", &MET_CorrT0rtT1_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0rtT1_NeutralEMFraction", &MET_CorrT0rtT1_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0rtT1_NeutralHadEtFraction", &MET_CorrT0rtT1_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0rtT1_Type6EtFraction", &MET_CorrT0rtT1_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0rtT1_Type7EtFraction", &MET_CorrT0rtT1_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0pc_et", &MET_CorrT0pc_et);
+	output_tree->Branch("MET_CorrT0pc_pt", &MET_CorrT0pc_pt);
+	output_tree->Branch("MET_CorrT0pc_phi", &MET_CorrT0pc_phi);
+	output_tree->Branch("MET_CorrT0pc_sumET", &MET_CorrT0pc_sumET);
+	output_tree->Branch("MET_CorrT0pc_significance", &MET_CorrT0pc_significance);
+	output_tree->Branch("MET_CorrT0pc_significance_xx", &MET_CorrT0pc_significance_xx);
+	output_tree->Branch("MET_CorrT0pc_significance_xy", &MET_CorrT0pc_significance_xy);
+	output_tree->Branch("MET_CorrT0pc_significance_yy", &MET_CorrT0pc_significance_yy);
+	output_tree->Branch("MET_CorrT0pc_MuonEtFraction", &MET_CorrT0pc_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0pc_NeutralEMFraction", &MET_CorrT0pc_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0pc_NeutralHadEtFraction", &MET_CorrT0pc_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0pc_Type6EtFraction", &MET_CorrT0pc_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0pc_Type7EtFraction", &MET_CorrT0pc_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0pcT1_et", &MET_CorrT0pcT1_et);
+	output_tree->Branch("MET_CorrT0pcT1_pt", &MET_CorrT0pcT1_pt);
+	output_tree->Branch("MET_CorrT0pcT1_phi", &MET_CorrT0pcT1_phi);
+	output_tree->Branch("MET_CorrT0pcT1_sumET", &MET_CorrT0pcT1_sumET);
+	output_tree->Branch("MET_CorrT0pcT1_significance", &MET_CorrT0pcT1_significance);
+	output_tree->Branch("MET_CorrT0pcT1_significance_xx", &MET_CorrT0pcT1_significance_xx);
+	output_tree->Branch("MET_CorrT0pcT1_significance_xy", &MET_CorrT0pcT1_significance_xy);
+	output_tree->Branch("MET_CorrT0pcT1_significance_yy", &MET_CorrT0pcT1_significance_yy);
+	output_tree->Branch("MET_CorrT0pcT1_MuonEtFraction", &MET_CorrT0pcT1_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0pcT1_NeutralEMFraction", &MET_CorrT0pcT1_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0pcT1_NeutralHadEtFraction", &MET_CorrT0pcT1_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0pcT1_Type6EtFraction", &MET_CorrT0pcT1_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0pcT1_Type7EtFraction", &MET_CorrT0pcT1_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0rtTxy_et", &MET_CorrT0rtTxy_et);
+	output_tree->Branch("MET_CorrT0rtTxy_pt", &MET_CorrT0rtTxy_pt);
+	output_tree->Branch("MET_CorrT0rtTxy_phi", &MET_CorrT0rtTxy_phi);
+	output_tree->Branch("MET_CorrT0rtTxy_sumET", &MET_CorrT0rtTxy_sumET);
+	output_tree->Branch("MET_CorrT0rtTxy_significance", &MET_CorrT0rtTxy_significance);
+	output_tree->Branch("MET_CorrT0rtTxy_significance_xx", &MET_CorrT0rtTxy_significance_xx);
+	output_tree->Branch("MET_CorrT0rtTxy_significance_xy", &MET_CorrT0rtTxy_significance_xy);
+	output_tree->Branch("MET_CorrT0rtTxy_significance_yy", &MET_CorrT0rtTxy_significance_yy);
+	output_tree->Branch("MET_CorrT0rtTxy_MuonEtFraction", &MET_CorrT0rtTxy_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0rtTxy_NeutralEMFraction", &MET_CorrT0rtTxy_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0rtTxy_NeutralHadEtFraction", &MET_CorrT0rtTxy_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0rtTxy_Type6EtFraction", &MET_CorrT0rtTxy_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0rtTxy_Type7EtFraction", &MET_CorrT0rtTxy_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0rtT1Txy_et", &MET_CorrT0rtT1Txy_et);
+	output_tree->Branch("MET_CorrT0rtT1Txy_pt", &MET_CorrT0rtT1Txy_pt);
+	output_tree->Branch("MET_CorrT0rtT1Txy_phi", &MET_CorrT0rtT1Txy_phi);
+	output_tree->Branch("MET_CorrT0rtT1Txy_sumET", &MET_CorrT0rtT1Txy_sumET);
+	output_tree->Branch("MET_CorrT0rtT1Txy_significance", &MET_CorrT0rtT1Txy_significance);
+	output_tree->Branch("MET_CorrT0rtT1Txy_significance_xx", &MET_CorrT0rtT1Txy_significance_xx);
+	output_tree->Branch("MET_CorrT0rtT1Txy_significance_xy", &MET_CorrT0rtT1Txy_significance_xy);
+	output_tree->Branch("MET_CorrT0rtT1Txy_significance_yy", &MET_CorrT0rtT1Txy_significance_yy);
+	output_tree->Branch("MET_CorrT0rtT1Txy_MuonEtFraction", &MET_CorrT0rtT1Txy_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0rtT1Txy_NeutralEMFraction", &MET_CorrT0rtT1Txy_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0rtT1Txy_NeutralHadEtFraction", &MET_CorrT0rtT1Txy_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0rtT1Txy_Type6EtFraction", &MET_CorrT0rtT1Txy_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0rtT1Txy_Type7EtFraction", &MET_CorrT0rtT1Txy_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0pcTxy_et", &MET_CorrT0pcTxy_et);
+	output_tree->Branch("MET_CorrT0pcTxy_pt", &MET_CorrT0pcTxy_pt);
+	output_tree->Branch("MET_CorrT0pcTxy_phi", &MET_CorrT0pcTxy_phi);
+	output_tree->Branch("MET_CorrT0pcTxy_sumET", &MET_CorrT0pcTxy_sumET);
+	output_tree->Branch("MET_CorrT0pcTxy_significance", &MET_CorrT0pcTxy_significance);
+	output_tree->Branch("MET_CorrT0pcTxy_significance_xx", &MET_CorrT0pcTxy_significance_xx);
+	output_tree->Branch("MET_CorrT0pcTxy_significance_xy", &MET_CorrT0pcTxy_significance_xy);
+	output_tree->Branch("MET_CorrT0pcTxy_significance_yy", &MET_CorrT0pcTxy_significance_yy);
+	output_tree->Branch("MET_CorrT0pcTxy_MuonEtFraction", &MET_CorrT0pcTxy_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0pcTxy_NeutralEMFraction", &MET_CorrT0pcTxy_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0pcTxy_NeutralHadEtFraction", &MET_CorrT0pcTxy_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0pcTxy_Type6EtFraction", &MET_CorrT0pcTxy_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0pcTxy_Type7EtFraction", &MET_CorrT0pcTxy_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT0pcT1Txy_et", &MET_CorrT0pcT1Txy_et);
+	output_tree->Branch("MET_CorrT0pcT1Txy_pt", &MET_CorrT0pcT1Txy_pt);
+	output_tree->Branch("MET_CorrT0pcT1Txy_phi", &MET_CorrT0pcT1Txy_phi);
+	output_tree->Branch("MET_CorrT0pcT1Txy_sumET", &MET_CorrT0pcT1Txy_sumET);
+	output_tree->Branch("MET_CorrT0pcT1Txy_significance", &MET_CorrT0pcT1Txy_significance);
+	output_tree->Branch("MET_CorrT0pcT1Txy_significance_xx", &MET_CorrT0pcT1Txy_significance_xx);
+	output_tree->Branch("MET_CorrT0pcT1Txy_significance_xy", &MET_CorrT0pcT1Txy_significance_xy);
+	output_tree->Branch("MET_CorrT0pcT1Txy_significance_yy", &MET_CorrT0pcT1Txy_significance_yy);
+	output_tree->Branch("MET_CorrT0pcT1Txy_MuonEtFraction", &MET_CorrT0pcT1Txy_MuonEtFraction);
+	output_tree->Branch("MET_CorrT0pcT1Txy_NeutralEMFraction", &MET_CorrT0pcT1Txy_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT0pcT1Txy_NeutralHadEtFraction", &MET_CorrT0pcT1Txy_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT0pcT1Txy_Type6EtFraction", &MET_CorrT0pcT1Txy_Type6EtFraction);
+	output_tree->Branch("MET_CorrT0pcT1Txy_Type7EtFraction", &MET_CorrT0pcT1Txy_Type7EtFraction);
 
 	output_tree->Branch("MET_CorrT1_et", &MET_CorrT1_et);
 	output_tree->Branch("MET_CorrT1_pt", &MET_CorrT1_pt);
@@ -2538,6 +3077,48 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrT1_NeutralHadEtFraction", &MET_CorrT1_NeutralHadEtFraction);
 	output_tree->Branch("MET_CorrT1_Type6EtFraction", &MET_CorrT1_Type6EtFraction);
 	output_tree->Branch("MET_CorrT1_Type7EtFraction", &MET_CorrT1_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrT1Txy_et", &MET_CorrT1Txy_et);
+	output_tree->Branch("MET_CorrT1Txy_pt", &MET_CorrT1Txy_pt);
+	output_tree->Branch("MET_CorrT1Txy_phi", &MET_CorrT1Txy_phi);
+	output_tree->Branch("MET_CorrT1Txy_sumET", &MET_CorrT1Txy_sumET);
+	output_tree->Branch("MET_CorrT1Txy_significance", &MET_CorrT1Txy_significance);
+	output_tree->Branch("MET_CorrT1Txy_significance_xx", &MET_CorrT1Txy_significance_xx);
+	output_tree->Branch("MET_CorrT1Txy_significance_xy", &MET_CorrT1Txy_significance_xy);
+	output_tree->Branch("MET_CorrT1Txy_significance_yy", &MET_CorrT1Txy_significance_yy);
+	output_tree->Branch("MET_CorrT1Txy_MuonEtFraction", &MET_CorrT1Txy_MuonEtFraction);
+	output_tree->Branch("MET_CorrT1Txy_NeutralEMFraction", &MET_CorrT1Txy_NeutralEMFraction);
+	output_tree->Branch("MET_CorrT1Txy_NeutralHadEtFraction", &MET_CorrT1Txy_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrT1Txy_Type6EtFraction", &MET_CorrT1Txy_Type6EtFraction);
+	output_tree->Branch("MET_CorrT1Txy_Type7EtFraction", &MET_CorrT1Txy_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrCaloT1_et", &MET_CorrCaloT1_et);
+	output_tree->Branch("MET_CorrCaloT1_pt", &MET_CorrCaloT1_pt);
+	output_tree->Branch("MET_CorrCaloT1_phi", &MET_CorrCaloT1_phi);
+	output_tree->Branch("MET_CorrCaloT1_sumET", &MET_CorrCaloT1_sumET);
+	output_tree->Branch("MET_CorrCaloT1_significance", &MET_CorrCaloT1_significance);
+	output_tree->Branch("MET_CorrCaloT1_significance_xx", &MET_CorrCaloT1_significance_xx);
+	output_tree->Branch("MET_CorrCaloT1_significance_xy", &MET_CorrCaloT1_significance_xy);
+	output_tree->Branch("MET_CorrCaloT1_significance_yy", &MET_CorrCaloT1_significance_yy);
+	output_tree->Branch("MET_CorrCaloT1_MuonEtFraction", &MET_CorrCaloT1_MuonEtFraction);
+	output_tree->Branch("MET_CorrCaloT1_NeutralEMFraction", &MET_CorrCaloT1_NeutralEMFraction);
+	output_tree->Branch("MET_CorrCaloT1_NeutralHadEtFraction", &MET_CorrCaloT1_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrCaloT1_Type6EtFraction", &MET_CorrCaloT1_Type6EtFraction);
+	output_tree->Branch("MET_CorrCaloT1_Type7EtFraction", &MET_CorrCaloT1_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrCaloT1T2_et", &MET_CorrCaloT1T2_et);
+	output_tree->Branch("MET_CorrCaloT1T2_pt", &MET_CorrCaloT1T2_pt);
+	output_tree->Branch("MET_CorrCaloT1T2_phi", &MET_CorrCaloT1T2_phi);
+	output_tree->Branch("MET_CorrCaloT1T2_sumET", &MET_CorrCaloT1T2_sumET);
+	output_tree->Branch("MET_CorrCaloT1T2_significance", &MET_CorrCaloT1T2_significance);
+	output_tree->Branch("MET_CorrCaloT1T2_significance_xx", &MET_CorrCaloT1T2_significance_xx);
+	output_tree->Branch("MET_CorrCaloT1T2_significance_xy", &MET_CorrCaloT1T2_significance_xy);
+	output_tree->Branch("MET_CorrCaloT1T2_significance_yy", &MET_CorrCaloT1T2_significance_yy);
+	output_tree->Branch("MET_CorrCaloT1T2_MuonEtFraction", &MET_CorrCaloT1T2_MuonEtFraction);
+	output_tree->Branch("MET_CorrCaloT1T2_NeutralEMFraction", &MET_CorrCaloT1T2_NeutralEMFraction);
+	output_tree->Branch("MET_CorrCaloT1T2_NeutralHadEtFraction", &MET_CorrCaloT1T2_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrCaloT1T2_Type6EtFraction", &MET_CorrCaloT1T2_Type6EtFraction);
+	output_tree->Branch("MET_CorrCaloT1T2_Type7EtFraction", &MET_CorrCaloT1T2_Type7EtFraction);
 
 	output_tree->Branch("MET_CorrMVA_et", &MET_CorrMVA_et);
 	output_tree->Branch("MET_CorrMVA_pt", &MET_CorrMVA_pt);
