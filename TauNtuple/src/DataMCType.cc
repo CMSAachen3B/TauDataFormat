@@ -18,8 +18,13 @@ unsigned int DataMCType::GetType(TString name){
   StoreType(name);
   if(name=="data")      return Data;
   if(name=="h_tautau")  return H_tautau;
+  if(name=="h_tautau_ggf")  return H_tautau_ggF;
+  if(name=="h_tautau_vbf")  return H_tautau_VBF;
+  if(name=="hplusbwb") return HplusBWB;
   if(name=="hpm_taunu") return Hpm_taunu;
   if(name=="ttbar")     return ttbar;
+  if(name=="tw")        return tw;
+  if(name=="tbarw")     return tbarw;
   if(name=="w_lnu")     return W_lnu;
   if(name=="w_enu")     return W_enu;
   if(name=="w_munu")    return W_munu;
@@ -32,6 +37,12 @@ unsigned int DataMCType::GetType(TString name){
   if(name=="zz")        return ZZ;
   if(name=="ww")        return WW;
   if(name=="wz")        return WZ;
+  if(name=="zz_4l")     return ZZ_4l;
+  if(name=="zz_2l2nu")  return ZZ_2l2nu;
+  if(name=="zz_2l2q")   return ZZ_2l2q;
+  if(name=="ww_2l2nu")  return WW_2l2nu;
+  if(name=="wz_2l2q")   return WZ_2l2q;
+  if(name=="wz_3l1nu")  return WZ_3l1nu;
   if(name=="qcd")       return QCD;
   if(name=="dy_emu")    return DY_emu;
   if(name=="dy_mue")    return DY_emu;
