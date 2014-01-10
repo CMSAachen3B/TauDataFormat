@@ -1459,10 +1459,18 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				PFJet_etaphiMoment.push_back(PatJet->etaphiMoment());
 				std::vector<int> matches;
 				const edm::ProductID &TrID = trackCollection.id();
+				std::vector<std::vector<float> > iPFJet_TrackP4;
 				for (unsigned i = 0; i < PatJet->numberOfDaughters(); i++) {
 					const reco::PFCandidatePtr pfcand = PatJet->getPFConstituent(i);
 					reco::TrackRef trackref = pfcand->trackRef();
 					if (trackref.isNonnull()) {
+						std::vector<float> iiPFJet_TrackP4;
+						float trkEnergy = sqrt(trackref->px() * trackref->px() + trackref->py() * trackref->py() + trackref->pz() * trackref->pz() + 0.13957 * 0.13957);
+						iiPFJet_TrackP4.push_back(trkEnergy);
+						iiPFJet_TrackP4.push_back(trackref->px());
+						iiPFJet_TrackP4.push_back(trackref->py());
+						iiPFJet_TrackP4.push_back(trackref->pz());
+						iPFJet_TrackP4.push_back(iiPFJet_TrackP4);
 						if (trackref.id() != TrID)
 							continue;
 						int match(-1);
@@ -1472,6 +1480,10 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					}
 				}
 				PFJet_Track_idx.push_back(matches);
+
+				PFJet_TracksP4.push_back(iPFJet_TrackP4);
+				PFJet_nTrk.push_back(iPFJet_TrackP4.size());
+
 				int idx = -1;
 				reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus, iPatJet_p4, idx);
 				PFJet_MatchedHPS_idx.push_back(idx);
