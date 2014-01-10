@@ -247,24 +247,23 @@ TauNtuple::~TauNtuple() {
 
 bool TauNtuple::isGoodMuon(reco::MuonRef &RefMuon) {
 	if (RefMuon.isNonnull()) {
-		//if(RefMuon->p4().Pt() > MuonPtCut_ && fabs(RefMuon->p4().Eta())<MuonEtaCut_ && RefMuon->isGlobalMuon() && RefMuon->isPFMuon()) return true;
 		if (RefMuon->p4().Pt() > MuonPtCut_ && fabs(RefMuon->p4().Eta()) < MuonEtaCut_)
 			return true;
 	}
 	return false;
 }
 
-bool TauNtuple::isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator> &Dis1, edm::Handle<reco::PFTauDiscriminator> &Dis2) {
+bool TauNtuple::isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator> &Dis) {
 	if (RefTau.isNonnull()) {
-		if (RefTau->p4().Pt() > TauPtCut_ && fabs(RefTau->p4().Eta()) < TauEtaCut_ && (*Dis1)[RefTau] && (*Dis2)[RefTau])
+		if (RefTau->p4().Pt() > TauPtCut_ && fabs(RefTau->p4().Eta()) < TauEtaCut_ && (*Dis)[RefTau])
 			return true;
 	}
 	return false;
 }
 
 bool TauNtuple::isGoodElectron(reco::GsfElectronRef &RefElectron) {
-	reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
 	if (RefElectron.isNonnull()) {
+		reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
 		if (RefElectron->p4().Et() > ElectronPtCut_ && fabs(refSuperCluster->eta()) < ElectronEtaCut_ && RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1)
 			return true;
 	}
@@ -786,7 +785,7 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 
 	for (unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau) {
 		reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
-		if (isGoodTau(HPStauCandidate, HPSPFTauDiscriminationByMediumIsolationMVA, HPSByDecayModeFinding)) {
+		if (isGoodTau(HPStauCandidate, HPSByDecayModeFinding)) {
 			std::vector<float> iPFTau_Poca;
 			iPFTau_Poca.push_back(HPStauCandidate->vx());
 			iPFTau_Poca.push_back(HPStauCandidate->vy());

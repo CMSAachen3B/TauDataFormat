@@ -203,7 +203,7 @@ private:
 	void ClearEvent();
 
 	static bool isGoodMuon(reco::MuonRef &RefMuon);
-	static bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator> &Dis1, edm::Handle<reco::PFTauDiscriminator> &Dis2);
+	static bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator> &Dis);
 	static bool isGoodElectron(reco::GsfElectronRef &RefElectron);
 	static bool isGoodVertex(const reco::Vertex &pv);
 	static bool isGoodJet(reco::PFJetRef &RefJet);

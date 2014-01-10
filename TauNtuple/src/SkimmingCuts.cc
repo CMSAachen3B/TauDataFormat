@@ -53,6 +53,7 @@ bool SkimmingCuts::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
   }
 
   // PFTau's can only be accessed AFTER the recoTauClassicHPSSequence !!!
+  if(cnt_==0 && preselection_!="Standard") std::cout << "WARNING: not known preselection given. Will use the following instead: one mu + one e or tau" << std::endl;
   bool AcceptPFTau = PFTauCuts(iEvent, iSetup);
   if(AcceptMuon && (AcceptElectron || AcceptPFTau)){
 	  pass = true;
@@ -67,12 +68,12 @@ bool SkimmingCuts::MuonCuts(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
   for(unsigned int iMuon = 0; iMuon< muonCollection->size(); iMuon++){
     reco::MuonRef RefMuon(muonCollection, iMuon);
-    //if(TauNtuple::isGoodMuon(RefMuon))return true;
-    if(TauNtuple::isGoodMuon(RefMuon)
-    	&& RefMuon->isGlobalMuon()
-    	&& RefMuon->isPFMuon()
-    	){
-    	return true;
+    if(RefMuon.isNonnull()){
+		if(RefMuon->p4().pt()>8.
+				&& fabs(RefMuon->p4().eta())<2.5
+			){
+			return true;
+		}
     }
   }
   return false;
@@ -84,7 +85,15 @@ bool SkimmingCuts::ElectronCuts(edm::Event& iEvent, const edm::EventSetup& iSetu
   
   for(unsigned int iElectron=0; iElectron<electronCollection->size(); iElectron++){
     reco::GsfElectronRef RefElectron(electronCollection, iElectron);
-    if(TauNtuple::isGoodElectron(RefElectron))return true;
+    if(RefElectron.isNonnull()){
+    	reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
+        if(RefElectron->p4().Et()>8.
+        		&& fabs(refSuperCluster->eta())<2.5
+        		&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1
+        		){
+        	return true;
+        }
+    }
   }
   return false;
 }
@@ -96,12 +105,16 @@ bool SkimmingCuts::PFTauCuts(edm::Event& iEvent, const edm::EventSetup& iSetup){
   edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
   iEvent.getByLabel("hpsPFTauDiscriminationByDecayModeFinding", HPSByDecayModeFinding);
 
-  edm::Handle<reco::PFTauDiscriminator> HPSPFTauDiscriminationByMediumIsolationMVA;
-  iEvent.getByLabel("hpsPFTauDiscriminationByMediumIsolationMVA", HPSPFTauDiscriminationByMediumIsolationMVA);
-
   for ( unsigned int iPFTau = 0; iPFTau < PFTaus->size(); iPFTau++ ) {
     reco::PFTauRef PFTauCand(PFTaus, iPFTau);
-    if(TauNtuple::isGoodTau(PFTauCand,HPSPFTauDiscriminationByMediumIsolationMVA,HPSByDecayModeFinding))return true;
+    if(PFTauCand.isNonnull()){
+    	if(PFTauCand->p4().pt()>18.
+    			&& fabs(PFTauCand->p4().eta())<2.4
+    			&& (*HPSByDecayModeFinding)[PFTauCand]
+    			){
+    		return true;
+    	}
+    }
   }
   return false;
 }
@@ -112,7 +125,13 @@ bool SkimmingCuts::PFJetCuts(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	for(unsigned iPFJet=0; iPFJet<PFJets->size(); iPFJet++){
 		reco::PFJetRef PFJet(PFJets, iPFJet);
-		if(TauNtuple::isGoodJet(PFJet)) return true;
+		if(PFJet.isNonnull()){
+			if(PFJet->p4().pt()>18.
+					&& fabs(PFJet->p4().eta())<4.7
+					){
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -124,11 +143,12 @@ bool SkimmingCuts::DoubleMu(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	for(unsigned int iMuon=0; iMuon<muonCollection->size();iMuon++){
 		reco::MuonRef RefMuon(muonCollection, iMuon);
-		if(TauNtuple::isGoodMuon(RefMuon)
-			&& RefMuon->isGlobalMuon()
-			&& RefMuon->isPFMuon()
-			){
-			mus++;
+		if(RefMuon.isNonnull()){
+			if(RefMuon->p4().pt()>3
+					&& fabs(RefMuon->p4().eta())<2.5
+					){
+				mus++;
+			}
 		}
 		if(mus>1) return true;
 	}
@@ -142,7 +162,15 @@ bool SkimmingCuts::DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup){
 
 	for(unsigned int iElectron=0; iElectron<electronCollection->size(); iElectron++){
 		reco::GsfElectronRef RefElectron(electronCollection, iElectron);
-		if(TauNtuple::isGoodElectron(RefElectron)) es++;
+		if(RefElectron.isNonnull()){
+			reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
+	        if(RefElectron->p4().pt()>8.
+	        		&& fabs(refSuperCluster->eta())<2.5
+	        		&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1
+	        		){
+	        	es++;
+	        }
+		}
 		if(es>1) return true;
 	}
 	return false;
