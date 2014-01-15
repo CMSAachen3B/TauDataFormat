@@ -37,7 +37,7 @@ bool SkimmingCuts::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  }
 	  return pass;
   }
-  if(preselection_=="DoubleE"){
+  if(preselection_=="DoubleEle"){
 	  if(DoubleEle(iEvent, iSetup)){
 		  pass = true;
 		  cntFound_++;
@@ -164,7 +164,7 @@ bool SkimmingCuts::DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		reco::GsfElectronRef RefElectron(electronCollection, iElectron);
 		if(RefElectron.isNonnull()){
 			reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
-	        if(RefElectron->p4().pt()>8.
+	        if(RefElectron->p4().pt()>3.
 	        		&& fabs(refSuperCluster->eta())<2.5
 	        		&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1
 	        		){
