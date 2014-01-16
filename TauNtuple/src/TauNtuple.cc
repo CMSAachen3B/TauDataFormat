@@ -6,10 +6,7 @@
 #include <map>
 #include "TMatrixT.h"
 
-//#include "CMGTools/External/plugins/PileupJetIdProducer.cc"
-//#include "CMGTools/External/interface/PileupJetIdentifier.h"
-// #include "CMGTools/External/interface/PileupJetIdAlgo.h"
-//#include "DataFormats/JetReco/interface/PileupJetIdentifier.h"
+#include "DataFormats/JetReco/interface/PileupJetIdentifier.h"
 
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidate.h"
 #include "DataFormats/ParticleFlowCandidate/interface/PFCandidateFwd.h"
