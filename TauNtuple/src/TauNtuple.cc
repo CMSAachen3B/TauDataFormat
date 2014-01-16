@@ -175,7 +175,9 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		PatJetScale_(iConfig.getUntrackedParameter("PatJetScale", (std::string) "L3Absolute")),
 		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
 		BTagJetCollection_(iConfig.getParameter<edm::InputTag>("BTagJetCollection")),
-		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour"))
+		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour")),
+		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
+		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
  {
 	MuonPtCut_ = iConfig.getUntrackedParameter("MuonPtCut", (double) 3.0);
 	MuonEtaCut_ = iConfig.getUntrackedParameter("MuonEtaCut", (double) 2.5);
@@ -1294,6 +1296,13 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 	if (!doPatJets_) {
 		edm::Handle<reco::PFJetCollection> JetCollection;
 		iEvent.getByLabel(pfjetsTag_, JetCollection);
+
+		edm::Handle<edm::ValueMap<float> > puJetIdMva;
+		iEvent.getByLabel(PUJetIdDisc_, puJetIdMva);
+
+		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
+		iEvent.getByLabel(PUJetIdFlag_, puJetIdFlag);
+
 		for (reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
 			reco::PFJetRef PFJet(JetCollection, iPFJet);
 			if (isGoodJet(PFJet)) {
@@ -1371,6 +1380,15 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				reco::PFTauRef MatchedHPSTau = getHPSTauMatchedToJet(HPStaus, iPFJet_p4, idx);
 				PFJet_MatchedHPS_idx.push_back(idx);
 
+				/////// PU Jet ID
+				float puJetID_discr = (*puJetIdMva)[PFJet];
+				int puJetID_idflag = (*puJetIdFlag)[PFJet];
+
+				PFJet_PUJetID_discr.push_back(puJetID_discr);
+				PFJet_PUJetID_looseWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kLoose));
+				PFJet_PUJetID_mediumWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kMedium));
+				PFJet_PUJetID_tightWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kTight));
+
 				if (doBJets_) {
 					// b-tagging is performed using CaloJets, so find corresponding CaloJet
 					edm::Handle<edm::View<reco::Jet> > bJetCollection;
@@ -1407,10 +1425,10 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		iEvent.getByLabel(hpsTauProducer_, HPStaus);
 
 		edm::Handle<edm::ValueMap<float> > puJetIdMva;
-		iEvent.getByLabel("puJetMva", "full53xDiscriminant", puJetIdMva);
+		iEvent.getByLabel(PUJetIdDisc_, puJetIdMva);
 
 		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
-		iEvent.getByLabel("puJetMva", "full53xId", puJetIdFlag);
+		iEvent.getByLabel(PUJetIdFlag_, puJetIdFlag);
 
 		for (pat::JetCollection::size_type iPatJet = 0; iPatJet < jets->size(); iPatJet++) {
 			//for(pat::JetCollection::size_type iPatJet = 0; iPatJet < PatJet.size(); iPatJet++){
@@ -1961,7 +1979,27 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrCaloT1T2_Type6EtFraction = caloMETCorrT1T2->front().Type6EtFraction();
 		MET_CorrCaloT1T2_Type7EtFraction = caloMETCorrT1T2->front().Type7EtFraction();
 
+		if (doMVAMET_) {
+			edm::Handle<std::vector<reco::PFMET>> pfMETCorrMVA;
+			iEvent.getByLabel(pfMETCorrMVA_, pfMETCorrMVA);
 
+			MET_CorrMVA_et = pfMETCorrMVA->front().et();
+			MET_CorrMVA_pt = pfMETCorrMVA->front().pt();
+			MET_CorrMVA_phi = pfMETCorrMVA->front().phi();
+			MET_CorrMVA_sumET = pfMETCorrMVA->front().sumEt();
+			MET_CorrMVA_significance = pfMETCorrMVA->front().significance();
+			sigMat = pfMETCorrMVA->front().getSignificanceMatrix();
+			if (sigMat(0, 1) != sigMat(1, 0))
+				std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+			MET_CorrMVA_significance_xx = sigMat(0, 0);
+			MET_CorrMVA_significance_xy = sigMat(0, 1);
+			MET_CorrMVA_significance_yy = sigMat(1, 1);
+			MET_CorrMVA_MuonEtFraction = pfMETCorrMVA->front().muonEtFraction();
+			MET_CorrMVA_NeutralEMFraction = pfMETCorrMVA->front().NeutralEMFraction();
+			MET_CorrMVA_NeutralHadEtFraction = pfMETCorrMVA->front().NeutralHadEtFraction();
+			MET_CorrMVA_Type6EtFraction = pfMETCorrMVA->front().Type6EtFraction();
+			MET_CorrMVA_Type7EtFraction = pfMETCorrMVA->front().Type7EtFraction();
+		}
 
 	} else {
 

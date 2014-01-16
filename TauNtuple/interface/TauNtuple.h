@@ -357,6 +357,10 @@ private:
 	edm::InputTag BTagJetCollection_;
 	edm::InputTag jetFlavourTag_;
 
+	// PUJetID
+	edm::InputTag PUJetIdDisc_;
+	edm::InputTag PUJetIdFlag_;
+
 	// outputfile
 	TFile *output;
 	TTree *output_tree;
