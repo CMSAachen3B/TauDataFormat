@@ -171,7 +171,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		srcPatJets_(iConfig.getUntrackedParameter("srcPatJets", (std::string) "selectedPatJets")),
 		PatJetScale_(iConfig.getUntrackedParameter("PatJetScale", (std::string) "L3Absolute")),
 		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
-		BTagJetCollection_(iConfig.getParameter<edm::InputTag>("BTagJetCollection")),
 		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour")),
 		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
 		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
@@ -1386,26 +1385,17 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				PFJet_PUJetID_tightWP.push_back(PileupJetIdentifier::passJetId(puJetID_idflag, PileupJetIdentifier::kTight));
 
 				if (doBJets_) {
-					// b-tagging is performed using CaloJets, so find corresponding CaloJet
-					edm::Handle<edm::View<reco::Jet> > bJetCollection;
-					iEvent.getByLabel(BTagJetCollection_, bJetCollection);
-					int bJetIdx = -1;
-					reco::JetBaseRef bJet = getMatchedBTagJet(bJetCollection, iPFJet_p4, bJetIdx, 0.5);
-					if (bJetIdx == -1) {
-						PFJet_bDiscriminator.push_back(-1);
-					} else {
-						edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
-						edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
-						iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
-						double bTagValue = reco::JetFloatAssociation::getValue(*jetDiscriminator, bJet);
-						PFJet_bDiscriminator.push_back(bTagValue);
-					}
-					//jet flavour (needed for weights)
-					if (!iEvent.isRealData() && bJetIdx != -1) {
-						edm::Handle<reco::JetFlavourMatchingCollection> jetFlavMatch;
-						iEvent.getByLabel(jetFlavourTag_, jetFlavMatch);
-						PFJet_partonFlavour.push_back((*jetFlavMatch)[bJet].getFlavour());
-					}
+					edm::Handle<reco::JetFloatAssociation::Container> jetDiscriminator;
+					edm::InputTag BTagAlgorithmTag = edm::InputTag(BTagAlgorithm_);
+					iEvent.getByLabel(BTagAlgorithmTag, jetDiscriminator);
+					double bTagValue = reco::JetFloatAssociation::getValue(*jetDiscriminator, *PFJet);
+					PFJet_bDiscriminator.push_back(bTagValue);
+				}
+				//jet flavour (needed for weights)
+				if (!iEvent.isRealData()) {
+					edm::Handle<reco::JetFlavourMatchingCollection> jetFlavMatch;
+					iEvent.getByLabel(jetFlavourTag_, jetFlavMatch);
+					PFJet_partonFlavour.push_back((*jetFlavMatch)[reco::JetBaseRef(PFJet)].getFlavour());
 				}
 			}
 		}
@@ -2893,7 +2883,6 @@ void TauNtuple::beginJob() {
 	//=======  PFJets ===
 	output_tree->Branch("isPatJet", &doPatJets_);
 	output_tree->Branch("PFJet_p4", &PFJet_p4);
-	output_tree->Branch("PFJet_Poca", &PFJet_Poca);
 	output_tree->Branch("PFJet_chargedEmEnergy", &PFJet_chargedEmEnergy);
 	output_tree->Branch("PFJet_chargedHadronEnergy", &PFJet_chargedHadronEnergy);
 	output_tree->Branch("PFJet_chargedHadronMultiplicity", &PFJet_chargedHadronMultiplicity);
@@ -3370,33 +3359,6 @@ reco::PFJetRef TauNtuple::getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<s
 	}
 	return MatchedPFJet;
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// finds a jet in the jet collection used for b-tagging to a given PFJet
-// the closest by deltaR Jet is accepted
-reco::JetBaseRef TauNtuple::getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float> &Jet, int & match, double maxDeltaR = 0.5) {
-	TLorentzVector Jetp4;
-	Jetp4.SetE(Jet.at(0));
-	Jetp4.SetPx(Jet.at(1));
-	Jetp4.SetPy(Jet.at(2));
-	Jetp4.SetPz(Jet.at(3));
-
-	reco::JetBaseRef MatchedBTagJet;
-	double deltaR = maxDeltaR; // only match if distance is less than some predifined limit
-	//std::cout << "    Look for a jet for btagging" << std::endl;
-	for (unsigned int iJet = 0; iJet < bTagJets->size(); ++iJet) {
-		reco::JetBaseRef bTagJetCandidate(bTagJets, iJet);
-		double dr = sqrt(pow(DeltaPhi(bTagJetCandidate->p4().Phi(), Jetp4.Phi()), 2) + pow(bTagJetCandidate->p4().Eta() - Jetp4.Eta(), 2));
-		if (dr < deltaR) {
-			//std::cout << "        Select this jet, idx = " << iJet << std::endl;
-			deltaR = dr;
-			MatchedBTagJet = bTagJetCandidate;
-			match = iJet;
-		}
-
-	}
-	return MatchedBTagJet;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -3738,7 +3700,6 @@ void TauNtuple::ClearEvent() {
 
 	//=======  PFJets ===
 	PFJet_p4.clear();
-	PFJet_Poca.clear();
 	PFJet_chargedEmEnergy.clear();
 	PFJet_chargedHadronEnergy.clear();
 	PFJet_chargedHadronMultiplicity.clear();
