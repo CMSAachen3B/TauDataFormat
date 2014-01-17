@@ -476,7 +476,7 @@ private:
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits;
-	std::vector<float> PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits;
+	std::vector<float> PFTau_HPSPFTauDiscriminationByRawCombinedIsolationDBSumPtCorr3Hits;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByTightIsolationMVA;
@@ -613,7 +613,6 @@ private:
 
 	//=======  PFJets ===
 	std::vector<std::vector<float> > PFJet_p4;
-	std::vector<std::vector<float> > PFJet_Poca;
 	std::vector<float> PFJet_chargedEmEnergy;
 	std::vector<float> PFJet_chargedHadronEnergy;
 	std::vector<float> PFJet_chargedHadronMultiplicity;
@@ -825,11 +824,6 @@ private:
 	float MET_CorrCaloT1_significance_xx;
 	float MET_CorrCaloT1_significance_xy;
 	float MET_CorrCaloT1_significance_yy;
-	float MET_CorrCaloT1_MuonEtFraction;
-	float MET_CorrCaloT1_NeutralEMFraction;
-	float MET_CorrCaloT1_NeutralHadEtFraction;
-	float MET_CorrCaloT1_Type6EtFraction;
-	float MET_CorrCaloT1_Type7EtFraction;
 
 	float MET_CorrCaloT1T2_et;
 	float MET_CorrCaloT1T2_pt;
@@ -839,11 +833,6 @@ private:
 	float MET_CorrCaloT1T2_significance_xx;
 	float MET_CorrCaloT1T2_significance_xy;
 	float MET_CorrCaloT1T2_significance_yy;
-	float MET_CorrCaloT1T2_MuonEtFraction;
-	float MET_CorrCaloT1T2_NeutralEMFraction;
-	float MET_CorrCaloT1T2_NeutralHadEtFraction;
-	float MET_CorrCaloT1T2_Type6EtFraction;
-	float MET_CorrCaloT1T2_Type7EtFraction;
 
 	float MET_CorrMVA_et;
 	float MET_CorrMVA_pt;
