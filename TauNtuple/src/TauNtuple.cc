@@ -65,7 +65,7 @@ double TauNtuple::MuonPtCut_(3.0);
 double TauNtuple::MuonEtaCut_(2.5);
 double TauNtuple::TauPtCut_(18.0);
 double TauNtuple::TauEtaCut_(2.4);
-double TauNtuple::ElectronPtCut_(8.0);
+double TauNtuple::ElectronPtCut_(5.0);
 double TauNtuple::ElectronEtaCut_(2.5);
 double TauNtuple::JetPtCut_(18.0);
 double TauNtuple::JetEtaCut_(4.7);

@@ -164,7 +164,7 @@ bool SkimmingCuts::DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		reco::GsfElectronRef RefElectron(electronCollection, iElectron);
 		if(RefElectron.isNonnull()){
 			reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
-	        if(RefElectron->p4().pt()>3.
+	        if(RefElectron->p4().pt()>5.
 	        		&& fabs(refSuperCluster->eta())<2.5
 	        		&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1
 	        		){
