@@ -711,6 +711,16 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 	edm::Handle<std::vector<reco::PFTau> > HPStaus;
 	iEvent.getByLabel(hpsTauProducer_, HPStaus);
 
+	edm::Handle<std::vector<reco::Photon> > PhotonCollection;
+	iEvent.getByLabel("photons", PhotonCollection);
+
+	edm::Handle<double> Rhokt6PFJets;
+	const edm::InputTag erho("kt6PFJets", "rho");
+	iEvent.getByLabel(erho, Rhokt6PFJets);
+	PFTau_photon_rho.push_back(*Rhokt6PFJets);
+
+
+
 	edm::Handle<reco::PFTauDiscriminator> HPSTightIsoDiscr;
 	iEvent.getByLabel(hpsPFTauDiscriminationByTightIsolation_, HPSTightIsoDiscr);
 	edm::Handle<reco::PFTauDiscriminator> HPSMediumIsoDiscr;
@@ -786,7 +796,20 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 
 	for (unsigned iPFTau = 0; iPFTau < HPStaus->size(); ++iPFTau) {
 		reco::PFTauRef HPStauCandidate(HPStaus, iPFTau);
-		if (isGoodTau(HPStauCandidate, HPSPFTauDiscriminationByMediumIsolationMVA, HPSByDecayModeFinding)) {
+		//		if (isGoodTau(HPStauCandidate, HPSPFTauDiscriminationByMediumIsolationMVA, HPSByDecayModeFinding))
+		  {
+		        PFTau_Photons_p4_inDR05.push_back(std::vector<std::vector<float> >());
+			PFTau_photon_hasPixelSeed.push_back(std::vector<int> ());
+			PFTau_photon_hadronicOverEm.push_back(std::vector<float> ());
+			PFTau_photon_sigmaIetaIeta.push_back(std::vector<float> ());
+			PFTau_photon_trkSumPtHollowConeDR04.push_back(std::vector<float> ());
+			PFTau_photon_ecalRecHitSumEtConeDR04.push_back(std::vector<float> ());
+			PFTau_photon_hcalTowerSumEtConeDR04.push_back(std::vector<float> ());
+			
+			PFTau_PionsP4.push_back(std::vector<std::vector<float> >());
+			PFTau_PionsCharge.push_back(std::vector<double> ());
+
+
 			std::vector<float> iPFTau_Poca;
 			iPFTau_Poca.push_back(HPStauCandidate->vx());
 			iPFTau_Poca.push_back(HPStauCandidate->vy());
@@ -798,7 +821,7 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 			iPFTau_p4.push_back(HPStauCandidate->p4().Px());
 			iPFTau_p4.push_back(HPStauCandidate->p4().Py());
 			iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
-
+ 
 			PFTau_p4.push_back(iPFTau_p4);
 
 			PFTau_isTightIsolation.push_back((*HPSTightIsoDiscr)[HPStauCandidate]);
@@ -919,6 +942,33 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 							SignalTracks.push_back(reco::TrackBaseRef(RefElectron->track()));
 					}
 				}
+			}
+			//--------------------  get photons found in the cone of 0.5 around tau candidate ----------------------------------------
+			//			std::cout<<" ---->  "<< iPFTau<< "  photon size   "  << PhotonCollection->size() <<std::endl;
+			std::vector<std::vector<float> > photonsp4;
+			TLorentzVector VisibleTauLV(iPFTau_p4.at(1),iPFTau_p4.at(2),iPFTau_p4.at(3),iPFTau_p4.at(0) );
+			for(unsigned int iPhot = 0; iPhot < PhotonCollection->size(); iPhot++){
+			  std::vector<float>  iiGammaP4;
+
+			  reco::PhotonRef photon(PhotonCollection,iPhot);
+			  TLorentzVector PhotonLV(photon->p4().Px(), photon->p4().Py(), photon->p4().Pz(), photon->p4().E());
+
+			  if(VisibleTauLV.DeltaR(PhotonLV) < 0.5){
+
+			    iiGammaP4.push_back(photon->p4().E());
+			    iiGammaP4.push_back(photon->p4().Px());
+			    iiGammaP4.push_back(photon->p4().Py());
+			    iiGammaP4.push_back(photon->p4().Pz());
+
+			    PFTau_Photons_p4_inDR05.at(iPFTau).push_back(iiGammaP4);
+			    PFTau_photon_hasPixelSeed.at(iPFTau).push_back(photon->hasPixelSeed());
+			    PFTau_photon_hadronicOverEm.at(iPFTau).push_back(photon->hadronicOverEm());
+			    PFTau_photon_sigmaIetaIeta.at(iPFTau).push_back(photon->sigmaIetaIeta());
+			    PFTau_photon_trkSumPtHollowConeDR04.at(iPFTau).push_back(photon->trkSumPtHollowConeDR04());
+			    PFTau_photon_ecalRecHitSumEtConeDR04.at(iPFTau).push_back(photon->ecalRecHitSumEtConeDR04());
+			    PFTau_photon_hcalTowerSumEtConeDR04.at(iPFTau).push_back(photon->hcalTowerSumEtConeDR04());
+			  }
+
 			}
 
 			//PiZero stuff
@@ -1150,6 +1200,14 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					for (unsigned int i = 0; i < transTrkVect.size(); i++) {
 						c += transTrkVect.at(i).charge();
 						ReFitPions.push_back(ParticleBuilder::CreateLorentzVectorParticle(transTrkVect.at(i), transTrackBuilder, secondaryVertex, true, true));
+						iPionP4.push_back(ReFitPions.at(i).LV().E());
+						iPionP4.push_back(ReFitPions.at(i).LV().Px());
+						iPionP4.push_back(ReFitPions.at(i).LV().Py());
+						iPionP4.push_back(ReFitPions.at(i).LV().Pz());
+
+						PFTau_PionsP4.at(iPFTau).push_back(iPionP4);
+						PFTau_PionsCharge.at(iPFTau).push_back(transTrkVect.at(i).charge());
+
 					}
 					// now covert a1 into LorentzVectorParticle
 					TMatrixT<double> a1_par(LorentzVectorParticle::NLorentzandVertexPar, 1);
@@ -2869,6 +2927,10 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFTau_3PS_LCchi2", &PFTau_3PS_LCchi2);
 	output_tree->Branch("PFTau_3PS_has3ProngSolution", &PFTau_3PS_has3ProngSolution);
 	output_tree->Branch("PFTau_3PS_Tau_LV", &PFTau_3PS_Tau_LV);
+	output_tree->Branch("PFTau_PionsP4", &PFTau_PionsP4);
+	output_tree->Branch("PFTau_PionsCharge", &PFTau_PionsCharge);
+
+
 
 	output_tree->Branch("PFTau_PiZeroP4", &PFTau_PiZeroP4);
 	output_tree->Branch("PFTau_PiZeroNumOfPhotons", &PFTau_PiZeroNumOfPhotons);
@@ -2883,6 +2945,16 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFTau_MatchedPFJetPhotonVariables", &PFTau_MatchedPFJetPhotonVariables);
 
 	output_tree->Branch("PFTau_PhotonEnergyFraction", &PFTau_PhotonEnergyFraction);
+
+	output_tree->Branch("PFTau_photon_hasPixelSeed", &PFTau_photon_hasPixelSeed);
+	output_tree->Branch("PFTau_photon_hadronicOverEm", &PFTau_photon_hadronicOverEm);
+	output_tree->Branch("PFTau_photon_sigmaIetaIeta", &PFTau_photon_sigmaIetaIeta);
+	output_tree->Branch("PFTau_photon_trkSumPtHollowConeDR04", &PFTau_photon_trkSumPtHollowConeDR04);
+	output_tree->Branch("PFTau_photon_ecalRecHitSumEtConeDR04", &PFTau_photon_ecalRecHitSumEtConeDR04);
+	output_tree->Branch("PFTau_photon_hcalTowerSumEtConeDR04", &PFTau_photon_hcalTowerSumEtConeDR04);
+	output_tree->Branch("PFTau_photon_rho", &PFTau_photon_rho);
+
+
 //    output_tree->Branch("PFTau_hasSC",&PFTau_hasSC);    
 //    output_tree->Branch("PFTau_hasPhoton",&PFTau_hasPhoton);    
 	//=======  PFJets ===
@@ -3659,6 +3731,10 @@ void TauNtuple::ClearEvent() {
 	PFTau_3PS_has3ProngSolution.clear();
 	PFTau_3PS_Tau_LV.clear();
 
+	PFTau_PionsP4.clear();
+	PFTau_PionsCharge.clear();
+
+
 	PFTau_PiZeroP4.clear();
 	PFTau_PiZeroNumOfPhotons.clear();
 	PFTau_PiZeroNumOfElectrons.clear();
@@ -3670,6 +3746,16 @@ void TauNtuple::ClearEvent() {
 	PFTau_MatchedPFJetSCVariables.clear();
 	PFTau_MatchedPFJetPhotonVariables.clear();
 	PFTau_PhotonEnergyFraction.clear();
+
+	PFTau_photon_hasPixelSeed.clear();
+	PFTau_photon_hadronicOverEm.clear();
+	PFTau_photon_sigmaIetaIeta.clear();
+	PFTau_photon_trkSumPtHollowConeDR04.clear();
+	PFTau_photon_ecalRecHitSumEtConeDR04.clear();
+	PFTau_photon_hcalTowerSumEtConeDR04.clear();
+	PFTau_photon_rho.clear();
+
+
 //   PFTau_hasSC.clear();  
 //   PFTau_hasPhoton.clear();
 

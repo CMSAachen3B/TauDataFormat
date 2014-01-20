@@ -507,10 +507,6 @@ private:
 	std::vector<std::vector<float> > PFTau_daughterTracks_M;
 	std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks_poca;
 
-	std::vector<std::vector<std::vector<float> > > PFTau_PionsP4;
-	std::vector<std::vector<double> >  PFTau_PionsCharge;
-
-
 	std::vector<std::vector<float> > PFTau_3PS_A1_LV;
 	std::vector<std::vector<float> > PFTau_3PS_M_A1;
 	std::vector<std::vector<float> > PFTau_3PS_M_12;
@@ -539,16 +535,6 @@ private:
 	std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetPhotonVariables;
 
 	std::vector<float> PFTau_PhotonEnergyFraction;
-
-        std::vector<std::vector<int> > PFTau_photon_hasPixelSeed;
-        std::vector<std::vector<float> > PFTau_photon_hadronicOverEm;
-        std::vector<std::vector<float> > PFTau_photon_sigmaIetaIeta;
-        std::vector<std::vector<float> > PFTau_photon_trkSumPtHollowConeDR04;
-        std::vector<std::vector<float> > PFTau_photon_ecalRecHitSumEtConeDR04;
-        std::vector<std::vector<float> > PFTau_photon_hcalTowerSumEtConeDR04;
-        std::vector<float > PFTau_photon_rho;
-
-
 //   std::vector<std::vector<int> > PFTau_hasSC;  
 //   std::vector<std::vector<int> > PFTau_hasPhoton;
 
