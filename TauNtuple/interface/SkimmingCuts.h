@@ -81,12 +81,15 @@ private:
   virtual bool endLuminosityBlock(edm::LuminosityBlock&, edm::EventSetup const&){return true;}
   
   // ----------member data ---------------------------
-  bool MuonsCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
+  bool MuonCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
   bool ElectronCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
-  bool PFTausCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
+  bool PFTauCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
+  bool PFJetCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
+  bool DoubleMu(edm::Event& iEvent, const edm::EventSetup& iSetup);
+  bool DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup);
   
   edm::Event * iEvent_;
-  bool doMuonOnly_;
+  std::string preselection_;
 
   int cnt_;
   int cntFound_;

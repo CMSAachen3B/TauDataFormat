@@ -190,7 +190,6 @@ private:
 	std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef);
 	reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &UnmodifiedTau, int &match);
 	reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &Jet, int &match);
-	reco::JetBaseRef getMatchedBTagJet(edm::Handle<edm::View<reco::Jet> > & bTagJets, std::vector<float> &Jet, int &match, double maxDeltaR);
 	reco::PFJetRef getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets, std::vector<float> &Tau, unsigned int &match);
 
 	std::vector<reco::PFCandidatePtr> pfCandidates(const reco::PFJet& jet, int particleId, bool sort = true);
@@ -203,7 +202,7 @@ private:
 	void ClearEvent();
 
 	static bool isGoodMuon(reco::MuonRef &RefMuon);
-	static bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator> &Dis1, edm::Handle<reco::PFTauDiscriminator> &Dis2);
+	static bool isGoodTau(reco::PFTauRef &RefTau, edm::Handle<reco::PFTauDiscriminator> &Dis);
 	static bool isGoodElectron(reco::GsfElectronRef &RefElectron);
 	static bool isGoodVertex(const reco::Vertex &pv);
 	static bool isGoodJet(reco::PFJetRef &RefJet);
@@ -354,8 +353,11 @@ private:
 
 	// b-tagging
 	std::string BTagAlgorithm_;
-	edm::InputTag BTagJetCollection_;
 	edm::InputTag jetFlavourTag_;
+
+	// PUJetID
+	edm::InputTag PUJetIdDisc_;
+	edm::InputTag PUJetIdFlag_;
 
 	// outputfile
 	TFile *output;
@@ -472,7 +474,7 @@ private:
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr3Hits;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr3Hits;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr3Hits;
-	std::vector<float> PFTau_HPSPFTauDiscriminationByCombinedIsolationDeltaBetaCorrRaw3Hits;
+	std::vector<float> PFTau_HPSPFTauDiscriminationByRawCombinedIsolationDBSumPtCorr3Hits;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByLooseIsolationMVA;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByMediumIsolationMVA;
 	std::vector<bool> PFTau_HPSPFTauDiscriminationByTightIsolationMVA;
@@ -507,6 +509,10 @@ private:
 	std::vector<std::vector<float> > PFTau_daughterTracks_M;
 	std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks_poca;
 
+	std::vector<std::vector<std::vector<float> > > PFTau_PionsP4;
+	std::vector<std::vector<double> >  PFTau_PionsCharge;
+
+
 	std::vector<std::vector<float> > PFTau_3PS_A1_LV;
 	std::vector<std::vector<float> > PFTau_3PS_M_A1;
 	std::vector<std::vector<float> > PFTau_3PS_M_12;
@@ -535,6 +541,16 @@ private:
 	std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetPhotonVariables;
 
 	std::vector<float> PFTau_PhotonEnergyFraction;
+
+        std::vector<std::vector<int> > PFTau_photon_hasPixelSeed;
+        std::vector<std::vector<float> > PFTau_photon_hadronicOverEm;
+        std::vector<std::vector<float> > PFTau_photon_sigmaIetaIeta;
+        std::vector<std::vector<float> > PFTau_photon_trkSumPtHollowConeDR04;
+        std::vector<std::vector<float> > PFTau_photon_ecalRecHitSumEtConeDR04;
+        std::vector<std::vector<float> > PFTau_photon_hcalTowerSumEtConeDR04;
+        std::vector<float > PFTau_photon_rho;
+
+
 //   std::vector<std::vector<int> > PFTau_hasSC;  
 //   std::vector<std::vector<int> > PFTau_hasPhoton;
 
@@ -609,7 +625,6 @@ private:
 
 	//=======  PFJets ===
 	std::vector<std::vector<float> > PFJet_p4;
-	std::vector<std::vector<float> > PFJet_Poca;
 	std::vector<float> PFJet_chargedEmEnergy;
 	std::vector<float> PFJet_chargedHadronEnergy;
 	std::vector<float> PFJet_chargedHadronMultiplicity;
@@ -821,11 +836,6 @@ private:
 	float MET_CorrCaloT1_significance_xx;
 	float MET_CorrCaloT1_significance_xy;
 	float MET_CorrCaloT1_significance_yy;
-	float MET_CorrCaloT1_MuonEtFraction;
-	float MET_CorrCaloT1_NeutralEMFraction;
-	float MET_CorrCaloT1_NeutralHadEtFraction;
-	float MET_CorrCaloT1_Type6EtFraction;
-	float MET_CorrCaloT1_Type7EtFraction;
 
 	float MET_CorrCaloT1T2_et;
 	float MET_CorrCaloT1T2_pt;
@@ -835,11 +845,6 @@ private:
 	float MET_CorrCaloT1T2_significance_xx;
 	float MET_CorrCaloT1T2_significance_xy;
 	float MET_CorrCaloT1T2_significance_yy;
-	float MET_CorrCaloT1T2_MuonEtFraction;
-	float MET_CorrCaloT1T2_NeutralEMFraction;
-	float MET_CorrCaloT1T2_NeutralHadEtFraction;
-	float MET_CorrCaloT1T2_Type6EtFraction;
-	float MET_CorrCaloT1T2_Type7EtFraction;
 
 	float MET_CorrMVA_et;
 	float MET_CorrMVA_pt;
