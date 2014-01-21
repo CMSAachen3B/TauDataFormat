@@ -1195,6 +1195,8 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				std::vector<reco::Track> Tracks;
 				std::vector<LorentzVectorParticle> ReFitPions;
 				for (unsigned int i = 0; i < transTrkVect.size(); i++) {
+					std::vector<float> iPionP4;
+					std::vector<double> iPionCharge;
 					c += transTrkVect.at(i).charge();
 					ReFitPions.push_back(ParticleBuilder::CreateLorentzVectorParticle(transTrkVect.at(i), transTrackBuilder, secondaryVertex, true, true));
 					iPionP4.push_back(ReFitPions.at(i).LV().E());

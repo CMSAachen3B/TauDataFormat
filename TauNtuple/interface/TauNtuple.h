@@ -532,7 +532,7 @@ private:
 	std::vector<std::vector<std::vector<float> > > PFTau_ChargedHadronsP4;
 	std::vector<std::vector<std::vector<int> > > PFTau_ChargedHadronsCharge;
 	std::vector<std::vector<std::vector<float> > > PFTau_GammaP4;
-
+	std::vector<std::vector<std::vector<float> > > PFTau_Photons_p4_inDR05;
 	//-------- Gamma information ---------
 
 	std::vector<std::vector<float> > PFTau_MatchedPFJetP4;
