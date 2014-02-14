@@ -359,6 +359,7 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 				MC_p4.push_back(iMC_p4);
 				MC_midx.push_back(0);
+				MC_status.push_back(itr->status());
 			}
 			unsigned int i = 0;
 			for (reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr != genParticles->end(); ++itr, i++) {
@@ -3253,6 +3254,7 @@ void TauNtuple::beginJob() {
 		output_tree->Branch("MC_charge", &MC_charge);
 		output_tree->Branch("MC_midx", &MC_midx);
 		output_tree->Branch("MC_childpdgid", &MC_childpdgid);
+		output_tree->Branch("MC_status", &MC_status);
 	}
 	if (do_MCSummary_) {
 		output_tree->Branch("MCSignalParticle_p4", &MCSignalParticle_p4);
@@ -3559,6 +3561,7 @@ void TauNtuple::ClearEvent() {
 	Muon_p4.clear();
 	Muon_Poca.clear();
 	Muon_isGlobalMuon.clear();
+	Muon_isPFMuon.clear();
 	Muon_isStandAloneMuon.clear();
 	Muon_isTrackerMuon.clear();
 	Muon_isCaloMuon.clear();
@@ -3876,6 +3879,7 @@ void TauNtuple::ClearEvent() {
 		MC_pdgid.clear();
 		MC_charge.clear();
 		MC_midx.clear();
+		MC_status.clear();
 	}
 	if (do_MCSummary_) {
 		MCSignalParticle_p4.clear();

@@ -951,6 +951,7 @@ private:
 	std::vector<std::vector<int> > MC_childpdgid;
 	std::vector<int> MC_charge;
 	std::vector<unsigned int> MC_midx;
+	std::vector<int> MC_status;
 
 	// Signal particles Z, W, H0, Hpm
 	std::vector<std::vector<float> > MCSignalParticle_p4;
