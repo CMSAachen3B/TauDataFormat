@@ -609,7 +609,6 @@ private:
 	std::vector<float> Electron_numberOfMissedHits;  //number of missing hits conversion rejection
 	std::vector<bool> Electron_HasMatchedConversions;
 
-	std::vector<float> Electron_Track_dR;
 	// Electron MVA ID
 	std::vector<float> Electron_Rho_kt6PFJets;
 	std::vector<float> Electron_MVA_Trig_discriminator;
@@ -918,10 +917,10 @@ private:
 	std::vector<bool> TriggerAccept;
 	std::vector<bool> TriggerWasRun;
 	std::vector<bool> TriggerError;
-	std::vector<std::vector<float> > MuonTriggerMatch;
-	std::vector<std::vector<float> > ElectronTriggerMatch;
-	std::vector<std::vector<float> > JetTriggerMatch;
-	std::vector<std::vector<float> > TauTriggerMatch;
+	std::vector<std::vector<float> > TriggerMatchMuon;
+	std::vector<std::vector<float> > TriggerMatchElectron;
+	std::vector<std::vector<float> > TriggerMatchJet;
+	std::vector<std::vector<float> > TriggerMatchTau;
 	std::vector<std::vector<float> > HLTTrigger_objs_Pt;
 	std::vector<std::vector<float> > HLTTrigger_objs_Eta;
 	std::vector<std::vector<float> > HLTTrigger_objs_Phi;
@@ -951,10 +950,12 @@ private:
 	std::vector<std::vector<int> > MC_childpdgid;
 	std::vector<int> MC_charge;
 	std::vector<unsigned int> MC_midx;
+	std::vector<int> MC_status;
 
 	// Signal particles Z, W, H0, Hpm
 	std::vector<std::vector<float> > MCSignalParticle_p4;
 	std::vector<int> MCSignalParticle_pdgid;
+	std::vector<std::vector<int> > MCSignalParticle_childpdgid;
 	std::vector<int> MCSignalParticle_charge;
 	std::vector<std::vector<float> > MCSignalParticle_Poca;
 	std::vector<std::vector<unsigned int> > MCSignalParticle_Tauidx;
