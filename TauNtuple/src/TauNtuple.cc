@@ -743,9 +743,9 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 	edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonLoose2;
 	iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonLoose2);
 	edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonMedium2;
-	iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonMedium2);
+	iEvent.getByLabel("hpsPFTauDiscriminationByMediumMuonRejection2", HPSAgainstMuonMedium2);
 	edm::Handle<reco::PFTauDiscriminator> HPSAgainstMuonTight2;
-	iEvent.getByLabel("hpsPFTauDiscriminationByLooseMuonRejection2", HPSAgainstMuonTight2);
+	iEvent.getByLabel("hpsPFTauDiscriminationByTightMuonRejection2", HPSAgainstMuonTight2);
 	edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
 	iEvent.getByLabel(hpsPFTauDiscriminationByDecayModeFinding_, HPSByDecayModeFinding);
 
