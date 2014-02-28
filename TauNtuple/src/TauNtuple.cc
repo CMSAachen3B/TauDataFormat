@@ -195,12 +195,13 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	system("ls *");
 	system("ls ../*/*");
 
-	LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
-	LumiWeights_.weight3D_init(1);
-	LumiWeights_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
-	LumiWeights_p5_.weight3D_init(1);
-	LumiWeights_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
-	LumiWeights_m5_.weight3D_init(1);
+	LumiWeights_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
+	LumiWeights3D_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
+	LumiWeights3D_.weight3D_init(1);
+	LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
+	LumiWeights3D_p5_.weight3D_init(1);
+	LumiWeights3D_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
+	LumiWeights3D_m5_.weight3D_init(1);
 
 	// Electron MVA ID
 
@@ -2645,21 +2646,22 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
 		iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
 		std::vector<PileupSummaryInfo>::const_iterator PVI;
-		PileupInfo_NumInteractions_nm1 = -1;
-		PileupInfo_NumInteractions_n0 = -1;
-		PileupInfo_NumInteractions_np1 = -1;
+		PileupInfo_TrueNumInteractions_nm1 = -1;
+		PileupInfo_TrueNumInteractions_n0 = -1;
+		PileupInfo_TrueNumInteractions_np1 = -1;
 		for (PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
 			int BX = PVI->getBunchCrossing();
 			if (BX == -1)
-				PileupInfo_NumInteractions_nm1 = PVI->getPU_NumInteractions();
+				PileupInfo_TrueNumInteractions_nm1 = PVI->getTrueNumInteractions();
 			if (BX == 0)
-				PileupInfo_NumInteractions_n0 = PVI->getPU_NumInteractions();
+				PileupInfo_TrueNumInteractions_n0 = PVI->getTrueNumInteractions();
 			if (BX == 1)
-				PileupInfo_NumInteractions_np1 = PVI->getPU_NumInteractions();
+				PileupInfo_TrueNumInteractions_np1 = PVI->getTrueNumInteractions();
 		}
-		EvtWeight3D = LumiWeights_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
-		EvtWeight3D_p5 = LumiWeights_p5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
-		EvtWeight3D_m5 = LumiWeights_m5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
+		PUWeight = LumiWeights_.weight( PileupInfo_TrueNumInteractions_n0 );
+		PUWeight3D = LumiWeights3D_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
 	}
 	if (!Embedded_) {
 		TauSpinnerWeight = 1.;
@@ -3232,12 +3234,13 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Event_luminosityBlock", &Event_luminosityBlock);
 	output_tree->Branch("Event_isRealData", &Event_isRealData);
 
-	output_tree->Branch("PileupInfo_NumInteractions_nm1", &PileupInfo_NumInteractions_nm1);
-	output_tree->Branch("PileupInfo_NumInteractions_n0", &PileupInfo_NumInteractions_n0);
-	output_tree->Branch("PileupInfo_NumInteractions_np1", &PileupInfo_NumInteractions_np1);
-	output_tree->Branch("EvtWeight3D", &EvtWeight3D);
-	output_tree->Branch("EvtWeight3D_p5", &EvtWeight3D_p5);
-	output_tree->Branch("EvtWeight3D_m5", &EvtWeight3D_m5);
+	output_tree->Branch("PileupInfo_TrueNumInteractions_nm1", &PileupInfo_TrueNumInteractions_nm1);
+	output_tree->Branch("PileupInfo_TrueNumInteractions_n0", &PileupInfo_TrueNumInteractions_n0);
+	output_tree->Branch("PileupInfo_TrueNumInteractions_np1", &PileupInfo_TrueNumInteractions_np1);
+	output_tree->Branch("PUWeight",&PUWeight);
+	output_tree->Branch("PUWeight3D", &PUWeight3D);
+	output_tree->Branch("PUWeight3D_p5", &PUWeight3D_p5);
+	output_tree->Branch("PUWeight3D_m5", &PUWeight3D_m5);
 
 	// for embbeded samples
 	output_tree->Branch("TauSpinnerWeight", &TauSpinnerWeight);
@@ -3890,9 +3893,9 @@ void TauNtuple::ClearEvent() {
 	Track_cov.clear();
 
 	// Event Block
-	EvtWeight3D = 0;
-	EvtWeight3D_p5 = 0;
-	EvtWeight3D_m5 = 0;
+	PUWeight3D = 0;
+	PUWeight3D_p5 = 0;
+	PUWeight3D_m5 = 0;
 
 	//=============== MC Block ==============
 

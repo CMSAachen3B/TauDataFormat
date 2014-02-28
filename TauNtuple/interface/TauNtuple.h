@@ -119,6 +119,7 @@
 // PU
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
 //
 #include <DataFormats/EgammaCandidates/interface/GsfElectron.h>
@@ -303,9 +304,10 @@ private:
 	std::string PUInputHistoData_m5_;
 	std::string PUOutputFile_;
 
-	edm::Lumi3DReWeighting LumiWeights_;
-	edm::Lumi3DReWeighting LumiWeights_p5_;
-	edm::Lumi3DReWeighting LumiWeights_m5_;
+	edm::LumiReWeighting LumiWeights_;
+	edm::Lumi3DReWeighting LumiWeights3D_;
+	edm::Lumi3DReWeighting LumiWeights3D_p5_;
+	edm::Lumi3DReWeighting LumiWeights3D_m5_;
 
 	// MC Signal
 	bool do_MCSummary_;
@@ -868,12 +870,13 @@ private:
 	int Event_orbitNumber;
 	unsigned int Event_luminosityBlock;
 	bool Event_isRealData;
-	int PileupInfo_NumInteractions_nm1;
-	int PileupInfo_NumInteractions_n0;
-	int PileupInfo_NumInteractions_np1;
-	float EvtWeight3D;
-	float EvtWeight3D_p5;
-	float EvtWeight3D_m5;
+	int PileupInfo_TrueNumInteractions_nm1;
+	int PileupInfo_TrueNumInteractions_n0;
+	int PileupInfo_TrueNumInteractions_np1;
+	float PUWeight;
+	float PUWeight3D;
+	float PUWeight3D_p5;
+	float PUWeight3D_m5;
 
 	std::vector<float> beamspot_par;
 	std::vector<float> beamspot_cov;
