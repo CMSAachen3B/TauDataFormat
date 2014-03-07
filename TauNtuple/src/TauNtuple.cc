@@ -1582,6 +1582,12 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 	edm::Handle<reco::GsfElectronCollection> ElectronCollection;
 	iEvent.getByLabel(PFElectronTag_, ElectronCollection);
 
+	edm::Handle<edm::ValueMap<double> > ElectronRegEnergy;
+	iEvent.getByLabel("calibratedElectrons","eneRegForGsfEle",ElectronRegEnergy);
+
+	edm::Handle<edm::ValueMap<double> > ElectronRegEnergyError;
+	iEvent.getByLabel("calibratedElectrons","eneErrorRegForGsfEle",ElectronRegEnergyError);
+
 	edm::Handle<reco::ConversionCollection> hConversions;
 	iEvent.getByLabel("allConversions", hConversions);
 
@@ -1627,17 +1633,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 	double myMVATrig2012Method1 = -1;
 	double myMVATrigNoIP2012Method1 = -1;
 	double myMVANonTrig2012Method1 = -1;
-	/*for (unsigned i = 0; i < theEGamma.size(); i++) {
-		// !!! if-statement must be equal to isGoodElectron !!!
-		if (theEGamma[i].et() > ElectronPtCut_ && fabs(theEGamma[i].superCluster()->eta()) < ElectronEtaCut_ && theEGamma[i].gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1) {
-			myMVATrig2012Method1 = myMVATrig2012->mvaValue((theEGamma[i]), *pv, theBuilder, EcalCluster, false);
-			myMVATrigNoIP2012Method1 = myMVATrigNoIP2012->mvaValue((theEGamma[i]), *pv, _Rho, EcalCluster, false);
-			myMVANonTrig2012Method1 = myMVANonTrig2012->mvaValue((theEGamma[i]), *pv, theBuilder, EcalCluster, false);
-			Electron_MVA_Trig_discriminator.push_back(myMVATrig2012Method1);
-			Electron_MVA_TrigNoIP_discriminator.push_back(myMVATrigNoIP2012Method1);
-			Electron_MVA_NonTrig_discriminator.push_back(myMVANonTrig2012Method1);
-		}
-	}*/
+
 	///////////////////
 	//               //
 	// END OF MVA ID //
@@ -1659,6 +1655,9 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			iElectron_p4.push_back(RefElectron->p4().Pz());
 
 			Electron_p4.push_back(iElectron_p4);
+
+			Electron_RegEnergy.push_back((float)ElectronRegEnergy->get(iPFElectron));
+			Electron_RegEnergyError.push_back((float)ElectronRegEnergyError->get(iPFElectron));
 
 			//////////////////////////
 			myMVATrig2012Method1 = -1;
@@ -1739,7 +1738,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			Electron_supercluster_centroid_z.push_back(refSuperCluster->z());
 
 			int match;
-			getTrackMatch(trackCollection, refGsfTrack, match);
+			getTrackMatch(trackCollection, RefElectron, match);
 			Electron_Track_idx.push_back(match);
 
 			int ntp = Electron_par.size();
@@ -2871,6 +2870,10 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Electron_par", &Electron_par);
 	output_tree->Branch("Electron_cov", &Electron_cov);
 
+	// Electron energy calibration
+	output_tree->Branch("Electron_RegEnergy", &Electron_RegEnergy);
+	output_tree->Branch("Electron_RegEnergyError", &Electron_RegEnergyError);
+
 	// Electron MVA ID
 	output_tree->Branch("Electron_Rho_kt6PFJets", &Electron_Rho_kt6PFJets);
 	output_tree->Branch("Electron_MVA_TrigNoIP_discriminator", &Electron_MVA_TrigNoIP_discriminator);
@@ -3487,12 +3490,11 @@ bool TauNtuple::getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackColle
 	return false;
 }
 
-bool TauNtuple::getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfTrackRef &refTrack, int &match) {
+bool TauNtuple::getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfElectronRef &refElectron, int &match) {
 	match = -1;
 	for (unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
 		reco::TrackRef Track(trackCollection, iTrack);
-		double dr = TMath::Sqrt(TMath::Power(refTrack->eta() - Track->eta(), 2) + TMath::Power(refTrack->phi() - Track->phi(), 2));
-		if (dr < 0.1) {
+		if(Track == refElectron->closestCtfTrackRef() && refElectron->shFracInnerHits()>0.45){
 			match = iTrack;
 			return true;
 		}
@@ -3753,7 +3755,7 @@ void TauNtuple::ClearEvent() {
 	PFTau_photon_rho.clear();
 
 
-//   PFTau_hasSC.clear();  
+//   PFTau_hasSC.clear();
 //   PFTau_hasPhoton.clear();
 
 	//=======  Electrons ===
@@ -3817,6 +3819,9 @@ void TauNtuple::ClearEvent() {
 	Electron_trackMomentumAtVtx.clear();
 	Electron_numberOfMissedHits.clear();
 	Electron_HasMatchedConversions.clear();
+
+	Electron_RegEnergy.clear();
+	Electron_RegEnergyError.clear();
 
 	Electron_Rho_kt6PFJets.clear();
 	Electron_MVA_TrigNoIP_discriminator.clear();

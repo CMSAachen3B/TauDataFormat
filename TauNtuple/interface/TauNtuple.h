@@ -197,7 +197,7 @@ private:
 	std::vector<reco::PFCandidatePtr> pfphotons(const reco::PFJet& jet, bool sort = true);
 
 	bool getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::TrackRef &refTrack, int &match);
-	bool getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfTrackRef &refTrack, int &match);
+	bool getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfElectronRef &refElectron, int &match);
 	double DeltaPhi(double phi1, double phi2);
 	void ClearEvent();
 
@@ -232,6 +232,7 @@ private:
 	static edm::InputTag primVtxTag_;
 	static edm::InputTag muonsTag_;
 	static edm::InputTag hpsTauProducer_;
+	static edm::InputTag PFElectronTag_;
 	static std::vector<std::string> MyTriggerInfoNames;
 
 	edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
@@ -266,7 +267,6 @@ private:
 	edm::InputTag pfMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
-	static edm::InputTag PFElectronTag_;
 	edm::InputTag rhoIsolAllInputTag_;
 	edm::InputTag generalTracks_;
 	edm::InputTag gensrc_;
@@ -608,6 +608,10 @@ private:
 	std::vector<float> Electron_trackMomentumAtVtx;
 	std::vector<float> Electron_numberOfMissedHits;  //number of missing hits conversion rejection
 	std::vector<bool> Electron_HasMatchedConversions;
+
+	// Electron energy calibration
+	std::vector<float> Electron_RegEnergy;
+	std::vector<float> Electron_RegEnergyError;
 
 	// Electron MVA ID
 	std::vector<float> Electron_Rho_kt6PFJets;
