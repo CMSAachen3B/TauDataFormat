@@ -305,6 +305,8 @@ private:
 	std::string PUOutputFile_;
 
 	edm::LumiReWeighting LumiWeights_;
+	edm::LumiReWeighting LumiWeights_p5_;
+	edm::LumiReWeighting LumiWeights_m5_;
 	edm::Lumi3DReWeighting LumiWeights3D_;
 	edm::Lumi3DReWeighting LumiWeights3D_p5_;
 	edm::Lumi3DReWeighting LumiWeights3D_m5_;
@@ -874,6 +876,8 @@ private:
 	int PileupInfo_TrueNumInteractions_n0;
 	int PileupInfo_TrueNumInteractions_np1;
 	float PUWeight;
+	float PUWeight_p5;
+	float PUWeight_m5;
 	float PUWeight3D;
 	float PUWeight3D_p5;
 	float PUWeight3D_m5;

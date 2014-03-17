@@ -196,6 +196,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	system("ls ../*/*");
 
 	LumiWeights_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
+	LumiWeights_p5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_);
+	LumiWeights_m5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_);
 	LumiWeights3D_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
 	LumiWeights3D_.weight3D_init(1);
 	LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
@@ -2659,6 +2661,8 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				PileupInfo_TrueNumInteractions_np1 = PVI->getTrueNumInteractions();
 		}
 		PUWeight = LumiWeights_.weight( PileupInfo_TrueNumInteractions_n0 );
+		PUWeight_p5 = LumiWeights_p5_.weight( PileupInfo_TrueNumInteractions_n0 );
+		PUWeight_m5 = LumiWeights_m5_.weight( PileupInfo_TrueNumInteractions_n0 );
 		PUWeight3D = LumiWeights3D_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
 		PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
 		PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
@@ -3238,6 +3242,8 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PileupInfo_TrueNumInteractions_n0", &PileupInfo_TrueNumInteractions_n0);
 	output_tree->Branch("PileupInfo_TrueNumInteractions_np1", &PileupInfo_TrueNumInteractions_np1);
 	output_tree->Branch("PUWeight",&PUWeight);
+	output_tree->Branch("PUWeight_p5",&PUWeight_p5);
+	output_tree->Branch("PUWeight_m5",&PUWeight_m5);
 	output_tree->Branch("PUWeight3D", &PUWeight3D);
 	output_tree->Branch("PUWeight3D_p5", &PUWeight3D_p5);
 	output_tree->Branch("PUWeight3D_m5", &PUWeight3D_m5);
@@ -3893,6 +3899,9 @@ void TauNtuple::ClearEvent() {
 	Track_cov.clear();
 
 	// Event Block
+	PUWeight = 0;
+	PUWeight_p5 = 0;
+	PUWeight_m5 = 0;
 	PUWeight3D = 0;
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
