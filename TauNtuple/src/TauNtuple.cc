@@ -1438,6 +1438,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(1).first));
 					}
 				}
+				PFJet_TracksP4.push_back(iPFJet_TrackP4_two_leading);
 				PFJet_nTrk.push_back(iPFJet_TrackP4.size());
 
 				edm::Handle<std::vector<reco::PFTau> > HPStaus;
@@ -1564,6 +1565,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(1).first));
 					}
 				}
+				PFJet_TracksP4.push_back(iPFJet_TrackP4_two_leading);
 				PFJet_nTrk.push_back(iPFJet_TrackP4.size());
 
 				int idx = -1;
