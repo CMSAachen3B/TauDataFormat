@@ -106,6 +106,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		caloMETCorrT1_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1")),
 		caloMETCorrT1T2_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1T2")),
 		pfMETCorrMVA_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVA")),
+		pfMETCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVAMuTau")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
 		rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")),
@@ -2058,6 +2059,26 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_NeutralHadEtFraction = pfMETCorrMVA->front().NeutralHadEtFraction();
 			MET_CorrMVA_Type6EtFraction = pfMETCorrMVA->front().Type6EtFraction();
 			MET_CorrMVA_Type7EtFraction = pfMETCorrMVA->front().Type7EtFraction();
+
+			edm::Handle<std::vector<reco::PFMET>> pfMETCorrMVAMuTau;
+			iEvent.getByLabel(pfMETCorrMVAMuTau_, pfMETCorrMVAMuTau);
+
+			MET_CorrMVAMuTau_et = pfMETCorrMVAMuTau->front().et();
+			MET_CorrMVAMuTau_pt = pfMETCorrMVAMuTau->front().pt();
+			MET_CorrMVAMuTau_phi = pfMETCorrMVAMuTau->front().phi();
+			MET_CorrMVAMuTau_sumET = pfMETCorrMVAMuTau->front().sumEt();
+			MET_CorrMVAMuTau_significance = pfMETCorrMVAMuTau->front().significance();
+			sigMat = pfMETCorrMVAMuTau->front().getSignificanceMatrix();
+			if (sigMat(0, 1) != sigMat(1, 0))
+				std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+			MET_CorrMVAMuTau_significance_xx = sigMat(0, 0);
+			MET_CorrMVAMuTau_significance_xy = sigMat(0, 1);
+			MET_CorrMVAMuTau_significance_yy = sigMat(1, 1);
+			MET_CorrMVAMuTau_MuonEtFraction = pfMETCorrMVAMuTau->front().muonEtFraction();
+			MET_CorrMVAMuTau_NeutralEMFraction = pfMETCorrMVAMuTau->front().NeutralEMFraction();
+			MET_CorrMVAMuTau_NeutralHadEtFraction = pfMETCorrMVAMuTau->front().NeutralHadEtFraction();
+			MET_CorrMVAMuTau_Type6EtFraction = pfMETCorrMVAMuTau->front().Type6EtFraction();
+			MET_CorrMVAMuTau_Type7EtFraction = pfMETCorrMVAMuTau->front().Type7EtFraction();
 		}
 
 	} else {
@@ -2370,6 +2391,27 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_NeutralHadEtFraction = patMETCorrMVA.NeutralHadEtFraction();
 			MET_CorrMVA_Type6EtFraction = patMETCorrMVA.Type6EtFraction();
 			MET_CorrMVA_Type7EtFraction = patMETCorrMVA.Type7EtFraction();
+
+			edm::Handle<std::vector<pat::MET>> patMETCorrMVAMuTauHandle;
+			iEvent.getByLabel(pfMETCorrMVAMuTau_, patMETCorrMVAMuTauHandle);
+			pat::MET patMETCorrMVAMuTau = patMETCorrMVAMuTauHandle->front();
+
+			MET_CorrMVAMuTau_et = patMETCorrMVAMuTau.et();
+			MET_CorrMVAMuTau_pt = patMETCorrMVAMuTau.pt();
+			MET_CorrMVAMuTau_phi = patMETCorrMVAMuTau.phi();
+			MET_CorrMVAMuTau_sumET = patMETCorrMVAMuTau.sumEt();
+			MET_CorrMVAMuTau_significance = patMETCorrMVAMuTau.significance();
+			sigMat = patMETCorrMVAMuTau.getSignificanceMatrix();
+			if (sigMat(0, 1) != sigMat(1, 0))
+				std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+			MET_CorrMVAMuTau_significance_xx = sigMat(0, 0);
+			MET_CorrMVAMuTau_significance_xy = sigMat(0, 1);
+			MET_CorrMVAMuTau_significance_yy = sigMat(1, 1);
+			MET_CorrMVAMuTau_MuonEtFraction = patMETCorrMVAMuTau.MuonEtFraction();
+			MET_CorrMVAMuTau_NeutralEMFraction = patMETCorrMVAMuTau.NeutralEMFraction();
+			MET_CorrMVAMuTau_NeutralHadEtFraction = patMETCorrMVAMuTau.NeutralHadEtFraction();
+			MET_CorrMVAMuTau_Type6EtFraction = patMETCorrMVAMuTau.Type6EtFraction();
+			MET_CorrMVAMuTau_Type7EtFraction = patMETCorrMVAMuTau.Type7EtFraction();
 		}
 	}
 }
@@ -3229,6 +3271,20 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVA_NeutralHadEtFraction", &MET_CorrMVA_NeutralHadEtFraction);
 	output_tree->Branch("MET_CorrMVA_Type6EtFraction", &MET_CorrMVA_Type6EtFraction);
 	output_tree->Branch("MET_CorrMVA_Type7EtFraction", &MET_CorrMVA_Type7EtFraction);
+
+	output_tree->Branch("MET_CorrMVAMuTau_et", &MET_CorrMVAMuTau_et);
+	output_tree->Branch("MET_CorrMVAMuTau_pt", &MET_CorrMVAMuTau_pt);
+	output_tree->Branch("MET_CorrMVAMuTau_phi", &MET_CorrMVAMuTau_phi);
+	output_tree->Branch("MET_CorrMVAMuTau_sumET", &MET_CorrMVAMuTau_sumET);
+	output_tree->Branch("MET_CorrMVAMuTau_significance", &MET_CorrMVAMuTau_significance);
+	output_tree->Branch("MET_CorrMVAMuTau_significance_xx", &MET_CorrMVAMuTau_significance_xx);
+	output_tree->Branch("MET_CorrMVAMuTau_significance_xy", &MET_CorrMVAMuTau_significance_xy);
+	output_tree->Branch("MET_CorrMVAMuTau_significance_yy", &MET_CorrMVAMuTau_significance_yy);
+	output_tree->Branch("MET_CorrMVAMuTau_MuonEtFraction", &MET_CorrMVAMuTau_MuonEtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_NeutralEMFraction", &MET_CorrMVAMuTau_NeutralEMFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_NeutralHadEtFraction", &MET_CorrMVAMuTau_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_Type6EtFraction", &MET_CorrMVAMuTau_Type6EtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_Type7EtFraction", &MET_CorrMVAMuTau_Type7EtFraction);
 
 	//=============== Event Block ==============
 	output_tree->Branch("Event_EventNumber", &Event_EventNumber);

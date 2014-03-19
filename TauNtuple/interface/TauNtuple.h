@@ -264,6 +264,7 @@ private:
 	edm::InputTag caloMETCorrT1_;
 	edm::InputTag caloMETCorrT1T2_;
 	edm::InputTag pfMETCorrMVA_;
+	edm::InputTag pfMETCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
@@ -862,6 +863,20 @@ private:
 	float MET_CorrMVA_NeutralHadEtFraction;
 	float MET_CorrMVA_Type6EtFraction;
 	float MET_CorrMVA_Type7EtFraction;
+
+	float MET_CorrMVAMuTau_et;
+	float MET_CorrMVAMuTau_pt;
+	float MET_CorrMVAMuTau_phi;
+	float MET_CorrMVAMuTau_sumET;
+	float MET_CorrMVAMuTau_significance;
+	float MET_CorrMVAMuTau_significance_xx;
+	float MET_CorrMVAMuTau_significance_xy;
+	float MET_CorrMVAMuTau_significance_yy;
+	float MET_CorrMVAMuTau_MuonEtFraction;
+	float MET_CorrMVAMuTau_NeutralEMFraction;
+	float MET_CorrMVAMuTau_NeutralHadEtFraction;
+	float MET_CorrMVAMuTau_Type6EtFraction;
+	float MET_CorrMVAMuTau_Type7EtFraction;
 
 	//=======  Event ===
 	int EventNumber;
