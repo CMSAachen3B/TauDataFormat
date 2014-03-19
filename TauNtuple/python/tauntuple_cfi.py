@@ -45,7 +45,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              pfMetCorrMVA  = cms.InputTag("pfMEtMVA"),
                              pfMetUncorr  = cms.InputTag("pfMet"),
                              pfjets         = cms.InputTag("ak5PFJetsCorr"),
-                             pfelectrons =  cms.InputTag("gsfElectrons",""),#"pfElectrons"),#,"electrons","RECO"),
+                             pfelectrons =  cms.InputTag("gsfElectrons",""),
                              generalTracks  = cms.InputTag("generalTracks"),
                              gensrc         = cms.InputTag('genParticles'),
                              GenEventInfo   = cms.InputTag('generator'),
@@ -73,7 +73,15 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              TriggerTauMatchingdr = cms.untracked.double(0.3),
                              BTagAlgorithm = cms.untracked.string("MyCombinedSecondaryVertexBJetTags"),
                              PUJetIdDisc = cms.InputTag("pileupJetIdProducer","fullDiscriminant"),
-                             PUJetIdFlag = cms.InputTag("pileupJetIdProducer","fullId")
+                             PUJetIdFlag = cms.InputTag("pileupJetIdProducer","fullId"),
+                             MuonPtCut = cms.double(3.0),
+                             MuonEtaCut = cms.double(2.5),
+                             TauPtCut = cms.double(18.0),
+                             TauEtaCut = cms.double(2.4),
+                             ElectronPtCut = cms.double(8.0),
+                             ElectronEtaCut = cms.double(2.5),
+                             JetPtCut = cms.double(18.0),
+                             JetEtaCut = cms.double(4.7)
                              )                                                                   
  
 

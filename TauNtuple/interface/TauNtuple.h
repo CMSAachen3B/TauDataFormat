@@ -119,6 +119,7 @@
 // PU
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
 //
 #include <DataFormats/EgammaCandidates/interface/GsfElectron.h>
@@ -148,6 +149,13 @@
 
 // embedded samples
 #include "SimDataFormats/GeneratorProducts/interface/GenFilterInfo.h"
+
+// sorting struct
+struct sortIdxByValue {
+    bool operator()(const std::pair<int,double> &left, const std::pair<int,double> &right) {
+        return left.second > right.second;
+    }
+};
 
 //
 //
@@ -303,6 +311,7 @@ private:
 	std::string PUInputHistoData_m5_;
 	std::string PUOutputFile_;
 
+	edm::LumiReWeighting LumiWeights1D_;
 	edm::Lumi3DReWeighting LumiWeights_;
 	edm::Lumi3DReWeighting LumiWeights_p5_;
 	edm::Lumi3DReWeighting LumiWeights_m5_;
@@ -875,6 +884,7 @@ private:
 	int PileupInfo_NumInteractions_nm1;
 	int PileupInfo_NumInteractions_n0;
 	int PileupInfo_NumInteractions_np1;
+	float EvtWeight1D;
 	float EvtWeight3D;
 	float EvtWeight3D_p5;
 	float EvtWeight3D_m5;

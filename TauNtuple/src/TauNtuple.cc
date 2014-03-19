@@ -58,14 +58,14 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
-double TauNtuple::MuonPtCut_(3.0);
-double TauNtuple::MuonEtaCut_(2.5);
-double TauNtuple::TauPtCut_(18.0);
-double TauNtuple::TauEtaCut_(2.4);
-double TauNtuple::ElectronPtCut_(5.0);
-double TauNtuple::ElectronEtaCut_(2.5);
-double TauNtuple::JetPtCut_(18.0);
-double TauNtuple::JetEtaCut_(4.7);
+double TauNtuple::MuonPtCut_(-1.);
+double TauNtuple::MuonEtaCut_(999);
+double TauNtuple::TauPtCut_(-1.);
+double TauNtuple::TauEtaCut_(999);
+double TauNtuple::ElectronPtCut_(-1.);
+double TauNtuple::ElectronEtaCut_(999);
+double TauNtuple::JetPtCut_(-1.);
+double TauNtuple::JetEtaCut_(999);
 
 edm::InputTag TauNtuple::primVtxTag_;
 edm::InputTag TauNtuple::muonsTag_;
@@ -175,14 +175,14 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
 		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
  {
-	MuonPtCut_ = iConfig.getUntrackedParameter("MuonPtCut", (double) 3.0);
-	MuonEtaCut_ = iConfig.getUntrackedParameter("MuonEtaCut", (double) 2.5);
-	TauPtCut_ = iConfig.getUntrackedParameter("TauPtCut", (double) 18.0);
-	TauEtaCut_ = iConfig.getUntrackedParameter("TauEtaCut", (double) 2.4);
-	ElectronPtCut_ = iConfig.getUntrackedParameter("ElectronPtCut", (double) 8.0);
-	ElectronEtaCut_ = iConfig.getUntrackedParameter("ElectronEtaCut", (double) 2.5);
-	JetPtCut_ = iConfig.getUntrackedParameter("JetPtCut", (double) 18.0);
-	JetEtaCut_ = iConfig.getUntrackedParameter("JetEtaCut", (double) 4.7);
+	MuonPtCut_ = iConfig.getParameter<double>("MuonPtCut"); //default: 3.0
+	MuonEtaCut_ = iConfig.getParameter<double>("MuonEtaCut"); //default: 2.5
+	TauPtCut_ = iConfig.getParameter<double>("TauPtCut"); //default: 18.0
+	TauEtaCut_ = iConfig.getParameter<double>("TauEtaCut"); //default: 2.4
+	ElectronPtCut_ = iConfig.getParameter<double>("ElectronPtCut"); //default: 8.0
+	ElectronEtaCut_ = iConfig.getParameter<double>("ElectronEtaCut"); //default: 2.5
+	JetPtCut_ = iConfig.getParameter<double>("JetPtCut"); //default: 18.0
+	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 4.7
 
 	primVtxTag_ = iConfig.getParameter<edm::InputTag>("primVtx");
 	muonsTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -195,6 +195,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	system("ls *");
 	system("ls ../*/*");
 
+	LumiWeights1D_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
 	LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
 	LumiWeights_.weight3D_init(1);
 	LumiWeights_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
@@ -1403,6 +1404,8 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				std::vector<int> matches;
 				const edm::ProductID &TrID = trackCollection.id();
 				std::vector<std::vector<float> > iPFJet_TrackP4;
+				std::vector< std::pair<int, double> > iPFJet_TrackPt;
+				unsigned int countTracks = 0;
 				for (unsigned i = 0; i < PFJet->numberOfDaughters(); i++) {
 					const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
 					reco::TrackRef trackref = pfcand->trackRef();
@@ -1414,17 +1417,26 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iiPFJet_TrackP4.push_back(trackref->py());
 						iiPFJet_TrackP4.push_back(trackref->pz());
 						iPFJet_TrackP4.push_back(iiPFJet_TrackP4);
+						iPFJet_TrackPt.push_back( std::make_pair(countTracks,trackref->pt()) );
 						if (trackref.id() != TrID)
 							continue;
 						int match(-1);
 						getTrackMatch(trackCollection, trackref, match);
-						if (match >= 0)
-							matches.push_back(match);
+						if (match >= 0) matches.push_back(match);
+						countTracks++;
 					}
 				}
 				PFJet_Track_idx.push_back(matches);
 
-				PFJet_TracksP4.push_back(iPFJet_TrackP4);
+				if(iPFJet_TrackP4.size()>2){
+					std::sort(iPFJet_TrackPt.begin(), iPFJet_TrackPt.end(), sortIdxByValue());
+					std::vector<std::vector<float> > iPFJet_TrackP4_two_leading;
+					iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(0).first));
+					iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(1).first));
+					PFJet_TracksP4.push_back(iPFJet_TrackP4_two_leading);
+				}else{
+					PFJet_TracksP4.push_back(iPFJet_TrackP4);
+				}
 				PFJet_nTrk.push_back(iPFJet_TrackP4.size());
 
 				edm::Handle<std::vector<reco::PFTau> > HPStaus;
@@ -1520,6 +1532,8 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				std::vector<int> matches;
 				const edm::ProductID &TrID = trackCollection.id();
 				std::vector<std::vector<float> > iPFJet_TrackP4;
+				std::vector< std::pair<int, double> > iPFJet_TrackPt;
+				unsigned int countTracks = 0;
 				for (unsigned i = 0; i < PatJet->numberOfDaughters(); i++) {
 					const reco::PFCandidatePtr pfcand = PatJet->getPFConstituent(i);
 					reco::TrackRef trackref = pfcand->trackRef();
@@ -1531,6 +1545,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iiPFJet_TrackP4.push_back(trackref->py());
 						iiPFJet_TrackP4.push_back(trackref->pz());
 						iPFJet_TrackP4.push_back(iiPFJet_TrackP4);
+						iPFJet_TrackPt.push_back( std::make_pair(countTracks,trackref->pt()) );
 						if (trackref.id() != TrID)
 							continue;
 						int match(-1);
@@ -1538,6 +1553,15 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						if (match >= 0)
 							matches.push_back(match);
 					}
+				}
+				if(iPFJet_TrackP4.size()>2){
+					std::sort(iPFJet_TrackPt.begin(), iPFJet_TrackPt.end(), sortIdxByValue());
+					std::vector<std::vector<float> > iPFJet_TrackP4_two_leading;
+					iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(0).first));
+					iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(1).first));
+					PFJet_TracksP4.push_back(iPFJet_TrackP4_two_leading);
+				}else{
+					PFJet_TracksP4.push_back(iPFJet_TrackP4);
 				}
 				PFJet_Track_idx.push_back(matches);
 
@@ -2650,12 +2674,13 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		for (PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
 			int BX = PVI->getBunchCrossing();
 			if (BX == -1)
-				PileupInfo_NumInteractions_nm1 = PVI->getPU_NumInteractions();
+				PileupInfo_NumInteractions_nm1 = PVI->getTrueNumInteractions();//getPU_NumInteractions();
 			if (BX == 0)
-				PileupInfo_NumInteractions_n0 = PVI->getPU_NumInteractions();
+				PileupInfo_NumInteractions_n0 = PVI->getTrueNumInteractions();//getPU_NumInteractions();
 			if (BX == 1)
-				PileupInfo_NumInteractions_np1 = PVI->getPU_NumInteractions();
+				PileupInfo_NumInteractions_np1 = PVI->getTrueNumInteractions();//getPU_NumInteractions();
 		}
+		EvtWeight1D = LumiWeights1D_.weight(PileupInfo_NumInteractions_n0);
 		EvtWeight3D = LumiWeights_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
 		EvtWeight3D_p5 = LumiWeights_p5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
 		EvtWeight3D_m5 = LumiWeights_m5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
@@ -3238,6 +3263,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PileupInfo_NumInteractions_nm1", &PileupInfo_NumInteractions_nm1);
 	output_tree->Branch("PileupInfo_NumInteractions_n0", &PileupInfo_NumInteractions_n0);
 	output_tree->Branch("PileupInfo_NumInteractions_np1", &PileupInfo_NumInteractions_np1);
+	output_tree->Branch("EvtWeight1D", &EvtWeight1D);
 	output_tree->Branch("EvtWeight3D", &EvtWeight3D);
 	output_tree->Branch("EvtWeight3D_p5", &EvtWeight3D_p5);
 	output_tree->Branch("EvtWeight3D_m5", &EvtWeight3D_m5);
