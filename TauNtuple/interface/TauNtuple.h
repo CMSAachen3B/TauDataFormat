@@ -119,6 +119,7 @@
 // PU
 #include <SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h>
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "PhysicsTools/Utilities/interface/LumiReWeighting.h"
 #include "PhysicsTools/Utilities/interface/Lumi3DReWeighting.h"
 //
 #include <DataFormats/EgammaCandidates/interface/GsfElectron.h>
@@ -148,6 +149,13 @@
 
 // embedded samples
 #include "SimDataFormats/GeneratorProducts/interface/GenFilterInfo.h"
+
+// sorting struct
+struct sortIdxByValue {
+    bool operator()(const std::pair<int,double> &left, const std::pair<int,double> &right) {
+        return left.second > right.second;
+    }
+};
 
 //
 //
@@ -197,7 +205,7 @@ private:
 	std::vector<reco::PFCandidatePtr> pfphotons(const reco::PFJet& jet, bool sort = true);
 
 	bool getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::TrackRef &refTrack, int &match);
-	bool getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfTrackRef &refTrack, int &match);
+	bool getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfElectronRef &refElectron, int &match);
 	double DeltaPhi(double phi1, double phi2);
 	void ClearEvent();
 
@@ -232,6 +240,7 @@ private:
 	static edm::InputTag primVtxTag_;
 	static edm::InputTag muonsTag_;
 	static edm::InputTag hpsTauProducer_;
+	static edm::InputTag PFElectronTag_;
 	static std::vector<std::string> MyTriggerInfoNames;
 
 	edm::InputTag hpsPFTauDiscriminationByTightIsolation_;
@@ -263,10 +272,10 @@ private:
 	edm::InputTag caloMETCorrT1_;
 	edm::InputTag caloMETCorrT1T2_;
 	edm::InputTag pfMETCorrMVA_;
+	edm::InputTag pfMETCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
-	static edm::InputTag PFElectronTag_;
 	edm::InputTag rhoIsolAllInputTag_;
 	edm::InputTag generalTracks_;
 	edm::InputTag gensrc_;
@@ -303,9 +312,12 @@ private:
 	std::string PUInputHistoData_m5_;
 	std::string PUOutputFile_;
 
-	edm::Lumi3DReWeighting LumiWeights_;
-	edm::Lumi3DReWeighting LumiWeights_p5_;
-	edm::Lumi3DReWeighting LumiWeights_m5_;
+	edm::LumiReWeighting LumiWeights_;
+	edm::LumiReWeighting LumiWeights_p5_;
+	edm::LumiReWeighting LumiWeights_m5_;
+	edm::Lumi3DReWeighting LumiWeights3D_;
+	edm::Lumi3DReWeighting LumiWeights3D_p5_;
+	edm::Lumi3DReWeighting LumiWeights3D_m5_;
 
 	// MC Signal
 	bool do_MCSummary_;
@@ -609,6 +621,10 @@ private:
 	std::vector<float> Electron_numberOfMissedHits;  //number of missing hits conversion rejection
 	std::vector<bool> Electron_HasMatchedConversions;
 
+	// Electron energy calibration
+	std::vector<float> Electron_RegEnergy;
+	std::vector<float> Electron_RegEnergyError;
+
 	// Electron MVA ID
 	std::vector<float> Electron_Rho_kt6PFJets;
 	std::vector<float> Electron_MVA_Trig_discriminator;
@@ -859,6 +875,20 @@ private:
 	float MET_CorrMVA_Type6EtFraction;
 	float MET_CorrMVA_Type7EtFraction;
 
+	float MET_CorrMVAMuTau_et;
+	float MET_CorrMVAMuTau_pt;
+	float MET_CorrMVAMuTau_phi;
+	float MET_CorrMVAMuTau_sumET;
+	float MET_CorrMVAMuTau_significance;
+	float MET_CorrMVAMuTau_significance_xx;
+	float MET_CorrMVAMuTau_significance_xy;
+	float MET_CorrMVAMuTau_significance_yy;
+	float MET_CorrMVAMuTau_MuonEtFraction;
+	float MET_CorrMVAMuTau_NeutralEMFraction;
+	float MET_CorrMVAMuTau_NeutralHadEtFraction;
+	float MET_CorrMVAMuTau_Type6EtFraction;
+	float MET_CorrMVAMuTau_Type7EtFraction;
+
 	//=======  Event ===
 	int EventNumber;
 	unsigned int DataMC_Type_idx;
@@ -868,12 +898,15 @@ private:
 	int Event_orbitNumber;
 	unsigned int Event_luminosityBlock;
 	bool Event_isRealData;
-	int PileupInfo_NumInteractions_nm1;
-	int PileupInfo_NumInteractions_n0;
-	int PileupInfo_NumInteractions_np1;
-	float EvtWeight3D;
-	float EvtWeight3D_p5;
-	float EvtWeight3D_m5;
+	int PileupInfo_TrueNumInteractions_nm1;
+	int PileupInfo_TrueNumInteractions_n0;
+	int PileupInfo_TrueNumInteractions_np1;
+	float PUWeight;
+	float PUWeight_p5;
+	float PUWeight_m5;
+	float PUWeight3D;
+	float PUWeight3D_p5;
+	float PUWeight3D_m5;
 
 	std::vector<float> beamspot_par;
 	std::vector<float> beamspot_cov;

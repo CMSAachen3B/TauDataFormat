@@ -58,14 +58,14 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
-double TauNtuple::MuonPtCut_(3.0);
-double TauNtuple::MuonEtaCut_(2.5);
-double TauNtuple::TauPtCut_(18.0);
-double TauNtuple::TauEtaCut_(2.4);
-double TauNtuple::ElectronPtCut_(5.0);
-double TauNtuple::ElectronEtaCut_(2.5);
-double TauNtuple::JetPtCut_(18.0);
-double TauNtuple::JetEtaCut_(4.7);
+double TauNtuple::MuonPtCut_(-1.);
+double TauNtuple::MuonEtaCut_(999);
+double TauNtuple::TauPtCut_(-1.);
+double TauNtuple::TauEtaCut_(999);
+double TauNtuple::ElectronPtCut_(-1.);
+double TauNtuple::ElectronEtaCut_(999);
+double TauNtuple::JetPtCut_(-1.);
+double TauNtuple::JetEtaCut_(999);
 
 edm::InputTag TauNtuple::primVtxTag_;
 edm::InputTag TauNtuple::muonsTag_;
@@ -106,6 +106,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		caloMETCorrT1_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1")),
 		caloMETCorrT1T2_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1T2")),
 		pfMETCorrMVA_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVA")),
+		pfMETCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVAMuTau")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
 		rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")),
@@ -175,14 +176,14 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
 		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
  {
-	MuonPtCut_ = iConfig.getUntrackedParameter("MuonPtCut", (double) 3.0);
-	MuonEtaCut_ = iConfig.getUntrackedParameter("MuonEtaCut", (double) 2.5);
-	TauPtCut_ = iConfig.getUntrackedParameter("TauPtCut", (double) 18.0);
-	TauEtaCut_ = iConfig.getUntrackedParameter("TauEtaCut", (double) 2.4);
-	ElectronPtCut_ = iConfig.getUntrackedParameter("ElectronPtCut", (double) 8.0);
-	ElectronEtaCut_ = iConfig.getUntrackedParameter("ElectronEtaCut", (double) 2.5);
-	JetPtCut_ = iConfig.getUntrackedParameter("JetPtCut", (double) 18.0);
-	JetEtaCut_ = iConfig.getUntrackedParameter("JetEtaCut", (double) 4.7);
+	MuonPtCut_ = iConfig.getParameter<double>("MuonPtCut"); //default: 3.0
+	MuonEtaCut_ = iConfig.getParameter<double>("MuonEtaCut"); //default: 2.5
+	TauPtCut_ = iConfig.getParameter<double>("TauPtCut"); //default: 18.0
+	TauEtaCut_ = iConfig.getParameter<double>("TauEtaCut"); //default: 2.4
+	ElectronPtCut_ = iConfig.getParameter<double>("ElectronPtCut"); //default: 8.0
+	ElectronEtaCut_ = iConfig.getParameter<double>("ElectronEtaCut"); //default: 2.5
+	JetPtCut_ = iConfig.getParameter<double>("JetPtCut"); //default: 18.0
+	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 4.7
 
 	primVtxTag_ = iConfig.getParameter<edm::InputTag>("primVtx");
 	muonsTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -195,12 +196,15 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	system("ls *");
 	system("ls ../*/*");
 
-	LumiWeights_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
-	LumiWeights_.weight3D_init(1);
-	LumiWeights_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
-	LumiWeights_p5_.weight3D_init(1);
-	LumiWeights_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
-	LumiWeights_m5_.weight3D_init(1);
+	LumiWeights_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
+	LumiWeights_p5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_);
+	LumiWeights_m5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_);
+	LumiWeights3D_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
+	LumiWeights3D_.weight3D_init(1);
+	LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
+	LumiWeights3D_p5_.weight3D_init(1);
+	LumiWeights3D_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
+	LumiWeights3D_m5_.weight3D_init(1);
 
 	// Electron MVA ID
 
@@ -1403,6 +1407,8 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				std::vector<int> matches;
 				const edm::ProductID &TrID = trackCollection.id();
 				std::vector<std::vector<float> > iPFJet_TrackP4;
+				std::vector< std::pair<int, double> > iPFJet_TrackPt;
+				unsigned int countTracks = 0;
 				for (unsigned i = 0; i < PFJet->numberOfDaughters(); i++) {
 					const reco::PFCandidatePtr pfcand = PFJet->getPFConstituent(i);
 					reco::TrackRef trackref = pfcand->trackRef();
@@ -1414,17 +1420,25 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iiPFJet_TrackP4.push_back(trackref->py());
 						iiPFJet_TrackP4.push_back(trackref->pz());
 						iPFJet_TrackP4.push_back(iiPFJet_TrackP4);
+						iPFJet_TrackPt.push_back( std::make_pair(countTracks,trackref->pt()) );
 						if (trackref.id() != TrID)
 							continue;
 						int match(-1);
 						getTrackMatch(trackCollection, trackref, match);
-						if (match >= 0)
-							matches.push_back(match);
+						if (match >= 0) matches.push_back(match);
+						countTracks++;
 					}
 				}
 				PFJet_Track_idx.push_back(matches);
-
-				PFJet_TracksP4.push_back(iPFJet_TrackP4);
+				std::sort(iPFJet_TrackPt.begin(), iPFJet_TrackPt.end(), sortIdxByValue());
+				std::vector<std::vector<float> > iPFJet_TrackP4_two_leading;
+				if(iPFJet_TrackP4.size()>0){
+					iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(0).first));
+					if(iPFJet_TrackP4.size()>1){
+						iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(1).first));
+					}
+				}
+				PFJet_TracksP4.push_back(iPFJet_TrackP4_two_leading);
 				PFJet_nTrk.push_back(iPFJet_TrackP4.size());
 
 				edm::Handle<std::vector<reco::PFTau> > HPStaus;
@@ -1520,6 +1534,8 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				std::vector<int> matches;
 				const edm::ProductID &TrID = trackCollection.id();
 				std::vector<std::vector<float> > iPFJet_TrackP4;
+				std::vector< std::pair<int, double> > iPFJet_TrackPt;
+				unsigned int countTracks = 0;
 				for (unsigned i = 0; i < PatJet->numberOfDaughters(); i++) {
 					const reco::PFCandidatePtr pfcand = PatJet->getPFConstituent(i);
 					reco::TrackRef trackref = pfcand->trackRef();
@@ -1531,6 +1547,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iiPFJet_TrackP4.push_back(trackref->py());
 						iiPFJet_TrackP4.push_back(trackref->pz());
 						iPFJet_TrackP4.push_back(iiPFJet_TrackP4);
+						iPFJet_TrackPt.push_back( std::make_pair(countTracks,trackref->pt()) );
 						if (trackref.id() != TrID)
 							continue;
 						int match(-1);
@@ -1540,8 +1557,15 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 					}
 				}
 				PFJet_Track_idx.push_back(matches);
-
-				PFJet_TracksP4.push_back(iPFJet_TrackP4);
+				std::sort(iPFJet_TrackPt.begin(), iPFJet_TrackPt.end(), sortIdxByValue());
+				std::vector<std::vector<float> > iPFJet_TrackP4_two_leading;
+				if(iPFJet_TrackP4.size()>0){
+					iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(0).first));
+					if(iPFJet_TrackP4.size()>1){
+						iPFJet_TrackP4_two_leading.push_back(iPFJet_TrackP4.at(iPFJet_TrackPt.at(1).first));
+					}
+				}
+				PFJet_TracksP4.push_back(iPFJet_TrackP4_two_leading);
 				PFJet_nTrk.push_back(iPFJet_TrackP4.size());
 
 				int idx = -1;
@@ -1581,6 +1605,12 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 
 	edm::Handle<reco::GsfElectronCollection> ElectronCollection;
 	iEvent.getByLabel(PFElectronTag_, ElectronCollection);
+
+	edm::Handle<edm::ValueMap<double> > ElectronRegEnergy;
+	iEvent.getByLabel("calibratedElectrons","eneRegForGsfEle",ElectronRegEnergy);
+
+	edm::Handle<edm::ValueMap<double> > ElectronRegEnergyError;
+	iEvent.getByLabel("calibratedElectrons","eneErrorRegForGsfEle",ElectronRegEnergyError);
 
 	edm::Handle<reco::ConversionCollection> hConversions;
 	iEvent.getByLabel("allConversions", hConversions);
@@ -1627,17 +1657,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 	double myMVATrig2012Method1 = -1;
 	double myMVATrigNoIP2012Method1 = -1;
 	double myMVANonTrig2012Method1 = -1;
-	/*for (unsigned i = 0; i < theEGamma.size(); i++) {
-		// !!! if-statement must be equal to isGoodElectron !!!
-		if (theEGamma[i].et() > ElectronPtCut_ && fabs(theEGamma[i].superCluster()->eta()) < ElectronEtaCut_ && theEGamma[i].gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1) {
-			myMVATrig2012Method1 = myMVATrig2012->mvaValue((theEGamma[i]), *pv, theBuilder, EcalCluster, false);
-			myMVATrigNoIP2012Method1 = myMVATrigNoIP2012->mvaValue((theEGamma[i]), *pv, _Rho, EcalCluster, false);
-			myMVANonTrig2012Method1 = myMVANonTrig2012->mvaValue((theEGamma[i]), *pv, theBuilder, EcalCluster, false);
-			Electron_MVA_Trig_discriminator.push_back(myMVATrig2012Method1);
-			Electron_MVA_TrigNoIP_discriminator.push_back(myMVATrigNoIP2012Method1);
-			Electron_MVA_NonTrig_discriminator.push_back(myMVANonTrig2012Method1);
-		}
-	}*/
+
 	///////////////////
 	//               //
 	// END OF MVA ID //
@@ -1659,6 +1679,9 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			iElectron_p4.push_back(RefElectron->p4().Pz());
 
 			Electron_p4.push_back(iElectron_p4);
+
+			Electron_RegEnergy.push_back((float)ElectronRegEnergy->get(iPFElectron));
+			Electron_RegEnergyError.push_back((float)ElectronRegEnergyError->get(iPFElectron));
 
 			//////////////////////////
 			myMVATrig2012Method1 = -1;
@@ -1739,7 +1762,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			Electron_supercluster_centroid_z.push_back(refSuperCluster->z());
 
 			int match;
-			getTrackMatch(trackCollection, refGsfTrack, match);
+			getTrackMatch(trackCollection, RefElectron, match);
 			Electron_Track_idx.push_back(match);
 
 			int ntp = Electron_par.size();
@@ -2055,6 +2078,26 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_NeutralHadEtFraction = pfMETCorrMVA->front().NeutralHadEtFraction();
 			MET_CorrMVA_Type6EtFraction = pfMETCorrMVA->front().Type6EtFraction();
 			MET_CorrMVA_Type7EtFraction = pfMETCorrMVA->front().Type7EtFraction();
+
+			edm::Handle<std::vector<reco::PFMET>> pfMETCorrMVAMuTau;
+			iEvent.getByLabel(pfMETCorrMVAMuTau_, pfMETCorrMVAMuTau);
+
+			MET_CorrMVAMuTau_et = pfMETCorrMVAMuTau->front().et();
+			MET_CorrMVAMuTau_pt = pfMETCorrMVAMuTau->front().pt();
+			MET_CorrMVAMuTau_phi = pfMETCorrMVAMuTau->front().phi();
+			MET_CorrMVAMuTau_sumET = pfMETCorrMVAMuTau->front().sumEt();
+			MET_CorrMVAMuTau_significance = pfMETCorrMVAMuTau->front().significance();
+			sigMat = pfMETCorrMVAMuTau->front().getSignificanceMatrix();
+			if (sigMat(0, 1) != sigMat(1, 0))
+				std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+			MET_CorrMVAMuTau_significance_xx = sigMat(0, 0);
+			MET_CorrMVAMuTau_significance_xy = sigMat(0, 1);
+			MET_CorrMVAMuTau_significance_yy = sigMat(1, 1);
+			MET_CorrMVAMuTau_MuonEtFraction = pfMETCorrMVAMuTau->front().muonEtFraction();
+			MET_CorrMVAMuTau_NeutralEMFraction = pfMETCorrMVAMuTau->front().NeutralEMFraction();
+			MET_CorrMVAMuTau_NeutralHadEtFraction = pfMETCorrMVAMuTau->front().NeutralHadEtFraction();
+			MET_CorrMVAMuTau_Type6EtFraction = pfMETCorrMVAMuTau->front().Type6EtFraction();
+			MET_CorrMVAMuTau_Type7EtFraction = pfMETCorrMVAMuTau->front().Type7EtFraction();
 		}
 
 	} else {
@@ -2367,6 +2410,27 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_NeutralHadEtFraction = patMETCorrMVA.NeutralHadEtFraction();
 			MET_CorrMVA_Type6EtFraction = patMETCorrMVA.Type6EtFraction();
 			MET_CorrMVA_Type7EtFraction = patMETCorrMVA.Type7EtFraction();
+
+			edm::Handle<std::vector<pat::MET>> patMETCorrMVAMuTauHandle;
+			iEvent.getByLabel(pfMETCorrMVAMuTau_, patMETCorrMVAMuTauHandle);
+			pat::MET patMETCorrMVAMuTau = patMETCorrMVAMuTauHandle->front();
+
+			MET_CorrMVAMuTau_et = patMETCorrMVAMuTau.et();
+			MET_CorrMVAMuTau_pt = patMETCorrMVAMuTau.pt();
+			MET_CorrMVAMuTau_phi = patMETCorrMVAMuTau.phi();
+			MET_CorrMVAMuTau_sumET = patMETCorrMVAMuTau.sumEt();
+			MET_CorrMVAMuTau_significance = patMETCorrMVAMuTau.significance();
+			sigMat = patMETCorrMVAMuTau.getSignificanceMatrix();
+			if (sigMat(0, 1) != sigMat(1, 0))
+				std::cout << "WARNING: MET significance matrix not symmetric" << std::endl;
+			MET_CorrMVAMuTau_significance_xx = sigMat(0, 0);
+			MET_CorrMVAMuTau_significance_xy = sigMat(0, 1);
+			MET_CorrMVAMuTau_significance_yy = sigMat(1, 1);
+			MET_CorrMVAMuTau_MuonEtFraction = patMETCorrMVAMuTau.MuonEtFraction();
+			MET_CorrMVAMuTau_NeutralEMFraction = patMETCorrMVAMuTau.NeutralEMFraction();
+			MET_CorrMVAMuTau_NeutralHadEtFraction = patMETCorrMVAMuTau.NeutralHadEtFraction();
+			MET_CorrMVAMuTau_Type6EtFraction = patMETCorrMVAMuTau.Type6EtFraction();
+			MET_CorrMVAMuTau_Type7EtFraction = patMETCorrMVAMuTau.Type7EtFraction();
 		}
 	}
 }
@@ -2645,21 +2709,24 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		edm::Handle<std::vector<PileupSummaryInfo> > PupInfo;
 		iEvent.getByLabel(edm::InputTag("addPileupInfo"), PupInfo);
 		std::vector<PileupSummaryInfo>::const_iterator PVI;
-		PileupInfo_NumInteractions_nm1 = -1;
-		PileupInfo_NumInteractions_n0 = -1;
-		PileupInfo_NumInteractions_np1 = -1;
+		PileupInfo_TrueNumInteractions_nm1 = -1;
+		PileupInfo_TrueNumInteractions_n0 = -1;
+		PileupInfo_TrueNumInteractions_np1 = -1;
 		for (PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
 			int BX = PVI->getBunchCrossing();
 			if (BX == -1)
-				PileupInfo_NumInteractions_nm1 = PVI->getPU_NumInteractions();
+				PileupInfo_TrueNumInteractions_nm1 = PVI->getTrueNumInteractions();
 			if (BX == 0)
-				PileupInfo_NumInteractions_n0 = PVI->getPU_NumInteractions();
+				PileupInfo_TrueNumInteractions_n0 = PVI->getTrueNumInteractions();
 			if (BX == 1)
-				PileupInfo_NumInteractions_np1 = PVI->getPU_NumInteractions();
+				PileupInfo_TrueNumInteractions_np1 = PVI->getTrueNumInteractions();
 		}
-		EvtWeight3D = LumiWeights_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
-		EvtWeight3D_p5 = LumiWeights_p5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
-		EvtWeight3D_m5 = LumiWeights_m5_.weight3D(PileupInfo_NumInteractions_nm1, PileupInfo_NumInteractions_n0, PileupInfo_NumInteractions_np1);
+		PUWeight = LumiWeights_.weight( PileupInfo_TrueNumInteractions_n0 );
+		PUWeight_p5 = LumiWeights_p5_.weight( PileupInfo_TrueNumInteractions_n0 );
+		PUWeight_m5 = LumiWeights_m5_.weight( PileupInfo_TrueNumInteractions_n0 );
+		PUWeight3D = LumiWeights3D_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
 	}
 	if (!Embedded_) {
 		TauSpinnerWeight = 1.;
@@ -2870,6 +2937,10 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Electron_M", &Electron_M);
 	output_tree->Branch("Electron_par", &Electron_par);
 	output_tree->Branch("Electron_cov", &Electron_cov);
+
+	// Electron energy calibration
+	output_tree->Branch("Electron_RegEnergy", &Electron_RegEnergy);
+	output_tree->Branch("Electron_RegEnergyError", &Electron_RegEnergyError);
 
 	// Electron MVA ID
 	output_tree->Branch("Electron_Rho_kt6PFJets", &Electron_Rho_kt6PFJets);
@@ -3224,6 +3295,20 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVA_Type6EtFraction", &MET_CorrMVA_Type6EtFraction);
 	output_tree->Branch("MET_CorrMVA_Type7EtFraction", &MET_CorrMVA_Type7EtFraction);
 
+	output_tree->Branch("MET_CorrMVAMuTau_et", &MET_CorrMVAMuTau_et);
+	output_tree->Branch("MET_CorrMVAMuTau_pt", &MET_CorrMVAMuTau_pt);
+	output_tree->Branch("MET_CorrMVAMuTau_phi", &MET_CorrMVAMuTau_phi);
+	output_tree->Branch("MET_CorrMVAMuTau_sumET", &MET_CorrMVAMuTau_sumET);
+	output_tree->Branch("MET_CorrMVAMuTau_significance", &MET_CorrMVAMuTau_significance);
+	output_tree->Branch("MET_CorrMVAMuTau_significance_xx", &MET_CorrMVAMuTau_significance_xx);
+	output_tree->Branch("MET_CorrMVAMuTau_significance_xy", &MET_CorrMVAMuTau_significance_xy);
+	output_tree->Branch("MET_CorrMVAMuTau_significance_yy", &MET_CorrMVAMuTau_significance_yy);
+	output_tree->Branch("MET_CorrMVAMuTau_MuonEtFraction", &MET_CorrMVAMuTau_MuonEtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_NeutralEMFraction", &MET_CorrMVAMuTau_NeutralEMFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_NeutralHadEtFraction", &MET_CorrMVAMuTau_NeutralHadEtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_Type6EtFraction", &MET_CorrMVAMuTau_Type6EtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_Type7EtFraction", &MET_CorrMVAMuTau_Type7EtFraction);
+
 	//=============== Event Block ==============
 	output_tree->Branch("Event_EventNumber", &Event_EventNumber);
 	output_tree->Branch("Event_RunNumber", &Event_RunNumber);
@@ -3232,12 +3317,15 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Event_luminosityBlock", &Event_luminosityBlock);
 	output_tree->Branch("Event_isRealData", &Event_isRealData);
 
-	output_tree->Branch("PileupInfo_NumInteractions_nm1", &PileupInfo_NumInteractions_nm1);
-	output_tree->Branch("PileupInfo_NumInteractions_n0", &PileupInfo_NumInteractions_n0);
-	output_tree->Branch("PileupInfo_NumInteractions_np1", &PileupInfo_NumInteractions_np1);
-	output_tree->Branch("EvtWeight3D", &EvtWeight3D);
-	output_tree->Branch("EvtWeight3D_p5", &EvtWeight3D_p5);
-	output_tree->Branch("EvtWeight3D_m5", &EvtWeight3D_m5);
+	output_tree->Branch("PileupInfo_TrueNumInteractions_nm1", &PileupInfo_TrueNumInteractions_nm1);
+	output_tree->Branch("PileupInfo_TrueNumInteractions_n0", &PileupInfo_TrueNumInteractions_n0);
+	output_tree->Branch("PileupInfo_TrueNumInteractions_np1", &PileupInfo_TrueNumInteractions_np1);
+	output_tree->Branch("PUWeight",&PUWeight);
+	output_tree->Branch("PUWeight_p5",&PUWeight_p5);
+	output_tree->Branch("PUWeight_m5",&PUWeight_m5);
+	output_tree->Branch("PUWeight3D", &PUWeight3D);
+	output_tree->Branch("PUWeight3D_p5", &PUWeight3D_p5);
+	output_tree->Branch("PUWeight3D_m5", &PUWeight3D_m5);
 
 	// for embbeded samples
 	output_tree->Branch("TauSpinnerWeight", &TauSpinnerWeight);
@@ -3487,12 +3575,11 @@ bool TauNtuple::getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackColle
 	return false;
 }
 
-bool TauNtuple::getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfTrackRef &refTrack, int &match) {
+bool TauNtuple::getTrackMatch(edm::Handle<std::vector<reco::Track> > &trackCollection, reco::GsfElectronRef &refElectron, int &match) {
 	match = -1;
 	for (unsigned int iTrack = 0; iTrack < trackCollection->size(); iTrack++) {
 		reco::TrackRef Track(trackCollection, iTrack);
-		double dr = TMath::Sqrt(TMath::Power(refTrack->eta() - Track->eta(), 2) + TMath::Power(refTrack->phi() - Track->phi(), 2));
-		if (dr < 0.1) {
+		if(Track == refElectron->closestCtfTrackRef() && refElectron->shFracInnerHits()>0.45){
 			match = iTrack;
 			return true;
 		}
@@ -3753,7 +3840,7 @@ void TauNtuple::ClearEvent() {
 	PFTau_photon_rho.clear();
 
 
-//   PFTau_hasSC.clear();  
+//   PFTau_hasSC.clear();
 //   PFTau_hasPhoton.clear();
 
 	//=======  Electrons ===
@@ -3817,6 +3904,9 @@ void TauNtuple::ClearEvent() {
 	Electron_trackMomentumAtVtx.clear();
 	Electron_numberOfMissedHits.clear();
 	Electron_HasMatchedConversions.clear();
+
+	Electron_RegEnergy.clear();
+	Electron_RegEnergyError.clear();
 
 	Electron_Rho_kt6PFJets.clear();
 	Electron_MVA_TrigNoIP_discriminator.clear();
@@ -3890,9 +3980,12 @@ void TauNtuple::ClearEvent() {
 	Track_cov.clear();
 
 	// Event Block
-	EvtWeight3D = 0;
-	EvtWeight3D_p5 = 0;
-	EvtWeight3D_m5 = 0;
+	PUWeight = 0;
+	PUWeight_p5 = 0;
+	PUWeight_m5 = 0;
+	PUWeight3D = 0;
+	PUWeight3D_p5 = 0;
+	PUWeight3D_m5 = 0;
 
 	//=============== MC Block ==============
 
