@@ -898,9 +898,9 @@ private:
 	int Event_orbitNumber;
 	unsigned int Event_luminosityBlock;
 	bool Event_isRealData;
-	int PileupInfo_TrueNumInteractions_nm1;
-	int PileupInfo_TrueNumInteractions_n0;
-	int PileupInfo_TrueNumInteractions_np1;
+	float PileupInfo_TrueNumInteractions_nm1;
+	float PileupInfo_TrueNumInteractions_n0;
+	float PileupInfo_TrueNumInteractions_np1;
 	float PUWeight;
 	float PUWeight_p5;
 	float PUWeight_m5;
