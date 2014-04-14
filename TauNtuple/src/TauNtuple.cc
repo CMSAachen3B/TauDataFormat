@@ -139,6 +139,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
 		PUInputHistoData_p5_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData_p5")),
 		PUInputHistoData_m5_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData_m5")),
+		PUInputHistoMCFineBins_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMCFineBins")),
+		PUInputHistoDataFineBins_(iConfig.getUntrackedParameter<std::string>("PUInputHistoDataFineBins")),
 		PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile", (std::string) ("Weight3D.root"))),
 		do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary", (bool) (true))),
 		do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete", (bool) (true))),
@@ -197,14 +199,21 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	system("ls ../*/*");
 
 	LumiWeights_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
-	LumiWeights_p5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_);
-	LumiWeights_m5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_);
 	LumiWeights3D_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
 	LumiWeights3D_.weight3D_init(1);
-	LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
-	LumiWeights3D_p5_.weight3D_init(1);
-	LumiWeights3D_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
-	LumiWeights3D_m5_.weight3D_init(1);
+	if(PUInputHistoData_p5_ != ""){
+		LumiWeights_p5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_);
+		LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
+		LumiWeights3D_p5_.weight3D_init(1);
+	}
+	if(PUInputHistoData_m5_ != ""){
+		LumiWeights_m5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_);
+		LumiWeights3D_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
+		LumiWeights3D_m5_.weight3D_init(1);
+	}
+	if((PUInputHistoMCFineBins_ != "") && (PUInputHistoDataFineBins_ != "")){
+		LumiWeightsFineBinning_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMCFineBins_, PUInputHistoDataFineBins_);
+	}
 
 	// Electron MVA ID
 
@@ -1839,8 +1848,6 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		edm::Handle<std::vector<reco::CaloMET> > caloMETCorrT1T2;
 		iEvent.getByLabel(caloMETCorrT1T2_, caloMETCorrT1T2);
 
-		// MVA MET is only available in PAT
-
 //     std::cout<<"-------------------------------------------------------------- >Corrected MET sie"<<CorrectedPFMET->size()<<std::endl;
 //     std::cout<<"Corrected  et  pt  and phi "<< CorrectedPFMET->at(0).et() << "  " <<  CorrectedPFMET->at(0).pt()<<"  " <<  CorrectedPFMET->at(0).phi()<<std::endl;
 //     std::cout<<"Un Corrected et   pt and phi "<< pfMETUncorr->front().et()<< "  " <<  pfMETUncorr->front().pt()<< "  " << pfMETUncorr->front().phi()<<std::endl;
@@ -2722,11 +2729,31 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				PileupInfo_TrueNumInteractions_np1 = PVI->getTrueNumInteractions();
 		}
 		PUWeight = LumiWeights_.weight( PileupInfo_TrueNumInteractions_n0 );
-		PUWeight_p5 = LumiWeights_p5_.weight( PileupInfo_TrueNumInteractions_n0 );
-		PUWeight_m5 = LumiWeights_m5_.weight( PileupInfo_TrueNumInteractions_n0 );
 		PUWeight3D = LumiWeights3D_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
-		PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
-		PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		if(PUInputHistoData_p5_ != ""){
+			PUWeight_p5 = LumiWeights_p5_.weight( PileupInfo_TrueNumInteractions_n0 );
+			PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		}
+		else{
+			PUWeight_p5 = -10;
+			PUWeight3D_p5 = -10;
+		}
+		if(PUInputHistoData_m5_ != ""){
+			PUWeight_m5 = LumiWeights_m5_.weight( PileupInfo_TrueNumInteractions_n0 );
+			PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		}
+		else{
+			PUWeight_m5 = -10;
+			PUWeight3D_m5 = -10;
+		}
+		if((PUInputHistoMCFineBins_ != "") && (PUInputHistoDataFineBins_ != "")){
+			PUWeightFineBins = LumiWeightsFineBinning_.weight( PileupInfo_TrueNumInteractions_n0 );
+		}
+		else{
+			PUWeightFineBins = -10;
+		}
+
+
 	}
 	if (!Embedded_) {
 		TauSpinnerWeight = 1.;
@@ -3326,6 +3353,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PUWeight3D", &PUWeight3D);
 	output_tree->Branch("PUWeight3D_p5", &PUWeight3D_p5);
 	output_tree->Branch("PUWeight3D_m5", &PUWeight3D_m5);
+	output_tree->Branch("PUWeightFineBins",&PUWeightFineBins);
 
 	// for embbeded samples
 	output_tree->Branch("TauSpinnerWeight", &TauSpinnerWeight);
@@ -3986,6 +4014,7 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D = 0;
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
+	PUWeightFineBins = 0;
 
 	//=============== MC Block ==============
 
