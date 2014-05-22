@@ -303,6 +303,9 @@ private:
 	std::string ElectronMVANonTrigWeights5_;
 	std::string ElectronMVANonTrigWeights6_;
 
+	std::string JECuncData_;
+	std::string JECuncMC_;
+
 	// PU
 	std::string ScaleFactor_;
 	std::string PUInputFile_;
@@ -687,6 +690,8 @@ private:
 	//std::vector<std::string> PFJet_bTagAlgorithmName;
 	//std::vector<float>   PFJet_bTagAlgorithmValue;
 
+	std::vector<float> PFJet_JECuncertainty;
+
 	//=======  MET ===
 	// now only PFMET
 	float MET_Uncorr_et;
@@ -917,7 +922,6 @@ private:
 	// for embedded samples
 	float TauSpinnerWeight;
 	float SelEffWeight;
-	float RadiationCorrWeight;
 	float MinVisPtFilter;
 	float KinWeightPt;
 	float KinWeightEta;

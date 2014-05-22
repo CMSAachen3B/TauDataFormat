@@ -58,6 +58,11 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
+// JEC uncertainties
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+
 double TauNtuple::MuonPtCut_(-1.);
 double TauNtuple::MuonEtaCut_(999);
 double TauNtuple::TauPtCut_(-1.);
@@ -174,7 +179,9 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
 		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour")),
 		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
-		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
+		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag")),
+		JECuncData_(iConfig.getUntrackedParameter<std::string>("JECuncData")),
+		JECuncMC_(iConfig.getUntrackedParameter<std::string>("JECuncMC"))
  {
 	MuonPtCut_ = iConfig.getParameter<double>("MuonPtCut"); //default: 3.0
 	MuonEtaCut_ = iConfig.getParameter<double>("MuonEtaCut"); //default: 2.5
@@ -305,7 +312,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	using namespace edm;
 	DataMCType DMT;
 	DataMC_Type_idx = DMT.GetType();
-	if (iEvent.isRealData()) {
+	if (iEvent.isRealData() && !Embedded_) {
 		DataMC_Type_idx = DataMCType::Data;
 	}
 	fillEventInfo(iEvent, iSetup);
@@ -1366,6 +1373,18 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
 		iEvent.getByLabel(PUJetIdFlag_, puJetIdFlag);
 
+		/*edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+		iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl);
+		JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);*/
+
+		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty();
+		if(iEvent.isRealData() || Embedded_){
+			jecUnc->setParameters(JECuncData_);
+		}else{
+			jecUnc->setParameters(JECuncMC_);
+		}
+
 		for (reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
 			reco::PFJetRef PFJet(JetCollection, iPFJet);
 			if (isGoodJet(PFJet)) {
@@ -1473,6 +1492,10 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				}else{
 					PFJet_partonFlavour.push_back(-1);
 				}
+
+				jecUnc->setJetEta(PFJet->eta());
+				jecUnc->setJetPt(PFJet->pt());
+				PFJet_JECuncertainty.push_back(jecUnc->getUncertainty(true));
 			}
 		}
 	} else {
@@ -2731,7 +2754,6 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if (!Embedded_) {
 		TauSpinnerWeight = 1.;
 		SelEffWeight = 1.;
-		RadiationCorrWeight = 1.;
 		MinVisPtFilter = 1.;
 		KinWeightPt = 1.;
 		KinWeightEta = 1.;
@@ -2746,11 +2768,6 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		edm::Handle<double> ZmumuEvtSelEffCorrProducerHandle;
 		iEvent.getByLabel(seleffweight, ZmumuEvtSelEffCorrProducerHandle);
 		SelEffWeight = *ZmumuEvtSelEffCorrProducerHandle;
-
-		edm::InputTag radiationcorrweight("muonRadiationCorrWeightProducer", "weight");
-		edm::Handle<double> muonRadiationCorrWeightProducerHandle;
-		iEvent.getByLabel(radiationcorrweight, muonRadiationCorrWeightProducerHandle);
-		RadiationCorrWeight = *muonRadiationCorrWeightProducerHandle;
 
 		edm::InputTag generator("generator", "minVisPtFilter");
 		edm::Handle<GenFilterInfo> generatorHandle;
@@ -2772,8 +2789,8 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		iEvent.getByLabel(kinweightmasspt, embeddingKineReweightRECembeddingEtaHandle);
 		KinWeightMassPt = *embeddingKineReweightRECembeddingEtaHandle;
 	}
-	EmbeddedWeight = TauSpinnerWeight * SelEffWeight * RadiationCorrWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt;
-	if (EmbeddedWeight != TauSpinnerWeight * SelEffWeight * RadiationCorrWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt) {
+	EmbeddedWeight = TauSpinnerWeight * SelEffWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt;
+	if (EmbeddedWeight != TauSpinnerWeight * SelEffWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt) {
 		std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
 	}
 }
@@ -3105,6 +3122,7 @@ void TauNtuple::beginJob() {
 
 	output_tree->Branch("PFJet_TracksP4", &PFJet_TracksP4);
 	output_tree->Branch("PFJet_nTrk", &PFJet_nTrk);
+	output_tree->Branch("PFJet_JECuncertainty", &PFJet_JECuncertainty);
 
 	//================  MET block ==========
 	output_tree->Branch("isPatMET", &doPatMET_);
@@ -3330,7 +3348,6 @@ void TauNtuple::beginJob() {
 	// for embbeded samples
 	output_tree->Branch("TauSpinnerWeight", &TauSpinnerWeight);
 	output_tree->Branch("SelEffWeight", &SelEffWeight);
-	output_tree->Branch("RadiationCorrWeight", &RadiationCorrWeight);
 	output_tree->Branch("MinVisPtFilter", &MinVisPtFilter);
 	output_tree->Branch("KinWeightPt", &KinWeightPt);
 	output_tree->Branch("KinWeightEta", &KinWeightEta);
@@ -3962,6 +3979,7 @@ void TauNtuple::ClearEvent() {
 
 	PFJet_TracksP4.clear();
 	PFJet_nTrk.clear();
+	PFJet_JECuncertainty.clear();
 
 	//=============== Track Block ==============
 	Track_p4.clear();
