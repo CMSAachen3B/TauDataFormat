@@ -5,8 +5,8 @@ process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.MessageLogger.cerr = cms.untracked.PSet(
     threshold = cms.untracked.string('INFO'),
-	FwkReport = cms.untracked.PSet(limit = cms.untracked.int32(0)),
-	DEBUG = cms.untracked.PSet(limit = cms.untracked.int32(1))
+    FwkReport = cms.untracked.PSet(limit = cms.untracked.int32(0)),
+    DEBUG = cms.untracked.PSet(limit = cms.untracked.int32(1))
     )
 
 
