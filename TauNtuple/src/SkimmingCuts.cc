@@ -144,8 +144,9 @@ bool SkimmingCuts::DoubleMu(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	for(unsigned int iMuon=0; iMuon<muonCollection->size();iMuon++){
 		reco::MuonRef RefMuon(muonCollection, iMuon);
 		if(RefMuon.isNonnull()){
-			if(RefMuon->p4().pt()>3
+			if(RefMuon->p4().pt()>8.
 					&& fabs(RefMuon->p4().eta())<2.5
+					&& RefMuon->isGlobalMuon()
 					){
 				mus++;
 			}
