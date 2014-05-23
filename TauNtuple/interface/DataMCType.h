@@ -21,6 +21,7 @@ class DataMCType{
 	     DY_mumu=32,
 	     DY_tautau=33,
 	     DY_emu_embedded=34,
+	     DY_mutau_embedded=35,
 	     ZZ=50, 
 	     WW=51, 
 	     WZ=52,

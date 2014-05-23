@@ -58,6 +58,11 @@
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 #include "DataFormats/BeamSpot/interface/BeamSpot.h"
 
+// JEC uncertainties
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+
 double TauNtuple::MuonPtCut_(-1.);
 double TauNtuple::MuonEtaCut_(999);
 double TauNtuple::TauPtCut_(-1.);
@@ -139,6 +144,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		PUInputHistoData_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData")),
 		PUInputHistoData_p5_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData_p5")),
 		PUInputHistoData_m5_(iConfig.getUntrackedParameter<std::string>("PUInputHistoData_m5")),
+		PUInputHistoMCFineBins_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMCFineBins")),
+		PUInputHistoDataFineBins_(iConfig.getUntrackedParameter<std::string>("PUInputHistoDataFineBins")),
 		PUOutputFile_(iConfig.getUntrackedParameter("PUOutputFile", (std::string) ("Weight3D.root"))),
 		do_MCSummary_(iConfig.getUntrackedParameter("do_MCSummary", (bool) (true))),
 		do_MCComplete_(iConfig.getUntrackedParameter("do_MCComplete", (bool) (true))),
@@ -174,7 +181,9 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
 		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour")),
 		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
-		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
+		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag")),
+		JECuncData_(iConfig.getUntrackedParameter<std::string>("JECuncData")),
+		JECuncMC_(iConfig.getUntrackedParameter<std::string>("JECuncMC"))
  {
 	MuonPtCut_ = iConfig.getParameter<double>("MuonPtCut"); //default: 3.0
 	MuonEtaCut_ = iConfig.getParameter<double>("MuonEtaCut"); //default: 2.5
@@ -197,14 +206,21 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	system("ls ../*/*");
 
 	LumiWeights_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_);
-	LumiWeights_p5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_);
-	LumiWeights_m5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_);
 	LumiWeights3D_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_, PUOutputFile_);
 	LumiWeights3D_.weight3D_init(1);
-	LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
-	LumiWeights3D_p5_.weight3D_init(1);
-	LumiWeights3D_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
-	LumiWeights3D_m5_.weight3D_init(1);
+	if(PUInputHistoData_p5_ != ""){
+		LumiWeights_p5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_);
+		LumiWeights3D_p5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_p5_, PUOutputFile_);
+		LumiWeights3D_p5_.weight3D_init(1);
+	}
+	if(PUInputHistoData_m5_ != ""){
+		LumiWeights_m5_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_);
+		LumiWeights3D_m5_ = edm::Lumi3DReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMC_, PUInputHistoData_m5_, PUOutputFile_);
+		LumiWeights3D_m5_.weight3D_init(1);
+	}
+	if((PUInputHistoMCFineBins_ != "") && (PUInputHistoDataFineBins_ != "")){
+		LumiWeightsFineBinning_ = edm::LumiReWeighting(PUInputFile_, PUInputFile_, PUInputHistoMCFineBins_, PUInputHistoDataFineBins_);
+	}
 
 	// Electron MVA ID
 
@@ -305,7 +321,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	using namespace edm;
 	DataMCType DMT;
 	DataMC_Type_idx = DMT.GetType();
-	if (iEvent.isRealData()) {
+	if (iEvent.isRealData() && !Embedded_) {
 		DataMC_Type_idx = DataMCType::Data;
 	}
 	fillEventInfo(iEvent, iSetup);
@@ -1366,6 +1382,18 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
 		iEvent.getByLabel(PUJetIdFlag_, puJetIdFlag);
 
+		/*edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+		iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl);
+		JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);*/
+
+		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty();
+		if(iEvent.isRealData() || Embedded_){
+			jecUnc->setParameters(JECuncData_);
+		}else{
+			jecUnc->setParameters(JECuncMC_);
+		}
+
 		for (reco::PFJetCollection::size_type iPFJet = 0; iPFJet < JetCollection->size(); iPFJet++) {
 			reco::PFJetRef PFJet(JetCollection, iPFJet);
 			if (isGoodJet(PFJet)) {
@@ -1473,6 +1501,10 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				}else{
 					PFJet_partonFlavour.push_back(-1);
 				}
+
+				jecUnc->setJetEta(PFJet->eta());
+				jecUnc->setJetPt(PFJet->pt());
+				PFJet_JECuncertainty.push_back(jecUnc->getUncertainty(true));
 			}
 		}
 	} else {
@@ -1838,8 +1870,6 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 
 		edm::Handle<std::vector<reco::CaloMET> > caloMETCorrT1T2;
 		iEvent.getByLabel(caloMETCorrT1T2_, caloMETCorrT1T2);
-
-		// MVA MET is only available in PAT
 
 //     std::cout<<"-------------------------------------------------------------- >Corrected MET sie"<<CorrectedPFMET->size()<<std::endl;
 //     std::cout<<"Corrected  et  pt  and phi "<< CorrectedPFMET->at(0).et() << "  " <<  CorrectedPFMET->at(0).pt()<<"  " <<  CorrectedPFMET->at(0).phi()<<std::endl;
@@ -2722,16 +2752,35 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 				PileupInfo_TrueNumInteractions_np1 = PVI->getTrueNumInteractions();
 		}
 		PUWeight = LumiWeights_.weight( PileupInfo_TrueNumInteractions_n0 );
-		PUWeight_p5 = LumiWeights_p5_.weight( PileupInfo_TrueNumInteractions_n0 );
-		PUWeight_m5 = LumiWeights_m5_.weight( PileupInfo_TrueNumInteractions_n0 );
 		PUWeight3D = LumiWeights3D_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
-		PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
-		PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		if(PUInputHistoData_p5_ != ""){
+			PUWeight_p5 = LumiWeights_p5_.weight( PileupInfo_TrueNumInteractions_n0 );
+			PUWeight3D_p5 = LumiWeights3D_p5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		}
+		else{
+			PUWeight_p5 = -10;
+			PUWeight3D_p5 = -10;
+		}
+		if(PUInputHistoData_m5_ != ""){
+			PUWeight_m5 = LumiWeights_m5_.weight( PileupInfo_TrueNumInteractions_n0 );
+			PUWeight3D_m5 = LumiWeights3D_m5_.weight3D(PileupInfo_TrueNumInteractions_nm1, PileupInfo_TrueNumInteractions_n0, PileupInfo_TrueNumInteractions_np1);
+		}
+		else{
+			PUWeight_m5 = -10;
+			PUWeight3D_m5 = -10;
+		}
+		if((PUInputHistoMCFineBins_ != "") && (PUInputHistoDataFineBins_ != "")){
+			PUWeightFineBins = LumiWeightsFineBinning_.weight( PileupInfo_TrueNumInteractions_n0 );
+		}
+		else{
+			PUWeightFineBins = -10;
+		}
+
+
 	}
 	if (!Embedded_) {
 		TauSpinnerWeight = 1.;
 		SelEffWeight = 1.;
-		RadiationCorrWeight = 1.;
 		MinVisPtFilter = 1.;
 		KinWeightPt = 1.;
 		KinWeightEta = 1.;
@@ -2746,11 +2795,6 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		edm::Handle<double> ZmumuEvtSelEffCorrProducerHandle;
 		iEvent.getByLabel(seleffweight, ZmumuEvtSelEffCorrProducerHandle);
 		SelEffWeight = *ZmumuEvtSelEffCorrProducerHandle;
-
-		edm::InputTag radiationcorrweight("muonRadiationCorrWeightProducer", "weight");
-		edm::Handle<double> muonRadiationCorrWeightProducerHandle;
-		iEvent.getByLabel(radiationcorrweight, muonRadiationCorrWeightProducerHandle);
-		RadiationCorrWeight = *muonRadiationCorrWeightProducerHandle;
 
 		edm::InputTag generator("generator", "minVisPtFilter");
 		edm::Handle<GenFilterInfo> generatorHandle;
@@ -2772,8 +2816,8 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 		iEvent.getByLabel(kinweightmasspt, embeddingKineReweightRECembeddingEtaHandle);
 		KinWeightMassPt = *embeddingKineReweightRECembeddingEtaHandle;
 	}
-	EmbeddedWeight = TauSpinnerWeight * SelEffWeight * RadiationCorrWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt;
-	if (EmbeddedWeight != TauSpinnerWeight * SelEffWeight * RadiationCorrWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt) {
+	EmbeddedWeight = TauSpinnerWeight * SelEffWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt;
+	if (EmbeddedWeight != TauSpinnerWeight * SelEffWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt) {
 		std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
 	}
 }
@@ -3105,6 +3149,7 @@ void TauNtuple::beginJob() {
 
 	output_tree->Branch("PFJet_TracksP4", &PFJet_TracksP4);
 	output_tree->Branch("PFJet_nTrk", &PFJet_nTrk);
+	output_tree->Branch("PFJet_JECuncertainty", &PFJet_JECuncertainty);
 
 	//================  MET block ==========
 	output_tree->Branch("isPatMET", &doPatMET_);
@@ -3326,11 +3371,11 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PUWeight3D", &PUWeight3D);
 	output_tree->Branch("PUWeight3D_p5", &PUWeight3D_p5);
 	output_tree->Branch("PUWeight3D_m5", &PUWeight3D_m5);
+	output_tree->Branch("PUWeightFineBins",&PUWeightFineBins);
 
 	// for embbeded samples
 	output_tree->Branch("TauSpinnerWeight", &TauSpinnerWeight);
 	output_tree->Branch("SelEffWeight", &SelEffWeight);
-	output_tree->Branch("RadiationCorrWeight", &RadiationCorrWeight);
 	output_tree->Branch("MinVisPtFilter", &MinVisPtFilter);
 	output_tree->Branch("KinWeightPt", &KinWeightPt);
 	output_tree->Branch("KinWeightEta", &KinWeightEta);
@@ -3962,6 +4007,7 @@ void TauNtuple::ClearEvent() {
 
 	PFJet_TracksP4.clear();
 	PFJet_nTrk.clear();
+	PFJet_JECuncertainty.clear();
 
 	//=============== Track Block ==============
 	Track_p4.clear();
@@ -3986,6 +4032,7 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D = 0;
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
+	PUWeightFineBins = 0;
 
 	//=============== MC Block ==============
 

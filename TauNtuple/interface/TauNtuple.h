@@ -303,6 +303,9 @@ private:
 	std::string ElectronMVANonTrigWeights5_;
 	std::string ElectronMVANonTrigWeights6_;
 
+	std::string JECuncData_;
+	std::string JECuncMC_;
+
 	// PU
 	std::string ScaleFactor_;
 	std::string PUInputFile_;
@@ -310,11 +313,14 @@ private:
 	std::string PUInputHistoData_;
 	std::string PUInputHistoData_p5_;
 	std::string PUInputHistoData_m5_;
+	std::string PUInputHistoMCFineBins_;
+	std::string PUInputHistoDataFineBins_;
 	std::string PUOutputFile_;
 
 	edm::LumiReWeighting LumiWeights_;
 	edm::LumiReWeighting LumiWeights_p5_;
 	edm::LumiReWeighting LumiWeights_m5_;
+	edm::LumiReWeighting LumiWeightsFineBinning_;
 	edm::Lumi3DReWeighting LumiWeights3D_;
 	edm::Lumi3DReWeighting LumiWeights3D_p5_;
 	edm::Lumi3DReWeighting LumiWeights3D_m5_;
@@ -687,6 +693,8 @@ private:
 	//std::vector<std::string> PFJet_bTagAlgorithmName;
 	//std::vector<float>   PFJet_bTagAlgorithmValue;
 
+	std::vector<float> PFJet_JECuncertainty;
+
 	//=======  MET ===
 	// now only PFMET
 	float MET_Uncorr_et;
@@ -898,15 +906,16 @@ private:
 	int Event_orbitNumber;
 	unsigned int Event_luminosityBlock;
 	bool Event_isRealData;
-	int PileupInfo_TrueNumInteractions_nm1;
-	int PileupInfo_TrueNumInteractions_n0;
-	int PileupInfo_TrueNumInteractions_np1;
+	float PileupInfo_TrueNumInteractions_nm1;
+	float PileupInfo_TrueNumInteractions_n0;
+	float PileupInfo_TrueNumInteractions_np1;
 	float PUWeight;
 	float PUWeight_p5;
 	float PUWeight_m5;
 	float PUWeight3D;
 	float PUWeight3D_p5;
 	float PUWeight3D_m5;
+	float PUWeightFineBins;
 
 	std::vector<float> beamspot_par;
 	std::vector<float> beamspot_cov;
@@ -917,7 +926,6 @@ private:
 	// for embedded samples
 	float TauSpinnerWeight;
 	float SelEffWeight;
-	float RadiationCorrWeight;
 	float MinVisPtFilter;
 	float KinWeightPt;
 	float KinWeightEta;
