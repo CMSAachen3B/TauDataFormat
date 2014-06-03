@@ -111,7 +111,12 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		caloMETCorrT1_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1")),
 		caloMETCorrT1T2_(iConfig.getParameter<edm::InputTag>("caloMetCorrT1T2")),
 		pfMETCorrMVA_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVA")),
+		muonsForPfMetCorrMVA_(iConfig.getParameter<edm::InputTag>("muonsForPfMetCorrMVA")),
+		tausForPfMetCorrMVA_(iConfig.getParameter<edm::InputTag>("tausForPfMetCorrMVA")),
+		elecsForPfMetCorrMVA_(iConfig.getParameter<edm::InputTag>("elecsForPfMetCorrMVA")),
 		pfMETCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("pfMetCorrMVAMuTau")),
+		muonsForPfMetCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("muonsForPfMetCorrMVAMuTau")),
+		tausForPfMetCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("tausForPfMetCorrMVAMuTau")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
 		rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")),
@@ -138,6 +143,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		ElectronMVANonTrigWeights4_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights4")),
 		ElectronMVANonTrigWeights5_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights5")),
 		ElectronMVANonTrigWeights6_(iConfig.getUntrackedParameter<std::string>("EleMVANonTrigWeights6")),
+		JECuncData_(iConfig.getUntrackedParameter<std::string>("JECuncData")),
+		JECuncMC_(iConfig.getUntrackedParameter<std::string>("JECuncMC")),
 		ScaleFactor_(iConfig.getUntrackedParameter<std::string>("ScaleFactor")),
 		PUInputFile_(iConfig.getUntrackedParameter<std::string>("PUInputFile")),
 		PUInputHistoMC_(iConfig.getUntrackedParameter<std::string>("PUInputHistoMC")),
@@ -181,9 +188,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		BTagAlgorithm_(iConfig.getUntrackedParameter("BTagAlgorithm", (std::string) "trackCountingHighEffBJetTags")),
 		jetFlavourTag_(iConfig.getParameter<edm::InputTag>("jetFlavour")),
 		PUJetIdDisc_(iConfig.getParameter<edm::InputTag> ("PUJetIdDisc")),
-		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag")),
-		JECuncData_(iConfig.getUntrackedParameter<std::string>("JECuncData")),
-		JECuncMC_(iConfig.getUntrackedParameter<std::string>("JECuncMC"))
+		PUJetIdFlag_(iConfig.getParameter<edm::InputTag> ("PUJetIdFlag"))
  {
 	MuonPtCut_ = iConfig.getParameter<double>("MuonPtCut"); //default: 3.0
 	MuonEtaCut_ = iConfig.getParameter<double>("MuonEtaCut"); //default: 2.5
@@ -2092,6 +2097,13 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			edm::Handle<std::vector<reco::PFMET>> pfMETCorrMVA;
 			iEvent.getByLabel(pfMETCorrMVA_, pfMETCorrMVA);
 
+			edm::Handle<reco::MuonCollection> mvametMuonCollection;
+			iEvent.getByLabel(muonsForPfMetCorrMVA_, mvametMuonCollection);
+			edm::Handle<reco::GsfElectronCollection> mvametElectronCollection;
+			iEvent.getByLabel(elecsForPfMetCorrMVA_, mvametElectronCollection);
+			edm::Handle<std::vector<reco::PFTau> > mvametTauCollection;
+			iEvent.getByLabel(tausForPfMetCorrMVA_, mvametTauCollection);
+
 			MET_CorrMVA_et = pfMETCorrMVA->front().et();
 			MET_CorrMVA_pt = pfMETCorrMVA->front().pt();
 			MET_CorrMVA_phi = pfMETCorrMVA->front().phi();
@@ -2108,9 +2120,43 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_NeutralHadEtFraction = pfMETCorrMVA->front().NeutralHadEtFraction();
 			MET_CorrMVA_Type6EtFraction = pfMETCorrMVA->front().Type6EtFraction();
 			MET_CorrMVA_Type7EtFraction = pfMETCorrMVA->front().Type7EtFraction();
+			// store p4 of leptons used for MVA-MET calculation
+			int Muon_index = 0;
+			for (reco::MuonCollection::const_iterator iMuon = mvametMuonCollection->begin(); iMuon != mvametMuonCollection->end(); ++iMuon, Muon_index++) {
+				reco::MuonRef RefMuon(mvametMuonCollection, Muon_index);
+				std::vector<float> iMuon_p4;
+				iMuon_p4.push_back(RefMuon->p4().E());
+				iMuon_p4.push_back(RefMuon->p4().Px());
+				iMuon_p4.push_back(RefMuon->p4().Py());
+				iMuon_p4.push_back(RefMuon->p4().Pz());
+				MET_CorrMVA_srcMuon_p4.push_back(iMuon_p4);
+			}
+			for (reco::PFCandidateCollection::size_type iElectron = 0; iElectron < mvametElectronCollection->size(); iElectron++) {
+				reco::GsfElectronRef RefElectron(mvametElectronCollection, iElectron);
+				std::vector<float> iElectron_p4;
+				iElectron_p4.push_back(RefElectron->p4().E());
+				iElectron_p4.push_back(RefElectron->p4().Px());
+				iElectron_p4.push_back(RefElectron->p4().Py());
+				iElectron_p4.push_back(RefElectron->p4().Pz());
+				MET_CorrMVA_srcElectron_p4.push_back(iElectron_p4);
+			}
+			for (unsigned iPFTau = 0; iPFTau < mvametTauCollection->size(); ++iPFTau) {
+				reco::PFTauRef HPStauCandidate(mvametTauCollection, iPFTau);
+				std::vector<float> iPFTau_p4;
+				iPFTau_p4.push_back(HPStauCandidate->p4().E());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Px());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Py());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
+				MET_CorrMVA_srcTau_p4.push_back(iPFTau_p4);
+			}
 
 			edm::Handle<std::vector<reco::PFMET>> pfMETCorrMVAMuTau;
 			iEvent.getByLabel(pfMETCorrMVAMuTau_, pfMETCorrMVAMuTau);
+
+			edm::Handle<reco::MuonCollection> mvamutaumetMuonCollection;
+			iEvent.getByLabel(muonsForPfMetCorrMVAMuTau_, mvamutaumetMuonCollection);
+			edm::Handle<std::vector<reco::PFTau> > mvamutaumetTauCollection;
+			iEvent.getByLabel(tausForPfMetCorrMVAMuTau_, mvamutaumetTauCollection);
 
 			MET_CorrMVAMuTau_et = pfMETCorrMVAMuTau->front().et();
 			MET_CorrMVAMuTau_pt = pfMETCorrMVAMuTau->front().pt();
@@ -2128,6 +2174,27 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVAMuTau_NeutralHadEtFraction = pfMETCorrMVAMuTau->front().NeutralHadEtFraction();
 			MET_CorrMVAMuTau_Type6EtFraction = pfMETCorrMVAMuTau->front().Type6EtFraction();
 			MET_CorrMVAMuTau_Type7EtFraction = pfMETCorrMVAMuTau->front().Type7EtFraction();
+
+			// store p4 of leptons used for MVA-MET calculation
+			Muon_index = 0;
+			for (reco::MuonCollection::const_iterator iMuon = mvamutaumetMuonCollection->begin(); iMuon != mvamutaumetMuonCollection->end(); ++iMuon, Muon_index++) {
+				reco::MuonRef RefMuon(mvamutaumetMuonCollection, Muon_index);
+				std::vector<float> iMuon_p4;
+				iMuon_p4.push_back(RefMuon->p4().E());
+				iMuon_p4.push_back(RefMuon->p4().Px());
+				iMuon_p4.push_back(RefMuon->p4().Py());
+				iMuon_p4.push_back(RefMuon->p4().Pz());
+				MET_CorrMVAMuTau_srcMuon_p4.push_back(iMuon_p4);
+			}
+			for (unsigned iPFTau = 0; iPFTau < mvamutaumetTauCollection->size(); ++iPFTau) {
+				reco::PFTauRef HPStauCandidate(mvamutaumetTauCollection, iPFTau);
+				std::vector<float> iPFTau_p4;
+				iPFTau_p4.push_back(HPStauCandidate->p4().E());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Px());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Py());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
+				MET_CorrMVAMuTau_srcTau_p4.push_back(iPFTau_p4);
+			}
 		}
 
 	} else {
@@ -2424,6 +2491,13 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			iEvent.getByLabel(pfMETCorrMVA_, patMETCorrMVAHandle);
 			pat::MET patMETCorrMVA = patMETCorrMVAHandle->front();
 
+			edm::Handle<reco::MuonCollection> mvametMuonCollection;
+			iEvent.getByLabel(muonsForPfMetCorrMVA_, mvametMuonCollection);
+			edm::Handle<reco::GsfElectronCollection> mvametElectronCollection;
+			iEvent.getByLabel(elecsForPfMetCorrMVA_, mvametElectronCollection);
+			edm::Handle<std::vector<reco::PFTau> > mvametTauCollection;
+			iEvent.getByLabel(tausForPfMetCorrMVA_, mvametTauCollection);
+
 			MET_CorrMVA_et = patMETCorrMVA.et();
 			MET_CorrMVA_pt = patMETCorrMVA.pt();
 			MET_CorrMVA_phi = patMETCorrMVA.phi();
@@ -2441,9 +2515,44 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVA_Type6EtFraction = patMETCorrMVA.Type6EtFraction();
 			MET_CorrMVA_Type7EtFraction = patMETCorrMVA.Type7EtFraction();
 
+			// store p4 of leptons used for MVA-MET calculation
+			int Muon_index = 0;
+			for (reco::MuonCollection::const_iterator iMuon = mvametMuonCollection->begin(); iMuon != mvametMuonCollection->end(); ++iMuon, Muon_index++) {
+				reco::MuonRef RefMuon(mvametMuonCollection, Muon_index);
+				std::vector<float> iMuon_p4;
+				iMuon_p4.push_back(RefMuon->p4().E());
+				iMuon_p4.push_back(RefMuon->p4().Px());
+				iMuon_p4.push_back(RefMuon->p4().Py());
+				iMuon_p4.push_back(RefMuon->p4().Pz());
+				MET_CorrMVA_srcMuon_p4.push_back(iMuon_p4);
+			}
+			for (reco::PFCandidateCollection::size_type iElectron = 0; iElectron < mvametElectronCollection->size(); iElectron++) {
+				reco::GsfElectronRef RefElectron(mvametElectronCollection, iElectron);
+				std::vector<float> iElectron_p4;
+				iElectron_p4.push_back(RefElectron->p4().E());
+				iElectron_p4.push_back(RefElectron->p4().Px());
+				iElectron_p4.push_back(RefElectron->p4().Py());
+				iElectron_p4.push_back(RefElectron->p4().Pz());
+				MET_CorrMVA_srcElectron_p4.push_back(iElectron_p4);
+			}
+			for (unsigned iPFTau = 0; iPFTau < mvametTauCollection->size(); ++iPFTau) {
+				reco::PFTauRef HPStauCandidate(mvametTauCollection, iPFTau);
+				std::vector<float> iPFTau_p4;
+				iPFTau_p4.push_back(HPStauCandidate->p4().E());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Px());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Py());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
+				MET_CorrMVA_srcTau_p4.push_back(iPFTau_p4);
+			}
+
 			edm::Handle<std::vector<pat::MET>> patMETCorrMVAMuTauHandle;
 			iEvent.getByLabel(pfMETCorrMVAMuTau_, patMETCorrMVAMuTauHandle);
 			pat::MET patMETCorrMVAMuTau = patMETCorrMVAMuTauHandle->front();
+
+			edm::Handle<reco::MuonCollection> mvamutaumetMuonCollection;
+			iEvent.getByLabel(muonsForPfMetCorrMVAMuTau_, mvamutaumetMuonCollection);
+			edm::Handle<std::vector<reco::PFTau> > mvamutaumetTauCollection;
+			iEvent.getByLabel(tausForPfMetCorrMVAMuTau_, mvamutaumetTauCollection);
 
 			MET_CorrMVAMuTau_et = patMETCorrMVAMuTau.et();
 			MET_CorrMVAMuTau_pt = patMETCorrMVAMuTau.pt();
@@ -2461,6 +2570,27 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_CorrMVAMuTau_NeutralHadEtFraction = patMETCorrMVAMuTau.NeutralHadEtFraction();
 			MET_CorrMVAMuTau_Type6EtFraction = patMETCorrMVAMuTau.Type6EtFraction();
 			MET_CorrMVAMuTau_Type7EtFraction = patMETCorrMVAMuTau.Type7EtFraction();
+
+			// store p4 of leptons used for MVA-MET calculation
+			Muon_index = 0;
+			for (reco::MuonCollection::const_iterator iMuon = mvamutaumetMuonCollection->begin(); iMuon != mvamutaumetMuonCollection->end(); ++iMuon, Muon_index++) {
+				reco::MuonRef RefMuon(mvamutaumetMuonCollection, Muon_index);
+				std::vector<float> iMuon_p4;
+				iMuon_p4.push_back(RefMuon->p4().E());
+				iMuon_p4.push_back(RefMuon->p4().Px());
+				iMuon_p4.push_back(RefMuon->p4().Py());
+				iMuon_p4.push_back(RefMuon->p4().Pz());
+				MET_CorrMVAMuTau_srcMuon_p4.push_back(iMuon_p4);
+			}
+			for (unsigned iPFTau = 0; iPFTau < mvamutaumetTauCollection->size(); ++iPFTau) {
+				reco::PFTauRef HPStauCandidate(mvamutaumetTauCollection, iPFTau);
+				std::vector<float> iPFTau_p4;
+				iPFTau_p4.push_back(HPStauCandidate->p4().E());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Px());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Py());
+				iPFTau_p4.push_back(HPStauCandidate->p4().Pz());
+				MET_CorrMVAMuTau_srcTau_p4.push_back(iPFTau_p4);
+			}
 		}
 	}
 }
@@ -3339,6 +3469,9 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVA_NeutralHadEtFraction", &MET_CorrMVA_NeutralHadEtFraction);
 	output_tree->Branch("MET_CorrMVA_Type6EtFraction", &MET_CorrMVA_Type6EtFraction);
 	output_tree->Branch("MET_CorrMVA_Type7EtFraction", &MET_CorrMVA_Type7EtFraction);
+	output_tree->Branch("MET_CorrMVA_srcMuon_p4", &MET_CorrMVA_srcMuon_p4);
+	output_tree->Branch("MET_CorrMVA_srcElectron_p4", &MET_CorrMVA_srcElectron_p4);
+	output_tree->Branch("MET_CorrMVA_srcTau_p4", &MET_CorrMVA_srcTau_p4);
 
 	output_tree->Branch("MET_CorrMVAMuTau_et", &MET_CorrMVAMuTau_et);
 	output_tree->Branch("MET_CorrMVAMuTau_pt", &MET_CorrMVAMuTau_pt);
@@ -3353,6 +3486,8 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVAMuTau_NeutralHadEtFraction", &MET_CorrMVAMuTau_NeutralHadEtFraction);
 	output_tree->Branch("MET_CorrMVAMuTau_Type6EtFraction", &MET_CorrMVAMuTau_Type6EtFraction);
 	output_tree->Branch("MET_CorrMVAMuTau_Type7EtFraction", &MET_CorrMVAMuTau_Type7EtFraction);
+	output_tree->Branch("MET_CorrMVAMuTau_srcMuon_p4", &MET_CorrMVAMuTau_srcMuon_p4);
+	output_tree->Branch("MET_CorrMVAMuTau_srcTau_p4", &MET_CorrMVAMuTau_srcTau_p4);
 
 	//=============== Event Block ==============
 	output_tree->Branch("Event_EventNumber", &Event_EventNumber);
@@ -4008,6 +4143,13 @@ void TauNtuple::ClearEvent() {
 	PFJet_TracksP4.clear();
 	PFJet_nTrk.clear();
 	PFJet_JECuncertainty.clear();
+
+	//=======  MET =======
+	MET_CorrMVA_srcMuon_p4.clear();
+	MET_CorrMVA_srcElectron_p4.clear();
+	MET_CorrMVA_srcTau_p4.clear();
+	MET_CorrMVAMuTau_srcMuon_p4.clear();
+	MET_CorrMVAMuTau_srcTau_p4.clear();
 
 	//=============== Track Block ==============
 	Track_p4.clear();
