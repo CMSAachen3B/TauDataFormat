@@ -1507,6 +1507,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				PFJet_JECuncertainty.push_back(jecUnc->getUncertainty(true));
 			}
 		}
+		delete jecUnc;
 	} else {
 		edm::Handle<pat::JetCollection> jets;
 		edm::InputTag labelJets(srcPatJets_);
