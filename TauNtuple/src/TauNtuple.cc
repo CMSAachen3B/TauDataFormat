@@ -266,6 +266,9 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 }
 
 TauNtuple::~TauNtuple() {
+	delete myMVATrigNoIP2012;
+	delete myMVATrig2012;
+	delete myMVANonTrig2012;
 }
 
 bool TauNtuple::isGoodMuon(reco::MuonRef &RefMuon) {
