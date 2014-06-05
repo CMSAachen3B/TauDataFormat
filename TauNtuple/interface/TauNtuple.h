@@ -272,7 +272,12 @@ private:
 	edm::InputTag caloMETCorrT1_;
 	edm::InputTag caloMETCorrT1T2_;
 	edm::InputTag pfMETCorrMVA_;
+	edm::InputTag muonsForPfMetCorrMVA_;
+	edm::InputTag tausForPfMetCorrMVA_;
+	edm::InputTag elecsForPfMetCorrMVA_;
 	edm::InputTag pfMETCorrMVAMuTau_;
+	edm::InputTag muonsForPfMetCorrMVAMuTau_;
+	edm::InputTag tausForPfMetCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
@@ -882,6 +887,9 @@ private:
 	float MET_CorrMVA_NeutralHadEtFraction;
 	float MET_CorrMVA_Type6EtFraction;
 	float MET_CorrMVA_Type7EtFraction;
+	std::vector<std::vector<float> > MET_CorrMVA_srcMuon_p4;
+	std::vector<std::vector<float> > MET_CorrMVA_srcElectron_p4;
+	std::vector<std::vector<float> > MET_CorrMVA_srcTau_p4;
 
 	float MET_CorrMVAMuTau_et;
 	float MET_CorrMVAMuTau_pt;
@@ -896,6 +904,8 @@ private:
 	float MET_CorrMVAMuTau_NeutralHadEtFraction;
 	float MET_CorrMVAMuTau_Type6EtFraction;
 	float MET_CorrMVAMuTau_Type7EtFraction;
+	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcMuon_p4;
+	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcTau_p4;
 
 	//=======  Event ===
 	int EventNumber;
