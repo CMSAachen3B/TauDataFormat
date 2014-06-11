@@ -559,6 +559,7 @@ void TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup, edm
 			Muon_isIsolationValid.push_back(RefMuon->isIsolationValid());
 			Muon_numberOfMatchedStations.push_back(RefMuon->numberOfMatchedStations());
 			Muon_numberOfMatches.push_back(RefMuon->numberOfMatches());
+			Muon_charge.push_back(RefMuon->charge());
 
 			if (RefMuon->isGlobalMuon()) {
 				Muon_normChi2.push_back(RefMuon->globalTrack()->normalizedChi2());
@@ -664,7 +665,7 @@ void TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup, edm
 				iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
 				reco::TransientTrack transTrk = transTrackBuilder->build(Track);
 				TrackParticle trackparticle = ParticleBuilder::CreateTrackParticle(transTrk, transTrackBuilder, pvpoint, true, true);
-				Muon_charge.push_back(trackparticle.Charge());
+				Muon_trackCharge.push_back(trackparticle.Charge());
 				Muon_pdgid.push_back(trackparticle.PDGID());
 				Muon_B.push_back(trackparticle.BField());
 				Muon_M.push_back(trackparticle.Mass());
@@ -675,7 +676,7 @@ void TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup, edm
 					}
 				}
 			} else {
-				Muon_charge.push_back(-999);
+				Muon_trackCharge.push_back(-999);
 				Muon_pdgid.push_back(-999);
 				Muon_B.push_back(-999);
 				Muon_M.push_back(-999);
@@ -1720,6 +1721,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			iElectron_p4.push_back(RefElectron->p4().Pz());
 
 			Electron_p4.push_back(iElectron_p4);
+			Electron_charge.push_back(RefElectron->charge());
 
 			Electron_RegEnergy.push_back((float)ElectronRegEnergy->get(iPFElectron));
 			Electron_RegEnergyError.push_back((float)ElectronRegEnergyError->get(iPFElectron));
@@ -1815,7 +1817,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 				iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
 				reco::TransientTrack transTrk = transTrackBuilder->build(refGsfTrack);
 				TrackParticle trackparticle = ParticleBuilder::CreateTrackParticle(transTrk, transTrackBuilder, pvpoint, false, true);
-				Electron_charge.push_back(trackparticle.Charge());
+				Electron_trackCharge.push_back(trackparticle.Charge());
 				Electron_pdgid.push_back(trackparticle.PDGID());
 				Electron_B.push_back(trackparticle.BField());
 				Electron_M.push_back(trackparticle.Mass());
@@ -1826,7 +1828,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 					}
 				}
 			} else {
-				Electron_charge.push_back(-999);
+				Electron_trackCharge.push_back(-999);
 				Electron_pdgid.push_back(-999);
 				Electron_B.push_back(-999);
 				Electron_M.push_back(-999);
@@ -3048,6 +3050,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Muon_trackerLayersWithMeasurement", &Muon_trackerLayersWithMeasurement);
 
 	output_tree->Branch("Muon_charge", &Muon_charge);
+	output_tree->Branch("Muon_trackCharge", &Muon_trackCharge);
 	output_tree->Branch("Muon_pdgid", &Muon_pdgid);
 	output_tree->Branch("Muon_B", &Muon_B);
 	output_tree->Branch("Muon_M", &Muon_M);
@@ -3110,6 +3113,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("RhoIsolationAllInputTags", &RhoIsolationAllInputTags);
 
 	output_tree->Branch("Electron_charge", &Electron_charge);
+	output_tree->Branch("Electron_trackCharge", &Electron_trackCharge);
 	output_tree->Branch("Electron_pdgid", &Electron_pdgid);
 	output_tree->Branch("Electron_B", &Electron_B);
 	output_tree->Branch("Electron_M", &Electron_M);
@@ -3904,6 +3908,7 @@ void TauNtuple::ClearEvent() {
 	Muon_Track_idx.clear();
 
 	Muon_charge.clear();
+	Muon_trackCharge.clear();
 	Muon_pdgid.clear();
 	Muon_B.clear();
 	Muon_M.clear();
@@ -4032,6 +4037,7 @@ void TauNtuple::ClearEvent() {
 	Electron_Poca.clear();
 
 	Electron_charge.clear();
+	Electron_trackCharge.clear();
 	Electron_pdgid.clear();
 	Electron_B.clear();
 	Electron_M.clear();

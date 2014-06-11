@@ -452,6 +452,7 @@ private:
 	std::vector<unsigned int> Muon_Track_idx;
 
 	std::vector<int> Muon_charge;
+	std::vector<int> Muon_trackCharge;
 	std::vector<int> Muon_pdgid;
 	std::vector<float> Muon_B;
 	std::vector<float> Muon_M;
@@ -643,6 +644,7 @@ private:
 	std::vector<float> Electron_MVA_NonTrig_discriminator;
 
 	std::vector<int> Electron_charge;
+	std::vector<int> Electron_trackCharge;
 	std::vector<int> Electron_pdgid;
 	std::vector<float> Electron_B;
 	std::vector<float> Electron_M;
