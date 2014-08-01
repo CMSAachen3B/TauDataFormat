@@ -119,6 +119,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		tausForPfMetCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("tausForPfMetCorrMVAMuTau")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
+		genjetsTag_(iConfig.getParameter<edm::InputTag>("genjets")),
+		genjetsNoNuTag_(iConfig.getParameter<edm::InputTag>("genjetsNoNu")),
 		rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")),
 		generalTracks_(iConfig.getParameter<edm::InputTag>("generalTracks")),
 		gensrc_(iConfig.getParameter<edm::InputTag>("gensrc")),
@@ -313,6 +315,14 @@ bool TauNtuple::isGoodJet(reco::PFJetRef &RefJet) {
 bool TauNtuple::isGoodJet(pat::JetRef &RefJet) {
 	if (RefJet.isNonnull()) {
 		if (RefJet->p4().Pt() > JetPtCut_ && fabs(RefJet->p4().Eta()) < JetEtaCut_)
+			return true;
+	}
+	return false;
+}
+
+bool TauNtuple::isGoodGenJet(reco::GenJetRef &RefGenJet) {
+	if (RefGenJet.isNonnull()) {
+		if (RefGenJet->p4().Pt() > std::max(0.,0.8*JetPtCut_) && fabs(RefGenJet->p4().Eta()) < JetEtaCut_)
 			return true;
 	}
 	return false;
@@ -1391,11 +1401,6 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
 		iEvent.getByLabel(PUJetIdFlag_, puJetIdFlag);
 
-		/*edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-		iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl);
-		JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);*/
-
 		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty();
 		if(iEvent.isRealData() || Embedded_){
 			jecUnc->setParameters(JECuncData_);
@@ -1515,6 +1520,60 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				jecUnc->setJetPt(PFJet->pt());
 				PFJet_JECuncertainty.push_back(jecUnc->getUncertainty(true));
 			}
+		}
+		if(!iEvent.isRealData() && !Embedded_){
+
+			edm::Handle<reco::GenJetCollection> GenJetCollection;
+			iEvent.getByLabel(genjetsTag_, GenJetCollection);
+
+			edm::Handle<reco::GenJetCollection> GenJetNoNuCollection;
+			iEvent.getByLabel(genjetsNoNuTag_, GenJetNoNuCollection);
+
+			for (reco::GenJetCollection::size_type iGenJet = 0; iGenJet < GenJetCollection->size(); iGenJet++) {
+				reco::GenJetRef RefGenJet(GenJetCollection, iGenJet);
+				if(isGoodGenJet(RefGenJet)){
+					std::vector<float> iGenJet_p4;
+					iGenJet_p4.push_back(RefGenJet->p4().E());
+					iGenJet_p4.push_back(RefGenJet->p4().Px());
+					iGenJet_p4.push_back(RefGenJet->p4().Py());
+					iGenJet_p4.push_back(RefGenJet->p4().Pz());
+					PFJet_GenJet_p4.push_back(iGenJet_p4);
+					PFJet_GenJet_Constituents_p4.push_back(std::vector<std::vector<float> >());
+					for(reco::GenParticleCollection::size_type iGenConst = 0; iGenConst < RefGenJet->getGenConstituents().size(); iGenConst++) {
+						std::vector<float> iiGenConst_p4;
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().E());
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Px());
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Py());
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Pz());
+						PFJet_GenJet_Constituents_p4.at(iGenJet).push_back(iiGenConst_p4);
+					}
+				}
+			}
+			for (reco::GenJetCollection::size_type iGenJetNoNu = 0; iGenJetNoNu < GenJetNoNuCollection->size(); iGenJetNoNu++) {
+				reco::GenJetRef RefGenJetNoNu(GenJetNoNuCollection, iGenJetNoNu);
+				if(isGoodGenJet(RefGenJetNoNu)){
+					std::vector<float> iGenJetNoNu_p4;
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().E());
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().Px());
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().Py());
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().Pz());
+					PFJet_GenJetNoNu_p4.push_back(iGenJetNoNu_p4);
+					PFJet_GenJetNoNu_Constituents_p4.push_back(std::vector<std::vector<float> >());
+					for(reco::GenParticleCollection::size_type iGenConstNoNu = 0; iGenConstNoNu < RefGenJetNoNu->getGenConstituents().size(); iGenConstNoNu++) {
+						std::vector<float> iiGenConstNoNu_p4;
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().E());
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Px());
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Py());
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Pz());
+						PFJet_GenJetNoNu_Constituents_p4.at(iGenJetNoNu).push_back(iiGenConstNoNu_p4);
+					}
+				}
+			}
+		}else{
+			PFJet_GenJet_p4.push_back(std::vector<float>());
+			PFJet_GenJet_Constituents_p4.push_back(std::vector<std::vector<float> >());
+			PFJet_GenJetNoNu_p4.push_back(std::vector<float>());
+			PFJet_GenJetNoNu_Constituents_p4.push_back(std::vector<std::vector<float> >());
 		}
 		delete jecUnc;
 	} else {
@@ -3288,6 +3347,10 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFJet_TracksP4", &PFJet_TracksP4);
 	output_tree->Branch("PFJet_nTrk", &PFJet_nTrk);
 	output_tree->Branch("PFJet_JECuncertainty", &PFJet_JECuncertainty);
+	output_tree->Branch("PFJet_GenJet_p4", &PFJet_GenJet_p4);
+	output_tree->Branch("PFJet_GenJet_Constituents_p4", &PFJet_GenJet_Constituents_p4);
+	output_tree->Branch("PFJet_GenJetNoNu_p4", &PFJet_GenJetNoNu_p4);
+	output_tree->Branch("PFJet_GenJetNoNu_Constituents_p4", &PFJet_GenJetNoNu_Constituents_p4);
 
 	//================  MET block ==========
 	output_tree->Branch("isPatMET", &doPatMET_);
@@ -4153,6 +4216,10 @@ void TauNtuple::ClearEvent() {
 	PFJet_TracksP4.clear();
 	PFJet_nTrk.clear();
 	PFJet_JECuncertainty.clear();
+	PFJet_GenJet_p4.clear();
+	PFJet_GenJetNoNu_p4.clear();
+	PFJet_GenJet_Constituents_p4.clear();
+	PFJet_GenJetNoNu_Constituents_p4.clear();
 
 	//=======  MET =======
 	MET_CorrMVA_srcMuon_p4.clear();

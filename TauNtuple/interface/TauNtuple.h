@@ -215,6 +215,7 @@ private:
 	static bool isGoodVertex(const reco::Vertex &pv);
 	static bool isGoodJet(reco::PFJetRef &RefJet);
 	static bool isGoodJet(pat::JetRef &RefJet);
+	static bool isGoodGenJet(reco::GenJetRef &RefGenJet);
 
 	EGammaMvaEleEstimator* myMVATrigNoIP2012;
 	EGammaMvaEleEstimator* myMVATrig2012;
@@ -281,6 +282,8 @@ private:
 	edm::InputTag pfMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
+	edm::InputTag genjetsTag_;
+	edm::InputTag genjetsNoNuTag_;
 	edm::InputTag rhoIsolAllInputTag_;
 	edm::InputTag generalTracks_;
 	edm::InputTag gensrc_;
@@ -398,7 +401,7 @@ private:
 	std::vector<std::vector<std::vector<float> > > Vtx_Cov;
 	std::vector<std::vector<int> > Vtx_Track_idx;
 	std::vector<std::vector<float> > Vtx_Track_Weights;
-	std::vector<float> Vtx_isFake;
+	std::vector<bool> Vtx_isFake;
 
 	std::vector<std::vector<std::vector<float> > > Vtx_TracksP4;
 
@@ -701,6 +704,11 @@ private:
 	//std::vector<float>   PFJet_bTagAlgorithmValue;
 
 	std::vector<float> PFJet_JECuncertainty;
+
+	std::vector<std::vector<float> > PFJet_GenJet_p4;
+	std::vector<std::vector<std::vector<float> > > PFJet_GenJet_Constituents_p4;
+	std::vector<std::vector<float> > PFJet_GenJetNoNu_p4;
+	std::vector<std::vector<std::vector<float> > > PFJet_GenJetNoNu_Constituents_p4;
 
 	//=======  MET ===
 	// now only PFMET
