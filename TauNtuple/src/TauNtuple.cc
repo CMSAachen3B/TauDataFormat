@@ -265,6 +265,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	myMVANonTrig2012 = new EGammaMvaEleEstimator();
 	myMVANonTrig2012->initialize("BDT", EGammaMvaEleEstimator::kNonTrig, manualCat, myManualCatWeightsNonTrig2012);
 
+	pdfWeights_ = iConfig.getParameter<std::vector<edm::InputTag> >("pdfWeights");
+
 }
 
 TauNtuple::~TauNtuple() {
@@ -3015,6 +3017,19 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if (EmbeddedWeight != TauSpinnerWeight * SelEffWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt) {
 		std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
 	}
+
+	// fill weights for pdf systematics
+	if(!Event_isRealData && !Embedded_){
+		edm::Handle<std::vector<double> > pdfweightshandle;
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
+			PdfWeights.push_back(*pdfweightshandle);
+		}
+	}else{
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			PdfWeights.push_back(std::vector<double>());
+		}
+	}
 }
 
 void TauNtuple::beginJob() {
@@ -3587,6 +3602,9 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("KinWeightEta", &KinWeightEta);
 	output_tree->Branch("KinWeightMassPt", &KinWeightMassPt);
 	output_tree->Branch("EmbeddedWeight", &EmbeddedWeight);
+
+	// for pdf systematics
+	output_tree->Branch("PdfWeights", &PdfWeights);
 
 	//=============== Track Block ==============
 	output_tree->Branch("Track_p4", &Track_p4);
@@ -4244,7 +4262,7 @@ void TauNtuple::ClearEvent() {
 	Track_par.clear();
 	Track_cov.clear();
 
-	// Event Block
+	//=============== Event Block ==============
 	PUWeight = 0;
 	PUWeight_p5 = 0;
 	PUWeight_m5 = 0;
@@ -4252,6 +4270,8 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
 	PUWeightFineBins = 0;
+
+	PdfWeights.clear();
 
 	//=============== MC Block ==============
 

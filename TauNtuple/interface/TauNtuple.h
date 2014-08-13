@@ -336,6 +336,7 @@ private:
 	// MC Signal
 	bool do_MCSummary_;
 	bool do_MCComplete_;
+	std::vector<edm::InputTag> pdfWeights_;
 
 	// Trigger
 	std::string processName_;
@@ -951,6 +952,9 @@ private:
 	float KinWeightEta;
 	float KinWeightMassPt;
 	float EmbeddedWeight;
+
+	// for pdf systematics
+	std::vector<std::vector<double> > PdfWeights;
 
 	//====== Tracks =======
 	std::vector<std::vector<float> > Track_p4;
