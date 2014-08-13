@@ -265,6 +265,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	myMVANonTrig2012 = new EGammaMvaEleEstimator();
 	myMVANonTrig2012->initialize("BDT", EGammaMvaEleEstimator::kNonTrig, manualCat, myManualCatWeightsNonTrig2012);
 
+	pdfWeights_ = iConfig.getParameter<std::vector<edm::InputTag> >("pdfWeights");
+
 }
 
 TauNtuple::~TauNtuple() {
@@ -383,6 +385,18 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		GenEventInfoProduct_qScale = GenEventInfoProduct->qScale();
 		GenEventInfoProduct_alphaQCD = GenEventInfoProduct->alphaQCD();
 		GenEventInfoProduct_alphaQED = GenEventInfoProduct->alphaQED();
+
+		// info for pdf systematics
+		GenEventInfoProduct_id1 = GenEventInfoProduct->pdf()->id.first;
+		GenEventInfoProduct_id2 = GenEventInfoProduct->pdf()->id.second;
+		GenEventInfoProduct_x1 = GenEventInfoProduct->pdf()->x.first;
+		GenEventInfoProduct_x2 = GenEventInfoProduct->pdf()->x.second;
+		GenEventInfoProduct_scalePDF = GenEventInfoProduct->pdf()->scalePDF;
+		edm::Handle<std::vector<double> > pdfweightshandle;
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
+			PdfWeights.push_back(*pdfweightshandle);
+		}
 
 		if (do_MCComplete_) {
 			std::vector<unsigned int> index;
@@ -3588,6 +3602,9 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("KinWeightMassPt", &KinWeightMassPt);
 	output_tree->Branch("EmbeddedWeight", &EmbeddedWeight);
 
+	// for pdf systematics
+	output_tree->Branch("PdfWeights", &PdfWeights);
+
 	//=============== Track Block ==============
 	output_tree->Branch("Track_p4", &Track_p4);
 	output_tree->Branch("Track_Poca", &Track_Poca);
@@ -3612,6 +3629,12 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("GenEventInfoProduct_qScale", &GenEventInfoProduct_qScale);
 	output_tree->Branch("GenEventInfoProduct_alphaQED", &GenEventInfoProduct_alphaQED);
 	output_tree->Branch("GenEventInfoProduct_alphaQCD", &GenEventInfoProduct_alphaQCD);
+
+	output_tree->Branch("GenEventInfoProduct_id1", &GenEventInfoProduct_id1);
+	output_tree->Branch("GenEventInfoProduct_id2", &GenEventInfoProduct_id2);
+	output_tree->Branch("GenEventInfoProduct_x1", &GenEventInfoProduct_x1);
+	output_tree->Branch("GenEventInfoProduct_x2", &GenEventInfoProduct_x2);
+	output_tree->Branch("GenEventInfoProduct_scalePDF", &GenEventInfoProduct_scalePDF);
 
 	if (do_MCComplete_) {
 		output_tree->Branch("MC_p4", &MC_p4);
@@ -4244,7 +4267,7 @@ void TauNtuple::ClearEvent() {
 	Track_par.clear();
 	Track_cov.clear();
 
-	// Event Block
+	//=============== Event Block ==============
 	PUWeight = 0;
 	PUWeight_p5 = 0;
 	PUWeight_m5 = 0;
@@ -4252,6 +4275,8 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
 	PUWeightFineBins = 0;
+
+	PdfWeights.clear();
 
 	//=============== MC Block ==============
 
@@ -4261,6 +4286,12 @@ void TauNtuple::ClearEvent() {
 	GenEventInfoProduct_qScale = 0;
 	GenEventInfoProduct_alphaQED = 0;
 	GenEventInfoProduct_alphaQCD = 0;
+
+	GenEventInfoProduct_id1 = 0;
+	GenEventInfoProduct_id2 = 0;
+	GenEventInfoProduct_x1 = 0;
+	GenEventInfoProduct_x2 = 0;
+	GenEventInfoProduct_scalePDF = 0;
 
 	if (do_MCComplete_) {
 		MC_p4.clear();

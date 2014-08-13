@@ -336,6 +336,7 @@ private:
 	// MC Signal
 	bool do_MCSummary_;
 	bool do_MCComplete_;
+	std::vector<edm::InputTag> pdfWeights_;
 
 	// Trigger
 	std::string processName_;
@@ -952,6 +953,9 @@ private:
 	float KinWeightMassPt;
 	float EmbeddedWeight;
 
+	// for pdf systematics
+	std::vector<std::vector<double> > PdfWeights;
+
 	//====== Tracks =======
 	std::vector<std::vector<float> > Track_p4;
 	std::vector<std::vector<float> > Track_Poca;
@@ -1004,6 +1008,11 @@ private:
 	float GenEventInfoProduct_qScale;
 	float GenEventInfoProduct_alphaQED;
 	float GenEventInfoProduct_alphaQCD;
+	int GenEventInfoProduct_id1;
+	int GenEventInfoProduct_id2;
+	float GenEventInfoProduct_x1;
+	float GenEventInfoProduct_x2;
+	float GenEventInfoProduct_scalePDF;
 
 	//do All
 	std::vector<std::vector<float> > MC_p4;
