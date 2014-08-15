@@ -3029,6 +3029,19 @@ void TauNtuple::fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup)
 	if (EmbeddedWeight != TauSpinnerWeight * SelEffWeight * MinVisPtFilter * KinWeightPt * KinWeightEta * KinWeightMassPt) {
 		std::cout << "!!! Calculation of embedding weights faulty. Check your code !!!" << std::endl;
 	}
+
+	// fill weights for pdf systematics
+	if(!Event_isRealData && !Embedded_){
+		edm::Handle<std::vector<double> > pdfweightshandle;
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
+			PdfWeights.push_back(*pdfweightshandle);
+		}
+	}else{
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			PdfWeights.push_back(std::vector<double>());
+		}
+	}
 }
 
 void TauNtuple::beginJob() {
