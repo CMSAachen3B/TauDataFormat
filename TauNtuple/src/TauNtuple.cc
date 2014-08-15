@@ -119,6 +119,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		tausForPfMetCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("tausForPfMetCorrMVAMuTau")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
+		genjetsTag_(iConfig.getParameter<edm::InputTag>("genjets")),
+		genjetsNoNuTag_(iConfig.getParameter<edm::InputTag>("genjetsNoNu")),
 		rhoIsolAllInputTag_(iConfig.getParameter<edm::InputTag>("RhoIsolAllInputTag")),
 		generalTracks_(iConfig.getParameter<edm::InputTag>("generalTracks")),
 		gensrc_(iConfig.getParameter<edm::InputTag>("gensrc")),
@@ -263,6 +265,8 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	myMVANonTrig2012 = new EGammaMvaEleEstimator();
 	myMVANonTrig2012->initialize("BDT", EGammaMvaEleEstimator::kNonTrig, manualCat, myManualCatWeightsNonTrig2012);
 
+	pdfWeights_ = iConfig.getParameter<std::vector<edm::InputTag> >("pdfWeights");
+
 }
 
 TauNtuple::~TauNtuple() {
@@ -313,6 +317,14 @@ bool TauNtuple::isGoodJet(reco::PFJetRef &RefJet) {
 bool TauNtuple::isGoodJet(pat::JetRef &RefJet) {
 	if (RefJet.isNonnull()) {
 		if (RefJet->p4().Pt() > JetPtCut_ && fabs(RefJet->p4().Eta()) < JetEtaCut_)
+			return true;
+	}
+	return false;
+}
+
+bool TauNtuple::isGoodGenJet(reco::GenJetRef &RefGenJet) {
+	if (RefGenJet.isNonnull()) {
+		if (RefGenJet->p4().Pt() > std::max(0.,0.8*JetPtCut_) && fabs(RefGenJet->p4().Eta()) < JetEtaCut_)
 			return true;
 	}
 	return false;
@@ -373,6 +385,18 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		GenEventInfoProduct_qScale = GenEventInfoProduct->qScale();
 		GenEventInfoProduct_alphaQCD = GenEventInfoProduct->alphaQCD();
 		GenEventInfoProduct_alphaQED = GenEventInfoProduct->alphaQED();
+
+		// info for pdf systematics
+		GenEventInfoProduct_id1 = GenEventInfoProduct->pdf()->id.first;
+		GenEventInfoProduct_id2 = GenEventInfoProduct->pdf()->id.second;
+		GenEventInfoProduct_x1 = GenEventInfoProduct->pdf()->x.first;
+		GenEventInfoProduct_x2 = GenEventInfoProduct->pdf()->x.second;
+		GenEventInfoProduct_scalePDF = GenEventInfoProduct->pdf()->scalePDF;
+		edm::Handle<std::vector<double> > pdfweightshandle;
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
+			PdfWeights.push_back(*pdfweightshandle);
+		}
 
 		if (do_MCComplete_) {
 			std::vector<unsigned int> index;
@@ -559,6 +583,7 @@ void TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup, edm
 			Muon_isIsolationValid.push_back(RefMuon->isIsolationValid());
 			Muon_numberOfMatchedStations.push_back(RefMuon->numberOfMatchedStations());
 			Muon_numberOfMatches.push_back(RefMuon->numberOfMatches());
+			Muon_charge.push_back(RefMuon->charge());
 
 			if (RefMuon->isGlobalMuon()) {
 				Muon_normChi2.push_back(RefMuon->globalTrack()->normalizedChi2());
@@ -664,7 +689,7 @@ void TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup, edm
 				iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
 				reco::TransientTrack transTrk = transTrackBuilder->build(Track);
 				TrackParticle trackparticle = ParticleBuilder::CreateTrackParticle(transTrk, transTrackBuilder, pvpoint, true, true);
-				Muon_charge.push_back(trackparticle.Charge());
+				Muon_trackCharge.push_back(trackparticle.Charge());
 				Muon_pdgid.push_back(trackparticle.PDGID());
 				Muon_B.push_back(trackparticle.BField());
 				Muon_M.push_back(trackparticle.Mass());
@@ -675,7 +700,7 @@ void TauNtuple::fillMuons(edm::Event& iEvent, const edm::EventSetup& iSetup, edm
 					}
 				}
 			} else {
-				Muon_charge.push_back(-999);
+				Muon_trackCharge.push_back(-999);
 				Muon_pdgid.push_back(-999);
 				Muon_B.push_back(-999);
 				Muon_M.push_back(-999);
@@ -1390,11 +1415,6 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 		edm::Handle<edm::ValueMap<int> > puJetIdFlag;
 		iEvent.getByLabel(PUJetIdFlag_, puJetIdFlag);
 
-		/*edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-		iSetup.get<JetCorrectionsRecord>().get("AK5PF",JetCorParColl);
-		JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);*/
-
 		JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty();
 		if(iEvent.isRealData() || Embedded_){
 			jecUnc->setParameters(JECuncData_);
@@ -1514,6 +1534,60 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				jecUnc->setJetPt(PFJet->pt());
 				PFJet_JECuncertainty.push_back(jecUnc->getUncertainty(true));
 			}
+		}
+		if(!iEvent.isRealData() && !Embedded_){
+
+			edm::Handle<reco::GenJetCollection> GenJetCollection;
+			iEvent.getByLabel(genjetsTag_, GenJetCollection);
+
+			edm::Handle<reco::GenJetCollection> GenJetNoNuCollection;
+			iEvent.getByLabel(genjetsNoNuTag_, GenJetNoNuCollection);
+
+			for (reco::GenJetCollection::size_type iGenJet = 0; iGenJet < GenJetCollection->size(); iGenJet++) {
+				reco::GenJetRef RefGenJet(GenJetCollection, iGenJet);
+				if(isGoodGenJet(RefGenJet)){
+					std::vector<float> iGenJet_p4;
+					iGenJet_p4.push_back(RefGenJet->p4().E());
+					iGenJet_p4.push_back(RefGenJet->p4().Px());
+					iGenJet_p4.push_back(RefGenJet->p4().Py());
+					iGenJet_p4.push_back(RefGenJet->p4().Pz());
+					PFJet_GenJet_p4.push_back(iGenJet_p4);
+					PFJet_GenJet_Constituents_p4.push_back(std::vector<std::vector<float> >());
+					for(reco::GenParticleCollection::size_type iGenConst = 0; iGenConst < RefGenJet->getGenConstituents().size(); iGenConst++) {
+						std::vector<float> iiGenConst_p4;
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().E());
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Px());
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Py());
+						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Pz());
+						PFJet_GenJet_Constituents_p4.at(iGenJet).push_back(iiGenConst_p4);
+					}
+				}
+			}
+			for (reco::GenJetCollection::size_type iGenJetNoNu = 0; iGenJetNoNu < GenJetNoNuCollection->size(); iGenJetNoNu++) {
+				reco::GenJetRef RefGenJetNoNu(GenJetNoNuCollection, iGenJetNoNu);
+				if(isGoodGenJet(RefGenJetNoNu)){
+					std::vector<float> iGenJetNoNu_p4;
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().E());
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().Px());
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().Py());
+					iGenJetNoNu_p4.push_back(RefGenJetNoNu->p4().Pz());
+					PFJet_GenJetNoNu_p4.push_back(iGenJetNoNu_p4);
+					PFJet_GenJetNoNu_Constituents_p4.push_back(std::vector<std::vector<float> >());
+					for(reco::GenParticleCollection::size_type iGenConstNoNu = 0; iGenConstNoNu < RefGenJetNoNu->getGenConstituents().size(); iGenConstNoNu++) {
+						std::vector<float> iiGenConstNoNu_p4;
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().E());
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Px());
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Py());
+						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Pz());
+						PFJet_GenJetNoNu_Constituents_p4.at(iGenJetNoNu).push_back(iiGenConstNoNu_p4);
+					}
+				}
+			}
+		}else{
+			PFJet_GenJet_p4.push_back(std::vector<float>());
+			PFJet_GenJet_Constituents_p4.push_back(std::vector<std::vector<float> >());
+			PFJet_GenJetNoNu_p4.push_back(std::vector<float>());
+			PFJet_GenJetNoNu_Constituents_p4.push_back(std::vector<std::vector<float> >());
 		}
 		delete jecUnc;
 	} else {
@@ -1720,6 +1794,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			iElectron_p4.push_back(RefElectron->p4().Pz());
 
 			Electron_p4.push_back(iElectron_p4);
+			Electron_charge.push_back(RefElectron->charge());
 
 			Electron_RegEnergy.push_back((float)ElectronRegEnergy->get(iPFElectron));
 			Electron_RegEnergyError.push_back((float)ElectronRegEnergyError->get(iPFElectron));
@@ -1815,7 +1890,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 				iSetup.get<TransientTrackRecord>().get("TransientTrackBuilder", transTrackBuilder);
 				reco::TransientTrack transTrk = transTrackBuilder->build(refGsfTrack);
 				TrackParticle trackparticle = ParticleBuilder::CreateTrackParticle(transTrk, transTrackBuilder, pvpoint, false, true);
-				Electron_charge.push_back(trackparticle.Charge());
+				Electron_trackCharge.push_back(trackparticle.Charge());
 				Electron_pdgid.push_back(trackparticle.PDGID());
 				Electron_B.push_back(trackparticle.BField());
 				Electron_M.push_back(trackparticle.Mass());
@@ -1826,7 +1901,7 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 					}
 				}
 			} else {
-				Electron_charge.push_back(-999);
+				Electron_trackCharge.push_back(-999);
 				Electron_pdgid.push_back(-999);
 				Electron_B.push_back(-999);
 				Electron_M.push_back(-999);
@@ -3048,6 +3123,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Muon_trackerLayersWithMeasurement", &Muon_trackerLayersWithMeasurement);
 
 	output_tree->Branch("Muon_charge", &Muon_charge);
+	output_tree->Branch("Muon_trackCharge", &Muon_trackCharge);
 	output_tree->Branch("Muon_pdgid", &Muon_pdgid);
 	output_tree->Branch("Muon_B", &Muon_B);
 	output_tree->Branch("Muon_M", &Muon_M);
@@ -3110,6 +3186,7 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("RhoIsolationAllInputTags", &RhoIsolationAllInputTags);
 
 	output_tree->Branch("Electron_charge", &Electron_charge);
+	output_tree->Branch("Electron_trackCharge", &Electron_trackCharge);
 	output_tree->Branch("Electron_pdgid", &Electron_pdgid);
 	output_tree->Branch("Electron_B", &Electron_B);
 	output_tree->Branch("Electron_M", &Electron_M);
@@ -3284,6 +3361,10 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("PFJet_TracksP4", &PFJet_TracksP4);
 	output_tree->Branch("PFJet_nTrk", &PFJet_nTrk);
 	output_tree->Branch("PFJet_JECuncertainty", &PFJet_JECuncertainty);
+	output_tree->Branch("PFJet_GenJet_p4", &PFJet_GenJet_p4);
+	output_tree->Branch("PFJet_GenJet_Constituents_p4", &PFJet_GenJet_Constituents_p4);
+	output_tree->Branch("PFJet_GenJetNoNu_p4", &PFJet_GenJetNoNu_p4);
+	output_tree->Branch("PFJet_GenJetNoNu_Constituents_p4", &PFJet_GenJetNoNu_Constituents_p4);
 
 	//================  MET block ==========
 	output_tree->Branch("isPatMET", &doPatMET_);
@@ -3521,6 +3602,9 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("KinWeightMassPt", &KinWeightMassPt);
 	output_tree->Branch("EmbeddedWeight", &EmbeddedWeight);
 
+	// for pdf systematics
+	output_tree->Branch("PdfWeights", &PdfWeights);
+
 	//=============== Track Block ==============
 	output_tree->Branch("Track_p4", &Track_p4);
 	output_tree->Branch("Track_Poca", &Track_Poca);
@@ -3545,6 +3629,12 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("GenEventInfoProduct_qScale", &GenEventInfoProduct_qScale);
 	output_tree->Branch("GenEventInfoProduct_alphaQED", &GenEventInfoProduct_alphaQED);
 	output_tree->Branch("GenEventInfoProduct_alphaQCD", &GenEventInfoProduct_alphaQCD);
+
+	output_tree->Branch("GenEventInfoProduct_id1", &GenEventInfoProduct_id1);
+	output_tree->Branch("GenEventInfoProduct_id2", &GenEventInfoProduct_id2);
+	output_tree->Branch("GenEventInfoProduct_x1", &GenEventInfoProduct_x1);
+	output_tree->Branch("GenEventInfoProduct_x2", &GenEventInfoProduct_x2);
+	output_tree->Branch("GenEventInfoProduct_scalePDF", &GenEventInfoProduct_scalePDF);
 
 	if (do_MCComplete_) {
 		output_tree->Branch("MC_p4", &MC_p4);
@@ -3904,6 +3994,7 @@ void TauNtuple::ClearEvent() {
 	Muon_Track_idx.clear();
 
 	Muon_charge.clear();
+	Muon_trackCharge.clear();
 	Muon_pdgid.clear();
 	Muon_B.clear();
 	Muon_M.clear();
@@ -4032,6 +4123,7 @@ void TauNtuple::ClearEvent() {
 	Electron_Poca.clear();
 
 	Electron_charge.clear();
+	Electron_trackCharge.clear();
 	Electron_pdgid.clear();
 	Electron_B.clear();
 	Electron_M.clear();
@@ -4147,6 +4239,10 @@ void TauNtuple::ClearEvent() {
 	PFJet_TracksP4.clear();
 	PFJet_nTrk.clear();
 	PFJet_JECuncertainty.clear();
+	PFJet_GenJet_p4.clear();
+	PFJet_GenJetNoNu_p4.clear();
+	PFJet_GenJet_Constituents_p4.clear();
+	PFJet_GenJetNoNu_Constituents_p4.clear();
 
 	//=======  MET =======
 	MET_CorrMVA_srcMuon_p4.clear();
@@ -4171,7 +4267,7 @@ void TauNtuple::ClearEvent() {
 	Track_par.clear();
 	Track_cov.clear();
 
-	// Event Block
+	//=============== Event Block ==============
 	PUWeight = 0;
 	PUWeight_p5 = 0;
 	PUWeight_m5 = 0;
@@ -4179,6 +4275,8 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
 	PUWeightFineBins = 0;
+
+	PdfWeights.clear();
 
 	//=============== MC Block ==============
 
@@ -4188,6 +4286,12 @@ void TauNtuple::ClearEvent() {
 	GenEventInfoProduct_qScale = 0;
 	GenEventInfoProduct_alphaQED = 0;
 	GenEventInfoProduct_alphaQCD = 0;
+
+	GenEventInfoProduct_id1 = 0;
+	GenEventInfoProduct_id2 = 0;
+	GenEventInfoProduct_x1 = 0;
+	GenEventInfoProduct_x2 = 0;
+	GenEventInfoProduct_scalePDF = 0;
 
 	if (do_MCComplete_) {
 		MC_p4.clear();
