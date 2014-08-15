@@ -1008,6 +1008,11 @@ private:
 	float GenEventInfoProduct_qScale;
 	float GenEventInfoProduct_alphaQED;
 	float GenEventInfoProduct_alphaQCD;
+	int GenEventInfoProduct_id1;
+	int GenEventInfoProduct_id2;
+	float GenEventInfoProduct_x1;
+	float GenEventInfoProduct_x2;
+	float GenEventInfoProduct_scalePDF;
 
 	//do All
 	std::vector<std::vector<float> > MC_p4;

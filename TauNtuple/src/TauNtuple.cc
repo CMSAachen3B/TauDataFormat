@@ -386,6 +386,18 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		GenEventInfoProduct_alphaQCD = GenEventInfoProduct->alphaQCD();
 		GenEventInfoProduct_alphaQED = GenEventInfoProduct->alphaQED();
 
+		// info for pdf systematics
+		GenEventInfoProduct_id1 = GenEventInfoProduct->pdf()->id.first;
+		GenEventInfoProduct_id2 = GenEventInfoProduct->pdf()->id.second;
+		GenEventInfoProduct_x1 = GenEventInfoProduct->pdf()->x.first;
+		GenEventInfoProduct_x2 = GenEventInfoProduct->pdf()->x.second;
+		GenEventInfoProduct_scalePDF = GenEventInfoProduct->pdf()->scalePDF;
+		edm::Handle<std::vector<double> > pdfweightshandle;
+		for(unsigned i = 0; i < pdfWeights_.size(); i++){
+			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
+			PdfWeights.push_back(*pdfweightshandle);
+		}
+
 		if (do_MCComplete_) {
 			std::vector<unsigned int> index;
 			for (reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr != genParticles->end(); ++itr) {
@@ -3631,6 +3643,12 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("GenEventInfoProduct_alphaQED", &GenEventInfoProduct_alphaQED);
 	output_tree->Branch("GenEventInfoProduct_alphaQCD", &GenEventInfoProduct_alphaQCD);
 
+	output_tree->Branch("GenEventInfoProduct_id1", &GenEventInfoProduct_id1);
+	output_tree->Branch("GenEventInfoProduct_id2", &GenEventInfoProduct_id2);
+	output_tree->Branch("GenEventInfoProduct_x1", &GenEventInfoProduct_x1);
+	output_tree->Branch("GenEventInfoProduct_x2", &GenEventInfoProduct_x2);
+	output_tree->Branch("GenEventInfoProduct_scalePDF", &GenEventInfoProduct_scalePDF);
+
 	if (do_MCComplete_) {
 		output_tree->Branch("MC_p4", &MC_p4);
 		output_tree->Branch("MC_pdgid", &MC_pdgid);
@@ -4281,6 +4299,12 @@ void TauNtuple::ClearEvent() {
 	GenEventInfoProduct_qScale = 0;
 	GenEventInfoProduct_alphaQED = 0;
 	GenEventInfoProduct_alphaQCD = 0;
+
+	GenEventInfoProduct_id1 = 0;
+	GenEventInfoProduct_id2 = 0;
+	GenEventInfoProduct_x1 = 0;
+	GenEventInfoProduct_x2 = 0;
+	GenEventInfoProduct_scalePDF = 0;
 
 	if (do_MCComplete_) {
 		MC_p4.clear();
