@@ -1007,13 +1007,13 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 				iiGammaP4.push_back(photon->p4().Py());
 				iiGammaP4.push_back(photon->p4().Pz());
 
-				PFTau_Photons_p4_inDR05.at(iPFTau).push_back(iiGammaP4);
-				PFTau_photon_hasPixelSeed.at(iPFTau).push_back(photon->hasPixelSeed());
-				PFTau_photon_hadronicOverEm.at(iPFTau).push_back(photon->hadronicOverEm());
-				PFTau_photon_sigmaIetaIeta.at(iPFTau).push_back(photon->sigmaIetaIeta());
-				PFTau_photon_trkSumPtHollowConeDR04.at(iPFTau).push_back(photon->trkSumPtHollowConeDR04());
-				PFTau_photon_ecalRecHitSumEtConeDR04.at(iPFTau).push_back(photon->ecalRecHitSumEtConeDR04());
-				PFTau_photon_hcalTowerSumEtConeDR04.at(iPFTau).push_back(photon->hcalTowerSumEtConeDR04());
+				PFTau_Photons_p4_inDR05.at(PFTau_Photons_p4_inDR05.size()-1).push_back(iiGammaP4);
+				PFTau_photon_hasPixelSeed.at(PFTau_photon_hasPixelSeed.size()-1).push_back(photon->hasPixelSeed());
+				PFTau_photon_hadronicOverEm.at(PFTau_photon_hadronicOverEm.size()-1).push_back(photon->hadronicOverEm());
+				PFTau_photon_sigmaIetaIeta.at(PFTau_photon_sigmaIetaIeta.size()-1).push_back(photon->sigmaIetaIeta());
+				PFTau_photon_trkSumPtHollowConeDR04.at(PFTau_photon_trkSumPtHollowConeDR04.size()-1).push_back(photon->trkSumPtHollowConeDR04());
+				PFTau_photon_ecalRecHitSumEtConeDR04.at(PFTau_photon_ecalRecHitSumEtConeDR04.size()-1).push_back(photon->ecalRecHitSumEtConeDR04());
+				PFTau_photon_hcalTowerSumEtConeDR04.at(PFTau_photon_hcalTowerSumEtConeDR04.size()-1).push_back(photon->hcalTowerSumEtConeDR04());
 			  }
 
 			}
@@ -1261,8 +1261,8 @@ void TauNtuple::fillPFTaus(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iPionP4.push_back(ReFitPions.at(i).LV().Py());
 						iPionP4.push_back(ReFitPions.at(i).LV().Pz());
 
-						PFTau_PionsP4.at(iPFTau).push_back(iPionP4);
-						PFTau_PionsCharge.at(iPFTau).push_back(transTrkVect.at(i).charge());
+						PFTau_PionsP4.at(PFTau_PionsP4.size()-1).push_back(iPionP4);
+						PFTau_PionsCharge.at(PFTau_PionsCharge.size()-1).push_back(transTrkVect.at(i).charge());
 
 					}
 					// now covert a1 into LorentzVectorParticle
@@ -1559,7 +1559,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Px());
 						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Py());
 						iiGenConst_p4.push_back(RefGenJet->getGenConstituent(iGenConst)->p4().Pz());
-						PFJet_GenJet_Constituents_p4.at(iGenJet).push_back(iiGenConst_p4);
+						PFJet_GenJet_Constituents_p4.at(PFJet_GenJet_Constituents_p4.size()-1).push_back(iiGenConst_p4);
 					}
 				}
 			}
@@ -1579,7 +1579,7 @@ void TauNtuple::fillPFJets(edm::Event& iEvent, const edm::EventSetup& iSetup, ed
 						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Px());
 						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Py());
 						iiGenConstNoNu_p4.push_back(RefGenJetNoNu->getGenConstituent(iGenConstNoNu)->p4().Pz());
-						PFJet_GenJetNoNu_Constituents_p4.at(iGenJetNoNu).push_back(iiGenConstNoNu_p4);
+						PFJet_GenJetNoNu_Constituents_p4.at(PFJet_GenJetNoNu_Constituents_p4.size()-1).push_back(iiGenConstNoNu_p4);
 					}
 				}
 			}
