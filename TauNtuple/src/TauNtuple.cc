@@ -63,6 +63,8 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 
+#include "DataFormats/Common/interface/ValueMap.h"
+
 double TauNtuple::MuonPtCut_(-1.);
 double TauNtuple::MuonEtaCut_(999);
 double TauNtuple::TauPtCut_(-1.);
@@ -199,7 +201,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	ElectronPtCut_ = iConfig.getParameter<double>("ElectronPtCut"); //default: 8.0
 	ElectronEtaCut_ = iConfig.getParameter<double>("ElectronEtaCut"); //default: 2.5
 	JetPtCut_ = iConfig.getParameter<double>("JetPtCut"); //default: 18.0
-	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 4.7
+	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 5.2
 
 	primVtxTag_ = iConfig.getParameter<edm::InputTag>("primVtx");
 	muonsTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -1730,6 +1732,28 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 	edm::Handle<reco::ConversionCollection> hConversions;
 	iEvent.getByLabel("allConversions", hConversions);
 
+	// Isolation variables for cones of dR=0.4 and dR=0.3
+
+	edm::Handle<edm::ValueMap<double> > isoChargedHandle04;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueCharged04PFIdPFIso",""),isoChargedHandle04);
+	const edm::ValueMap<double> electronIsoCharged04 = (*isoChargedHandle04.product());
+	edm::Handle<edm::ValueMap<double> > isoNeutralHandle04;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueNeutral04PFIdPFIso",""),isoNeutralHandle04);
+	const edm::ValueMap<double> electronIsoNeutral04 = (*isoNeutralHandle04.product());
+	edm::Handle<edm::ValueMap<double> > isoPhotonHandle04;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueGamma04PFIdPFIso",""),isoPhotonHandle04);
+	const edm::ValueMap<double> electronIsoPhoton04 = (*isoPhotonHandle04.product());
+
+	edm::Handle<edm::ValueMap<double> > isoChargedHandle03;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueCharged03PFIdPFIso",""),isoChargedHandle03);
+	const edm::ValueMap<double> electronIsoCharged03 = (*isoChargedHandle03.product());
+	edm::Handle<edm::ValueMap<double> > isoNeutralHandle03;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueNeutral03PFIdPFIso",""),isoNeutralHandle03);
+	const edm::ValueMap<double> electronIsoNeutral03 = (*isoNeutralHandle03.product());
+	edm::Handle<edm::ValueMap<double> > isoPhotonHandle03;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueGamma03PFIdPFIso",""),isoPhotonHandle03);
+	const edm::ValueMap<double> electronIsoPhoton03 = (*isoPhotonHandle03.product());
+
 	edm::Handle<double> RhoIsolation;
 	iEvent.getByLabel(rhoIsolAllInputTag_, RhoIsolation);
 	const double *RhoIsolationRef = RhoIsolation.product();
@@ -1865,6 +1889,13 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			Electron_chargedHadronIso.push_back(RefElectron->pfIsolationVariables().chargedHadronIso);
 			Electron_neutralHadronIso.push_back(RefElectron->pfIsolationVariables().neutralHadronIso);
 			Electron_photonIso.push_back(RefElectron->pfIsolationVariables().photonIso);
+
+			Electron_isoDeposits_chargedHadronIso04.push_back(electronIsoCharged04.get(iPFElectron));
+			Electron_isoDeposits_neutralHadronIso04.push_back(electronIsoNeutral04.get(iPFElectron));
+			Electron_isoDeposits_photonIso04.push_back(electronIsoPhoton04.get(iPFElectron));
+			Electron_isoDeposits_chargedHadronIso03.push_back(electronIsoCharged03.get(iPFElectron));
+			Electron_isoDeposits_neutralHadronIso03.push_back(electronIsoNeutral03.get(iPFElectron));
+			Electron_isoDeposits_photonIso03.push_back(electronIsoPhoton03.get(iPFElectron));
 
 			reco::GsfTrackRef refGsfTrack = RefElectron->gsfTrack();
 			Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits.push_back(refGsfTrack->trackerExpectedHitsInner().numberOfLostHits());
@@ -3174,6 +3205,12 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Electron_chargedHadronIso", &Electron_chargedHadronIso);
 	output_tree->Branch("Electron_neutralHadronIso", &Electron_neutralHadronIso);
 	output_tree->Branch("Electron_photonIso", &Electron_photonIso);
+	output_tree->Branch("Electron_isoDeposits_chargedHadronIso04", &Electron_isoDeposits_chargedHadronIso04);
+	output_tree->Branch("Electron_isoDeposits_neutralHadronIso04", &Electron_isoDeposits_neutralHadronIso04);
+	output_tree->Branch("Electron_isoDeposits_photonIso04", &Electron_isoDeposits_photonIso04);
+	output_tree->Branch("Electron_isoDeposits_chargedHadronIso03", &Electron_isoDeposits_chargedHadronIso03);
+	output_tree->Branch("Electron_isoDeposits_neutralHadronIso03", &Electron_isoDeposits_neutralHadronIso03);
+	output_tree->Branch("Electron_isoDeposits_photonIso03", &Electron_isoDeposits_photonIso03);
 
 	output_tree->Branch("Electron_sigmaIetaIeta", &Electron_sigmaIetaIeta);
 	output_tree->Branch("Electron_hadronicOverEm", &Electron_hadronicOverEm);
@@ -4171,6 +4208,12 @@ void TauNtuple::ClearEvent() {
 	Electron_chargedHadronIso.clear();
 	Electron_neutralHadronIso.clear();
 	Electron_photonIso.clear();
+	Electron_isoDeposits_chargedHadronIso04.clear();
+	Electron_isoDeposits_neutralHadronIso04.clear();
+	Electron_isoDeposits_photonIso04.clear();
+	Electron_isoDeposits_chargedHadronIso03.clear();
+	Electron_isoDeposits_neutralHadronIso03.clear();
+	Electron_isoDeposits_photonIso03.clear();
 
 	Electron_sigmaIetaIeta.clear();
 	Electron_hadronicOverEm.clear();

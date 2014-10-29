@@ -627,6 +627,12 @@ private:
 	std::vector<float> Electron_chargedHadronIso;
 	std::vector<float> Electron_neutralHadronIso;
 	std::vector<float> Electron_photonIso;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso04;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso04;
+	std::vector<float> Electron_isoDeposits_photonIso04;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso03;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso03;
+	std::vector<float> Electron_isoDeposits_photonIso03;
 
 	std::vector<float> Electron_sigmaIetaIeta;
 	std::vector<float> Electron_hadronicOverEm;

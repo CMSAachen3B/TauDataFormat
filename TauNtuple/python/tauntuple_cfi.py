@@ -91,7 +91,7 @@ NtupleMaker = cms.EDProducer('TauNtuple',
                              ElectronPtCut = cms.double(8.0),
                              ElectronEtaCut = cms.double(2.5),
                              JetPtCut = cms.double(18.0),
-                             JetEtaCut = cms.double(4.7)
+                             JetEtaCut = cms.double(5.2)
                              )                                                                   
  
 
