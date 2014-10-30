@@ -8,3 +8,5 @@ ElePreselectionCuts = cms.EDFilter('SkimmingCuts',preselection=cms.untracked.str
 MuJetPreselectionCuts = cms.EDFilter('SkimmingCuts',preselection=cms.untracked.string("MuJet"))
 DoubleMuPreselectionCuts = cms.EDFilter('SkimmingCuts',preselection=cms.untracked.string("DoubleMu"))
 DoubleElePreselectionCuts = cms.EDFilter('SkimmingCuts',preselection=cms.untracked.string("DoubleEle"))
+MuOrElePreselectionCuts = cms.EDFilter('SkimmingCuts',preselection=cms.untracked.string("MuOrElePre"))
+EMuTvariablePreselectionCuts = cms.EDFilter('SkimmingCuts',preselection=cms.untracked.string("EMuTvariable"))
