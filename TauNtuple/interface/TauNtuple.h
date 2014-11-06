@@ -280,6 +280,21 @@ private:
 	edm::InputTag muonsForPfMetCorrMVAMuTau_;
 	edm::InputTag tausForPfMetCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
+	edm::InputTag patMETCorrT0rt_;
+	edm::InputTag patMETCorrT0rtT1_;
+	edm::InputTag patMETCorrT0pc_;
+	edm::InputTag patMETCorrT0pcT1_;
+	edm::InputTag patMETCorrT0rtTxy_;
+	edm::InputTag patMETCorrT0rtT1Txy_;
+	edm::InputTag patMETCorrT0pcTxy_;
+	edm::InputTag patMETCorrT0pcT1Txy_;
+	edm::InputTag patMETCorrT1_;
+	edm::InputTag patMETCorrT1Txy_;
+	edm::InputTag patCaloMETCorrT1_;
+	edm::InputTag patCaloMETCorrT1T2_;
+	edm::InputTag patMETCorrMVA_;
+	edm::InputTag patMETCorrMVAMuTau_;
+	edm::InputTag patMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
 	edm::InputTag genjetsTag_;
