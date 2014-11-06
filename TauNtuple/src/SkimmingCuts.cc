@@ -30,6 +30,12 @@ bool SkimmingCuts::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  }
 	  return pass;
   }
+  if(preselection_=="MuOrElePre"){
+	  if(AcceptMuon || AcceptElectron){
+		  pass = true;
+		  cntFound_++;
+	  }
+  }
   if(preselection_=="DoubleMu"){
 	  if(DoubleMu(iEvent, iSetup)){
 		  pass = true;
@@ -51,9 +57,18 @@ bool SkimmingCuts::filter(edm::Event& iEvent, const edm::EventSetup& iSetup){
 	  }
 	  return pass;
   }
+  if(preselection_=="EMuTvariable"){
+	  if((AcceptMuon && AcceptElectron)
+			  || DoubleMu(iEvent, iSetup)
+			  || DoubleEle(iEvent, iSetup)
+			  ){
+		  pass = true;
+		  cntFound_++;
+	  }
+  }
 
   // PFTau's can only be accessed AFTER the recoTauClassicHPSSequence !!!
-  if(cnt_==0 && preselection_!="Standard") std::cout << "WARNING: not known preselection given. Will use the following instead: one mu + one e or tau" << std::endl;
+  if(cnt_==0 && preselection_!="Standard") std::cout << "WARNING: unknown preselection given. Will use the following instead: one mu + one e or tau" << std::endl;
   bool AcceptPFTau = PFTauCuts(iEvent, iSetup);
   if(AcceptMuon && (AcceptElectron || AcceptPFTau)){
 	  pass = true;
@@ -127,7 +142,7 @@ bool SkimmingCuts::PFJetCuts(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		reco::PFJetRef PFJet(PFJets, iPFJet);
 		if(PFJet.isNonnull()){
 			if(PFJet->p4().pt()>18.
-					&& fabs(PFJet->p4().eta())<4.7
+					&& fabs(PFJet->p4().eta())<5.2
 					){
 				return true;
 			}
@@ -146,7 +161,6 @@ bool SkimmingCuts::DoubleMu(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		if(RefMuon.isNonnull()){
 			if(RefMuon->p4().pt()>8.
 					&& fabs(RefMuon->p4().eta())<2.5
-					&& RefMuon->isGlobalMuon()
 					){
 				mus++;
 			}
@@ -165,7 +179,7 @@ bool SkimmingCuts::DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup){
 		reco::GsfElectronRef RefElectron(electronCollection, iElectron);
 		if(RefElectron.isNonnull()){
 			reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
-	        if(RefElectron->p4().pt()>5.
+	        if(RefElectron->p4().pt()>8.
 	        		&& fabs(refSuperCluster->eta())<2.5
 	        		&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits() <= 1
 	        		){

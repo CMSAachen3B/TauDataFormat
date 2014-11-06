@@ -280,6 +280,21 @@ private:
 	edm::InputTag muonsForPfMetCorrMVAMuTau_;
 	edm::InputTag tausForPfMetCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
+	edm::InputTag patMETCorrT0rt_;
+	edm::InputTag patMETCorrT0rtT1_;
+	edm::InputTag patMETCorrT0pc_;
+	edm::InputTag patMETCorrT0pcT1_;
+	edm::InputTag patMETCorrT0rtTxy_;
+	edm::InputTag patMETCorrT0rtT1Txy_;
+	edm::InputTag patMETCorrT0pcTxy_;
+	edm::InputTag patMETCorrT0pcT1Txy_;
+	edm::InputTag patMETCorrT1_;
+	edm::InputTag patMETCorrT1Txy_;
+	edm::InputTag patCaloMETCorrT1_;
+	edm::InputTag patCaloMETCorrT1T2_;
+	edm::InputTag patMETCorrMVA_;
+	edm::InputTag patMETCorrMVAMuTau_;
+	edm::InputTag patMETUncorr_;
 
 	edm::InputTag pfjetsTag_;
 	edm::InputTag genjetsTag_;
@@ -627,6 +642,12 @@ private:
 	std::vector<float> Electron_chargedHadronIso;
 	std::vector<float> Electron_neutralHadronIso;
 	std::vector<float> Electron_photonIso;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso04;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso04;
+	std::vector<float> Electron_isoDeposits_photonIso04;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso03;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso03;
+	std::vector<float> Electron_isoDeposits_photonIso03;
 
 	std::vector<float> Electron_sigmaIetaIeta;
 	std::vector<float> Electron_hadronicOverEm;
