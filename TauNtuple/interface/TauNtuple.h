@@ -295,6 +295,31 @@ private:
 	edm::InputTag patMETCorrMVA_;
 	edm::InputTag patMETCorrMVAMuTau_;
 	edm::InputTag patMETUncorr_;
+	//input tags for MET systematics
+	edm::InputTag patMETType1CorrEleEnUp_;
+	edm::InputTag patMETType1CorrEleEnDown_;
+	edm::InputTag patMETType1CorrMuEnUp_;
+	edm::InputTag patMETType1CorrMuEnDown_;
+	edm::InputTag patMETType1CorrTauEnUp_;
+	edm::InputTag patMETType1CorrTauEnDown_;
+	edm::InputTag patMETType1CorrJetResUp_;
+	edm::InputTag patMETType1CorrJetResDown_;
+	edm::InputTag patMETType1CorrJetEnUp_;
+	edm::InputTag patMETType1CorrJetEnDown_;
+	edm::InputTag patMETType1CorrUnclusteredUp_;
+	edm::InputTag patMETType1CorrUnclusteredDown_;
+	edm::InputTag patMETType1p2CorrEleEnUp_;
+	edm::InputTag patMETType1p2CorrEleEnDown_;
+	edm::InputTag patMETType1p2CorrMuEnUp_;
+	edm::InputTag patMETType1p2CorrMuEnDown_;
+	edm::InputTag patMETType1p2CorrTauEnUp_;
+	edm::InputTag patMETType1p2CorrTauEnDown_;
+	edm::InputTag patMETType1p2CorrJetResUp_;
+	edm::InputTag patMETType1p2CorrJetResDown_;
+	edm::InputTag patMETType1p2CorrJetEnUp_;
+	edm::InputTag patMETType1p2CorrJetEnDown_;
+	edm::InputTag patMETType1p2CorrUnclusteredUp_;
+	edm::InputTag patMETType1p2CorrUnclusteredDown_;
 
 	edm::InputTag pfjetsTag_;
 	edm::InputTag genjetsTag_;
@@ -938,6 +963,32 @@ private:
 	float MET_CorrMVAMuTau_Type7EtFraction;
 	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcMuon_p4;
 	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcTau_p4;
+
+	float MET_Type1CorrElectronUp_et;
+	float MET_Type1CorrElectronDown_et;
+	float MET_Type1CorrMuonUp_et;
+	float MET_Type1CorrMuonDown_et;
+	float MET_Type1CorrTauUp_et;
+	float MET_Type1CorrTauDown_et;
+	float MET_Type1CorrJetResUp_et;
+	float MET_Type1CorrJetResDown_et;
+	float MET_Type1CorrJetEnUp_et;
+	float MET_Type1CorrJetEnDown_et;
+	float MET_Type1CorrUnclusteredUp_et;
+	float MET_Type1CorrUnclusteredDown_et;
+
+	float MET_Type1p2CorrElectronUp_et;
+	float MET_Type1p2CorrElectronDown_et;
+	float MET_Type1p2CorrMuonUp_et;
+	float MET_Type1p2CorrMuonDown_et;
+	float MET_Type1p2CorrTauUp_et;
+	float MET_Type1p2CorrTauDown_et;
+	float MET_Type1p2CorrJetResUp_et;
+	float MET_Type1p2CorrJetResDown_et;
+	float MET_Type1p2CorrJetEnUp_et;
+	float MET_Type1p2CorrJetEnDown_et;
+	float MET_Type1p2CorrUnclusteredUp_et;
+	float MET_Type1p2CorrUnclusteredDown_et;
 
 	//=======  Event ===
 	int EventNumber;
