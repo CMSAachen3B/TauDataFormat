@@ -306,8 +306,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	myMVANonTrig2012 = new EGammaMvaEleEstimator();
 	myMVANonTrig2012->initialize("BDT", EGammaMvaEleEstimator::kNonTrig, manualCat, myManualCatWeightsNonTrig2012);
 
-	pdfWeights_ = iConfig.getParameter<std::vector<edm::InputTag> >("pdfWeights");
-
 }
 
 TauNtuple::~TauNtuple() {
@@ -433,11 +431,6 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		GenEventInfoProduct_x1 = GenEventInfoProduct->pdf()->x.first;
 		GenEventInfoProduct_x2 = GenEventInfoProduct->pdf()->x.second;
 		GenEventInfoProduct_scalePDF = GenEventInfoProduct->pdf()->scalePDF;
-		edm::Handle<std::vector<double> > pdfweightshandle;
-		for(unsigned i = 0; i < pdfWeights_.size(); i++){
-			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
-			PdfWeights.push_back(*pdfweightshandle);
-		}
 
 		if (do_MCComplete_) {
 			std::vector<unsigned int> index;
@@ -3882,9 +3875,6 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("KinWeightMassPt", &KinWeightMassPt);
 	output_tree->Branch("EmbeddedWeight", &EmbeddedWeight);
 
-	// for pdf systematics
-	output_tree->Branch("PdfWeights", &PdfWeights);
-
 	//=============== Track Block ==============
 	output_tree->Branch("Track_p4", &Track_p4);
 	output_tree->Branch("Track_Poca", &Track_Poca);
@@ -4561,8 +4551,6 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
 	PUWeightFineBins = 0;
-
-	PdfWeights.clear();
 
 	//=============== MC Block ==============
 
