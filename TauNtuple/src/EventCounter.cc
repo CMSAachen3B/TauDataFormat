@@ -62,8 +62,13 @@ EventCounter::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    //
    float w=1;
    unsigned int type=DataMCType::unknown;
-   if(iEvent.isRealData()){
+   bool isEmbedding = (DataMC_Type_idx >= 34 && DataMC_Type_idx <= 37);
+   if(iEvent.isRealData() && !isEmbedding){
      type=DataMCType::Data;
+   }
+   else if(isEmbedding){
+	 type=DataMC_Type_idx;
+	 // splitting by tau decay not yet implemented for embedding
    }
    else{
      type=DataMC_Type_idx;

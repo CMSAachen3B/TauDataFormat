@@ -50,7 +50,7 @@ unsigned int DataMCType::GetType(TString name){
   if(name=="dy_mue")    return DY_emu;
   if(name=="dy_mutau")  return DY_mutau;
   if(name=="dy_etau")   return DY_etau;
-  std::cout << "ERROR: Data/MC Type UNKNOWN!!!! " << std::endl;
+  std::cout << "ERROR: Data/MC Type " << name << " UNKNOWN!!!! " << std::endl;
   return unknown;
 }
 
