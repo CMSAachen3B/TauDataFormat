@@ -215,6 +215,7 @@ private:
 	static bool isGoodVertex(const reco::Vertex &pv);
 	static bool isGoodJet(reco::PFJetRef &RefJet);
 	static bool isGoodJet(pat::JetRef &RefJet);
+	static bool isGoodGenJet(reco::GenJetRef &RefGenJet);
 
 	EGammaMvaEleEstimator* myMVATrigNoIP2012;
 	EGammaMvaEleEstimator* myMVATrig2012;
@@ -279,8 +280,50 @@ private:
 	edm::InputTag muonsForPfMetCorrMVAMuTau_;
 	edm::InputTag tausForPfMetCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
+	edm::InputTag patMETCorrT0rt_;
+	edm::InputTag patMETCorrT0rtT1_;
+	edm::InputTag patMETCorrT0pc_;
+	edm::InputTag patMETCorrT0pcT1_;
+	edm::InputTag patMETCorrT0rtTxy_;
+	edm::InputTag patMETCorrT0rtT1Txy_;
+	edm::InputTag patMETCorrT0pcTxy_;
+	edm::InputTag patMETCorrT0pcT1Txy_;
+	edm::InputTag patMETCorrT1_;
+	edm::InputTag patMETCorrT1Txy_;
+	edm::InputTag patCaloMETCorrT1_;
+	edm::InputTag patCaloMETCorrT1T2_;
+	edm::InputTag patMETCorrMVA_;
+	edm::InputTag patMETCorrMVAMuTau_;
+	edm::InputTag patMETUncorr_;
+	//input tags for MET systematics
+	edm::InputTag patMETType1CorrEleEnUp_;
+	edm::InputTag patMETType1CorrEleEnDown_;
+	edm::InputTag patMETType1CorrMuEnUp_;
+	edm::InputTag patMETType1CorrMuEnDown_;
+	edm::InputTag patMETType1CorrTauEnUp_;
+	edm::InputTag patMETType1CorrTauEnDown_;
+	edm::InputTag patMETType1CorrJetResUp_;
+	edm::InputTag patMETType1CorrJetResDown_;
+	edm::InputTag patMETType1CorrJetEnUp_;
+	edm::InputTag patMETType1CorrJetEnDown_;
+	edm::InputTag patMETType1CorrUnclusteredUp_;
+	edm::InputTag patMETType1CorrUnclusteredDown_;
+	edm::InputTag patMETType1p2CorrEleEnUp_;
+	edm::InputTag patMETType1p2CorrEleEnDown_;
+	edm::InputTag patMETType1p2CorrMuEnUp_;
+	edm::InputTag patMETType1p2CorrMuEnDown_;
+	edm::InputTag patMETType1p2CorrTauEnUp_;
+	edm::InputTag patMETType1p2CorrTauEnDown_;
+	edm::InputTag patMETType1p2CorrJetResUp_;
+	edm::InputTag patMETType1p2CorrJetResDown_;
+	edm::InputTag patMETType1p2CorrJetEnUp_;
+	edm::InputTag patMETType1p2CorrJetEnDown_;
+	edm::InputTag patMETType1p2CorrUnclusteredUp_;
+	edm::InputTag patMETType1p2CorrUnclusteredDown_;
 
 	edm::InputTag pfjetsTag_;
+	edm::InputTag genjetsTag_;
+	edm::InputTag genjetsNoNuTag_;
 	edm::InputTag rhoIsolAllInputTag_;
 	edm::InputTag generalTracks_;
 	edm::InputTag gensrc_;
@@ -398,7 +441,7 @@ private:
 	std::vector<std::vector<std::vector<float> > > Vtx_Cov;
 	std::vector<std::vector<int> > Vtx_Track_idx;
 	std::vector<std::vector<float> > Vtx_Track_Weights;
-	std::vector<float> Vtx_isFake;
+	std::vector<bool> Vtx_isFake;
 
 	std::vector<std::vector<std::vector<float> > > Vtx_TracksP4;
 
@@ -452,6 +495,7 @@ private:
 	std::vector<unsigned int> Muon_Track_idx;
 
 	std::vector<int> Muon_charge;
+	std::vector<int> Muon_trackCharge;
 	std::vector<int> Muon_pdgid;
 	std::vector<float> Muon_B;
 	std::vector<float> Muon_M;
@@ -622,6 +666,12 @@ private:
 	std::vector<float> Electron_chargedHadronIso;
 	std::vector<float> Electron_neutralHadronIso;
 	std::vector<float> Electron_photonIso;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso04;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso04;
+	std::vector<float> Electron_isoDeposits_photonIso04;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso03;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso03;
+	std::vector<float> Electron_isoDeposits_photonIso03;
 
 	std::vector<float> Electron_sigmaIetaIeta;
 	std::vector<float> Electron_hadronicOverEm;
@@ -643,6 +693,7 @@ private:
 	std::vector<float> Electron_MVA_NonTrig_discriminator;
 
 	std::vector<int> Electron_charge;
+	std::vector<int> Electron_trackCharge;
 	std::vector<int> Electron_pdgid;
 	std::vector<float> Electron_B;
 	std::vector<float> Electron_M;
@@ -699,6 +750,11 @@ private:
 	//std::vector<float>   PFJet_bTagAlgorithmValue;
 
 	std::vector<float> PFJet_JECuncertainty;
+
+	std::vector<std::vector<float> > PFJet_GenJet_p4;
+	std::vector<std::vector<std::vector<float> > > PFJet_GenJet_Constituents_p4;
+	std::vector<std::vector<float> > PFJet_GenJetNoNu_p4;
+	std::vector<std::vector<std::vector<float> > > PFJet_GenJetNoNu_Constituents_p4;
 
 	//=======  MET ===
 	// now only PFMET
@@ -907,6 +963,32 @@ private:
 	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcMuon_p4;
 	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcTau_p4;
 
+	float MET_Type1CorrElectronUp_et;
+	float MET_Type1CorrElectronDown_et;
+	float MET_Type1CorrMuonUp_et;
+	float MET_Type1CorrMuonDown_et;
+	float MET_Type1CorrTauUp_et;
+	float MET_Type1CorrTauDown_et;
+	float MET_Type1CorrJetResUp_et;
+	float MET_Type1CorrJetResDown_et;
+	float MET_Type1CorrJetEnUp_et;
+	float MET_Type1CorrJetEnDown_et;
+	float MET_Type1CorrUnclusteredUp_et;
+	float MET_Type1CorrUnclusteredDown_et;
+
+	float MET_Type1p2CorrElectronUp_et;
+	float MET_Type1p2CorrElectronDown_et;
+	float MET_Type1p2CorrMuonUp_et;
+	float MET_Type1p2CorrMuonDown_et;
+	float MET_Type1p2CorrTauUp_et;
+	float MET_Type1p2CorrTauDown_et;
+	float MET_Type1p2CorrJetResUp_et;
+	float MET_Type1p2CorrJetResDown_et;
+	float MET_Type1p2CorrJetEnUp_et;
+	float MET_Type1p2CorrJetEnDown_et;
+	float MET_Type1p2CorrUnclusteredUp_et;
+	float MET_Type1p2CorrUnclusteredDown_et;
+
 	//=======  Event ===
 	int EventNumber;
 	unsigned int DataMC_Type_idx;
@@ -994,6 +1076,11 @@ private:
 	float GenEventInfoProduct_qScale;
 	float GenEventInfoProduct_alphaQED;
 	float GenEventInfoProduct_alphaQCD;
+	int GenEventInfoProduct_id1;
+	int GenEventInfoProduct_id2;
+	float GenEventInfoProduct_x1;
+	float GenEventInfoProduct_x2;
+	float GenEventInfoProduct_scalePDF;
 
 	//do All
 	std::vector<std::vector<float> > MC_p4;
