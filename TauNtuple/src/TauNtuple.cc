@@ -63,6 +63,8 @@
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 
+#include "DataFormats/Common/interface/ValueMap.h"
+
 double TauNtuple::MuonPtCut_(-1.);
 double TauNtuple::MuonEtaCut_(999);
 double TauNtuple::TauPtCut_(-1.);
@@ -118,6 +120,45 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 		muonsForPfMetCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("muonsForPfMetCorrMVAMuTau")),
 		tausForPfMetCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("tausForPfMetCorrMVAMuTau")),
 		pfMETUncorr_(iConfig.getParameter<edm::InputTag>("pfMetUncorr")),
+		patMETCorrT0rt_(iConfig.getParameter<edm::InputTag>("patMetCorrT0rt")),
+		patMETCorrT0rtT1_(iConfig.getParameter<edm::InputTag>("patMetCorrT0rtT1")),
+		patMETCorrT0pc_(iConfig.getParameter<edm::InputTag>("patMetCorrT0pc")),
+		patMETCorrT0pcT1_(iConfig.getParameter<edm::InputTag>("patMetCorrT0pcT1")),
+		patMETCorrT0rtTxy_(iConfig.getParameter<edm::InputTag>("patMetCorrT0rtTxy")),
+		patMETCorrT0rtT1Txy_(iConfig.getParameter<edm::InputTag>("patMetCorrT0rtT1Txy")),
+		patMETCorrT0pcTxy_(iConfig.getParameter<edm::InputTag>("patMetCorrT0pcTxy")),
+		patMETCorrT0pcT1Txy_(iConfig.getParameter<edm::InputTag>("patMetCorrT0pcT1Txy")),
+		patMETCorrT1_(iConfig.getParameter<edm::InputTag>("patMetCorrT1")),
+		patMETCorrT1Txy_(iConfig.getParameter<edm::InputTag>("patMetCorrT1Txy")),
+		patCaloMETCorrT1_(iConfig.getParameter<edm::InputTag>("patCaloMetCorrT1")),
+		patCaloMETCorrT1T2_(iConfig.getParameter<edm::InputTag>("patCaloMetCorrT1T2")),
+		patMETCorrMVA_(iConfig.getParameter<edm::InputTag>("patMetCorrMVA")),
+		patMETCorrMVAMuTau_(iConfig.getParameter<edm::InputTag>("patMetCorrMVAMuTau")),
+		patMETUncorr_(iConfig.getParameter<edm::InputTag>("patMetUncorr")),
+		patMETType1CorrEleEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1CorrEleEnUp")),
+		patMETType1CorrEleEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1CorrEleEndown")),
+		patMETType1CorrMuEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1CorrMuEnUp")),
+		patMETType1CorrMuEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1CorrMuEnDown")),
+		patMETType1CorrTauEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1CorrTauEnUp")),
+		patMETType1CorrTauEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1CorrTauEnDown")),
+		patMETType1CorrJetResUp_(iConfig.getParameter<edm::InputTag>("patMETType1CorrJetResUp")),
+		patMETType1CorrJetResDown_(iConfig.getParameter<edm::InputTag>("patMETType1CorrJetResDown")),
+		patMETType1CorrJetEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1CorrJetEnUp")),
+		patMETType1CorrJetEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1CorrJetEnDown")),
+		patMETType1CorrUnclusteredUp_(iConfig.getParameter<edm::InputTag>("patMETType1CorrUnclusteredUp")),
+		patMETType1CorrUnclusteredDown_(iConfig.getParameter<edm::InputTag>("patMETType1CorrUnclusteredDown")),
+		patMETType1p2CorrEleEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrEleEnUp")),
+		patMETType1p2CorrEleEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrEleEndown")),
+		patMETType1p2CorrMuEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrMuEnUp")),
+		patMETType1p2CorrMuEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrMuEnDown")),
+		patMETType1p2CorrTauEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrTauEnUp")),
+		patMETType1p2CorrTauEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrTauEnDown")),
+		patMETType1p2CorrJetResUp_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrJetResUp")),
+		patMETType1p2CorrJetResDown_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrJetResDown")),
+		patMETType1p2CorrJetEnUp_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrJetEnUp")),
+		patMETType1p2CorrJetEnDown_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrJetEnDown")),
+		patMETType1p2CorrUnclusteredUp_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrUnclusteredUp")),
+		patMETType1p2CorrUnclusteredDown_(iConfig.getParameter<edm::InputTag>("patMETType1p2CorrUnclusteredDown")),
 		pfjetsTag_(iConfig.getParameter<edm::InputTag>("pfjets")),
 		genjetsTag_(iConfig.getParameter<edm::InputTag>("genjets")),
 		genjetsNoNuTag_(iConfig.getParameter<edm::InputTag>("genjetsNoNu")),
@@ -199,7 +240,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	ElectronPtCut_ = iConfig.getParameter<double>("ElectronPtCut"); //default: 8.0
 	ElectronEtaCut_ = iConfig.getParameter<double>("ElectronEtaCut"); //default: 2.5
 	JetPtCut_ = iConfig.getParameter<double>("JetPtCut"); //default: 18.0
-	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 4.7
+	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 5.2
 
 	primVtxTag_ = iConfig.getParameter<edm::InputTag>("primVtx");
 	muonsTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -264,8 +305,6 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 
 	myMVANonTrig2012 = new EGammaMvaEleEstimator();
 	myMVANonTrig2012->initialize("BDT", EGammaMvaEleEstimator::kNonTrig, manualCat, myManualCatWeightsNonTrig2012);
-
-	pdfWeights_ = iConfig.getParameter<std::vector<edm::InputTag> >("pdfWeights");
 
 }
 
@@ -392,11 +431,6 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		GenEventInfoProduct_x1 = GenEventInfoProduct->pdf()->x.first;
 		GenEventInfoProduct_x2 = GenEventInfoProduct->pdf()->x.second;
 		GenEventInfoProduct_scalePDF = GenEventInfoProduct->pdf()->scalePDF;
-		edm::Handle<std::vector<double> > pdfweightshandle;
-		for(unsigned i = 0; i < pdfWeights_.size(); i++){
-			iEvent.getByLabel(pdfWeights_.at(i),pdfweightshandle);
-			PdfWeights.push_back(*pdfweightshandle);
-		}
 
 		if (do_MCComplete_) {
 			std::vector<unsigned int> index;
@@ -1730,6 +1764,28 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 	edm::Handle<reco::ConversionCollection> hConversions;
 	iEvent.getByLabel("allConversions", hConversions);
 
+	// Isolation variables for cones of dR=0.4 and dR=0.3
+
+	edm::Handle<edm::ValueMap<double> > isoChargedHandle04;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueCharged04PFIdPFIso",""),isoChargedHandle04);
+	const edm::ValueMap<double> electronIsoCharged04 = (*isoChargedHandle04.product());
+	edm::Handle<edm::ValueMap<double> > isoNeutralHandle04;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueNeutral04PFIdPFIso",""),isoNeutralHandle04);
+	const edm::ValueMap<double> electronIsoNeutral04 = (*isoNeutralHandle04.product());
+	edm::Handle<edm::ValueMap<double> > isoPhotonHandle04;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueGamma04PFIdPFIso",""),isoPhotonHandle04);
+	const edm::ValueMap<double> electronIsoPhoton04 = (*isoPhotonHandle04.product());
+
+	edm::Handle<edm::ValueMap<double> > isoChargedHandle03;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueCharged03PFIdPFIso",""),isoChargedHandle03);
+	const edm::ValueMap<double> electronIsoCharged03 = (*isoChargedHandle03.product());
+	edm::Handle<edm::ValueMap<double> > isoNeutralHandle03;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueNeutral03PFIdPFIso",""),isoNeutralHandle03);
+	const edm::ValueMap<double> electronIsoNeutral03 = (*isoNeutralHandle03.product());
+	edm::Handle<edm::ValueMap<double> > isoPhotonHandle03;
+	iEvent.getByLabel(edm::InputTag("elPFIsoValueGamma03PFIdPFIso",""),isoPhotonHandle03);
+	const edm::ValueMap<double> electronIsoPhoton03 = (*isoPhotonHandle03.product());
+
 	edm::Handle<double> RhoIsolation;
 	iEvent.getByLabel(rhoIsolAllInputTag_, RhoIsolation);
 	const double *RhoIsolationRef = RhoIsolation.product();
@@ -1865,6 +1921,13 @@ void TauNtuple::fillElectrons(edm::Event& iEvent, const edm::EventSetup& iSetup,
 			Electron_chargedHadronIso.push_back(RefElectron->pfIsolationVariables().chargedHadronIso);
 			Electron_neutralHadronIso.push_back(RefElectron->pfIsolationVariables().neutralHadronIso);
 			Electron_photonIso.push_back(RefElectron->pfIsolationVariables().photonIso);
+
+			Electron_isoDeposits_chargedHadronIso04.push_back(electronIsoCharged04.get(iPFElectron));
+			Electron_isoDeposits_neutralHadronIso04.push_back(electronIsoNeutral04.get(iPFElectron));
+			Electron_isoDeposits_photonIso04.push_back(electronIsoPhoton04.get(iPFElectron));
+			Electron_isoDeposits_chargedHadronIso03.push_back(electronIsoCharged03.get(iPFElectron));
+			Electron_isoDeposits_neutralHadronIso03.push_back(electronIsoNeutral03.get(iPFElectron));
+			Electron_isoDeposits_photonIso03.push_back(electronIsoPhoton03.get(iPFElectron));
 
 			reco::GsfTrackRef refGsfTrack = RefElectron->gsfTrack();
 			Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits.push_back(refGsfTrack->trackerExpectedHitsInner().numberOfLostHits());
@@ -2172,6 +2235,33 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrCaloT1T2_significance_xy = sigMat(0, 1);
 		MET_CorrCaloT1T2_significance_yy = sigMat(1, 1);
 
+		// MET uncertainties only available in PAT
+		MET_Type1CorrElectronUp_et = -1;
+		MET_Type1CorrElectronDown_et = -1;
+		MET_Type1CorrMuonUp_et = -1;
+		MET_Type1CorrMuonDown_et = -1;
+		MET_Type1CorrTauUp_et = -1;
+		MET_Type1CorrTauDown_et = -1;
+		MET_Type1CorrJetResUp_et = -1;
+		MET_Type1CorrJetResDown_et = -1;
+		MET_Type1CorrJetEnUp_et = -1;
+		MET_Type1CorrJetEnDown_et = -1;
+		MET_Type1CorrUnclusteredUp_et = -1;
+		MET_Type1CorrUnclusteredDown_et = -1;
+
+		MET_Type1p2CorrElectronUp_et = -1;
+		MET_Type1p2CorrElectronDown_et = -1;
+		MET_Type1p2CorrMuonUp_et = -1;
+		MET_Type1p2CorrMuonDown_et = -1;
+		MET_Type1p2CorrTauUp_et = -1;
+		MET_Type1p2CorrTauDown_et = -1;
+		MET_Type1p2CorrJetResUp_et = -1;
+		MET_Type1p2CorrJetResDown_et = -1;
+		MET_Type1p2CorrJetEnUp_et = -1;
+		MET_Type1p2CorrJetEnDown_et = -1;
+		MET_Type1p2CorrUnclusteredUp_et = -1;
+		MET_Type1p2CorrUnclusteredDown_et = -1;
+
 		if (doMVAMET_) {
 			edm::Handle<std::vector<reco::PFMET>> pfMETCorrMVA;
 			iEvent.getByLabel(pfMETCorrMVA_, pfMETCorrMVA);
@@ -2279,55 +2369,55 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	} else {
 
 		edm::Handle<std::vector<pat::MET>> patMETUncorrHandle;
-		iEvent.getByLabel(pfMETUncorr_, patMETUncorrHandle);
+		iEvent.getByLabel(patMETUncorr_, patMETUncorrHandle);
 		pat::MET patMETUncorr = patMETUncorrHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtHandle;
-		iEvent.getByLabel(pfMETCorrT0rt_, patMETCorrT0rtHandle);
+		iEvent.getByLabel(patMETCorrT0rt_, patMETCorrT0rtHandle);
 		pat::MET patMETCorrT0rt = patMETCorrT0rtHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtT1Handle;
-		iEvent.getByLabel(pfMETCorrT0rtT1_, patMETCorrT0rtT1Handle);
+		iEvent.getByLabel(patMETCorrT0rtT1_, patMETCorrT0rtT1Handle);
 		pat::MET patMETCorrT0rtT1 = patMETCorrT0rtT1Handle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcHandle;
-		iEvent.getByLabel(pfMETCorrT0pc_, patMETCorrT0pcHandle);
+		iEvent.getByLabel(patMETCorrT0pc_, patMETCorrT0pcHandle);
 		pat::MET patMETCorrT0pc = patMETCorrT0pcHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcT1Handle;
-		iEvent.getByLabel(pfMETCorrT0pcT1_, patMETCorrT0pcT1Handle);
+		iEvent.getByLabel(patMETCorrT0pcT1_, patMETCorrT0pcT1Handle);
 		pat::MET patMETCorrT0pcT1 = patMETCorrT0pcT1Handle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtTxyHandle;
-		iEvent.getByLabel(pfMETCorrT0rtTxy_, patMETCorrT0rtTxyHandle);
+		iEvent.getByLabel(patMETCorrT0rtTxy_, patMETCorrT0rtTxyHandle);
 		pat::MET patMETCorrT0rtTxy = patMETCorrT0rtTxyHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0rtT1TxyHandle;
-		iEvent.getByLabel(pfMETCorrT0rtT1Txy_, patMETCorrT0rtT1TxyHandle);
+		iEvent.getByLabel(patMETCorrT0rtT1Txy_, patMETCorrT0rtT1TxyHandle);
 		pat::MET patMETCorrT0rtT1Txy = patMETCorrT0rtT1TxyHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcTxyHandle;
-		iEvent.getByLabel(pfMETCorrT0pcTxy_, patMETCorrT0pcTxyHandle);
+		iEvent.getByLabel(patMETCorrT0pcTxy_, patMETCorrT0pcTxyHandle);
 		pat::MET patMETCorrT0pcTxy = patMETCorrT0pcTxyHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT0pcT1TxyHandle;
-		iEvent.getByLabel(pfMETCorrT0pcT1Txy_, patMETCorrT0pcT1TxyHandle);
+		iEvent.getByLabel(patMETCorrT0pcT1Txy_, patMETCorrT0pcT1TxyHandle);
 		pat::MET patMETCorrT0pcT1Txy = patMETCorrT0pcT1TxyHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT1Handle;
-		iEvent.getByLabel(pfMETCorrT1_, patMETCorrT1Handle);
+		iEvent.getByLabel(patMETCorrT1_, patMETCorrT1Handle);
 		pat::MET patMETCorrT1 = patMETCorrT1Handle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrT1TxyHandle;
-		iEvent.getByLabel(pfMETCorrT1Txy_, patMETCorrT1TxyHandle);
+		iEvent.getByLabel(patMETCorrT1Txy_, patMETCorrT1TxyHandle);
 		pat::MET patMETCorrT1Txy = patMETCorrT1TxyHandle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrCaloT1Handle;
-		iEvent.getByLabel(caloMETCorrT1_, patMETCorrCaloT1Handle);
+		iEvent.getByLabel(patCaloMETCorrT1_, patMETCorrCaloT1Handle);
 		pat::MET patMETCorrCaloT1 = patMETCorrCaloT1Handle->front();
 
 		edm::Handle<std::vector<pat::MET>> patMETCorrCaloT1T2Handle;
-		iEvent.getByLabel(caloMETCorrT1T2_, patMETCorrCaloT1T2Handle);
+		iEvent.getByLabel(patCaloMETCorrT1T2_, patMETCorrCaloT1T2Handle);
 		pat::MET patMETCorrCaloT1T2 = patMETCorrCaloT1T2Handle->front();
 
 		TMatrixD sigMat(2, 2);
@@ -2565,9 +2655,161 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		MET_CorrCaloT1T2_significance_xy = sigMat(0, 1);
 		MET_CorrCaloT1T2_significance_yy = sigMat(1, 1);
 
+		if(iEvent.isRealData() || Embedded_){
+			MET_Type1CorrElectronUp_et = -1;
+			MET_Type1CorrElectronDown_et = -1;
+			MET_Type1CorrMuonUp_et = -1;
+			MET_Type1CorrMuonDown_et = -1;
+			MET_Type1CorrTauUp_et = -1;
+			MET_Type1CorrTauDown_et = -1;
+			MET_Type1CorrJetResUp_et = -1;
+			MET_Type1CorrJetResDown_et = -1;
+			MET_Type1CorrJetEnUp_et = -1;
+			MET_Type1CorrJetEnDown_et = -1;
+			MET_Type1CorrUnclusteredUp_et = -1;
+			MET_Type1CorrUnclusteredDown_et = -1;
+
+			MET_Type1p2CorrElectronUp_et = -1;
+			MET_Type1p2CorrElectronDown_et = -1;
+			MET_Type1p2CorrMuonUp_et = -1;
+			MET_Type1p2CorrMuonDown_et = -1;
+			MET_Type1p2CorrTauUp_et = -1;
+			MET_Type1p2CorrTauDown_et = -1;
+			MET_Type1p2CorrJetResUp_et = -1;
+			MET_Type1p2CorrJetResDown_et = -1;
+			MET_Type1p2CorrJetEnUp_et = -1;
+			MET_Type1p2CorrJetEnDown_et = -1;
+			MET_Type1p2CorrUnclusteredUp_et = -1;
+			MET_Type1p2CorrUnclusteredDown_et = -1;
+		}else{
+
+			// MET uncertainties
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrEleEnUpHandle;
+			iEvent.getByLabel(patMETType1CorrEleEnUp_,patMETType1CorrEleEnUpHandle);
+			pat::MET patMETType1CorrEleEnUp = patMETType1CorrEleEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrEleEnDownHandle;
+			iEvent.getByLabel(patMETType1CorrEleEnDown_,patMETType1CorrEleEnDownHandle);
+			pat::MET patMETType1CorrEleEnDown = patMETType1CorrEleEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrMuEnUpHandle;
+			iEvent.getByLabel(patMETType1CorrMuEnUp_,patMETType1CorrMuEnUpHandle);
+			pat::MET patMETType1CorrMuEnUp = patMETType1CorrMuEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrMuEnDownHandle;
+			iEvent.getByLabel(patMETType1CorrMuEnDown_,patMETType1CorrMuEnDownHandle);
+			pat::MET patMETType1CorrMuEnDown = patMETType1CorrMuEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrTauEnUpHandle;
+			iEvent.getByLabel(patMETType1CorrTauEnUp_,patMETType1CorrTauEnUpHandle);
+			pat::MET patMETType1CorrTauEnUp = patMETType1CorrTauEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrTauEnDownHandle;
+			iEvent.getByLabel(patMETType1CorrTauEnDown_,patMETType1CorrTauEnDownHandle);
+			pat::MET patMETType1CorrTauEnDown = patMETType1CorrTauEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrJetResUpHandle;
+			iEvent.getByLabel(patMETType1CorrJetResUp_,patMETType1CorrJetResUpHandle);
+			pat::MET patMETType1CorrJetResUp = patMETType1CorrJetResUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrJetResDownHandle;
+			iEvent.getByLabel(patMETType1CorrJetResDown_,patMETType1CorrJetResDownHandle);
+			pat::MET patMETType1CorrJetResDown = patMETType1CorrJetResDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrJetEnUpHandle;
+			iEvent.getByLabel(patMETType1CorrJetEnUp_,patMETType1CorrJetEnUpHandle);
+			pat::MET patMETType1CorrJetEnUp = patMETType1CorrJetEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrJetEnDownHandle;
+			iEvent.getByLabel(patMETType1CorrJetEnDown_,patMETType1CorrJetEnDownHandle);
+			pat::MET patMETType1CorrJetEnDown = patMETType1CorrJetEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrUnclusteredUpHandle;
+			iEvent.getByLabel(patMETType1CorrUnclusteredUp_,patMETType1CorrUnclusteredUpHandle);
+			pat::MET patMETType1CorrUnclusteredUp = patMETType1CorrUnclusteredUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1CorrUnclusteredDownHandle;
+			iEvent.getByLabel(patMETType1CorrUnclusteredDown_,patMETType1CorrUnclusteredDownHandle);
+			pat::MET patMETType1CorrUnclusteredDown = patMETType1CorrUnclusteredDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrEleEnUpHandle;
+			iEvent.getByLabel(patMETType1p2CorrEleEnUp_,patMETType1p2CorrEleEnUpHandle);
+			pat::MET patMETType1p2CorrEleEnUp = patMETType1p2CorrEleEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrEleEnDownHandle;
+			iEvent.getByLabel(patMETType1p2CorrEleEnDown_,patMETType1p2CorrEleEnDownHandle);
+			pat::MET patMETType1p2CorrEleEnDown = patMETType1p2CorrEleEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrMuEnUpHandle;
+			iEvent.getByLabel(patMETType1p2CorrMuEnUp_,patMETType1p2CorrMuEnUpHandle);
+			pat::MET patMETType1p2CorrMuEnUp = patMETType1p2CorrMuEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrMuEnDownHandle;
+			iEvent.getByLabel(patMETType1p2CorrMuEnDown_,patMETType1p2CorrMuEnDownHandle);
+			pat::MET patMETType1p2CorrMuEnDown = patMETType1p2CorrMuEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrTauEnUpHandle;
+			iEvent.getByLabel(patMETType1p2CorrTauEnUp_,patMETType1p2CorrTauEnUpHandle);
+			pat::MET patMETType1p2CorrTauEnUp = patMETType1p2CorrTauEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrTauEnDownHandle;
+			iEvent.getByLabel(patMETType1p2CorrTauEnDown_,patMETType1p2CorrTauEnDownHandle);
+			pat::MET patMETType1p2CorrTauEnDown = patMETType1p2CorrTauEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrJetResUpHandle;
+			iEvent.getByLabel(patMETType1p2CorrJetResUp_,patMETType1p2CorrJetResUpHandle);
+			pat::MET patMETType1p2CorrJetResUp = patMETType1p2CorrJetResUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrJetResDownHandle;
+			iEvent.getByLabel(patMETType1p2CorrJetResDown_,patMETType1p2CorrJetResDownHandle);
+			pat::MET patMETType1p2CorrJetResDown = patMETType1p2CorrJetResDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrJetEnUpHandle;
+			iEvent.getByLabel(patMETType1p2CorrJetEnUp_,patMETType1p2CorrJetEnUpHandle);
+			pat::MET patMETType1p2CorrJetEnUp = patMETType1p2CorrJetEnUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrJetEnDownHandle;
+			iEvent.getByLabel(patMETType1p2CorrJetEnDown_,patMETType1p2CorrJetEnDownHandle);
+			pat::MET patMETType1p2CorrJetEnDown = patMETType1p2CorrJetEnDownHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrUnclusteredUpHandle;
+			iEvent.getByLabel(patMETType1p2CorrUnclusteredUp_,patMETType1p2CorrUnclusteredUpHandle);
+			pat::MET patMETType1p2CorrUnclusteredUp = patMETType1p2CorrUnclusteredUpHandle->front();
+
+			edm::Handle<std::vector<pat::MET>> patMETType1p2CorrUnclusteredDownHandle;
+			iEvent.getByLabel(patMETType1p2CorrUnclusteredDown_,patMETType1p2CorrUnclusteredDownHandle);
+			pat::MET patMETType1p2CorrUnclusteredDown = patMETType1p2CorrUnclusteredDownHandle->front();
+
+			MET_Type1CorrElectronUp_et = patMETType1CorrEleEnUp.et();
+			MET_Type1CorrElectronDown_et = patMETType1CorrEleEnDown.et();
+			MET_Type1CorrMuonUp_et = patMETType1CorrMuEnUp.et();
+			MET_Type1CorrMuonDown_et = patMETType1CorrMuEnDown.et();
+			MET_Type1CorrTauUp_et = patMETType1CorrTauEnUp.et();
+			MET_Type1CorrTauDown_et = patMETType1CorrTauEnDown.et();
+			MET_Type1CorrJetResUp_et = patMETType1CorrJetResUp.et();
+			MET_Type1CorrJetResDown_et = patMETType1CorrJetResDown.et();
+			MET_Type1CorrJetEnUp_et = patMETType1CorrJetEnUp.et();
+			MET_Type1CorrJetEnDown_et = patMETType1CorrJetEnDown.et();
+			MET_Type1CorrUnclusteredUp_et = patMETType1CorrUnclusteredUp.et();
+			MET_Type1CorrUnclusteredDown_et = patMETType1CorrUnclusteredDown.et();
+
+			MET_Type1p2CorrElectronUp_et = patMETType1p2CorrEleEnUp.et();
+			MET_Type1p2CorrElectronDown_et = patMETType1p2CorrEleEnDown.et();
+			MET_Type1p2CorrMuonUp_et = patMETType1p2CorrMuEnUp.et();
+			MET_Type1p2CorrMuonDown_et = patMETType1p2CorrMuEnDown.et();
+			MET_Type1p2CorrTauUp_et = patMETType1p2CorrTauEnUp.et();
+			MET_Type1p2CorrTauDown_et = patMETType1p2CorrTauEnDown.et();
+			MET_Type1p2CorrJetResUp_et = patMETType1p2CorrJetResUp.et();
+			MET_Type1p2CorrJetResDown_et = patMETType1p2CorrJetResDown.et();
+			MET_Type1p2CorrJetEnUp_et = patMETType1p2CorrJetEnUp.et();
+			MET_Type1p2CorrJetEnDown_et = patMETType1p2CorrJetEnDown.et();
+			MET_Type1p2CorrUnclusteredUp_et = patMETType1p2CorrUnclusteredUp.et();
+			MET_Type1p2CorrUnclusteredDown_et = patMETType1p2CorrUnclusteredDown.et();
+		}
+
 		if (doMVAMET_) {
 			edm::Handle<std::vector<pat::MET>> patMETCorrMVAHandle;
-			iEvent.getByLabel(pfMETCorrMVA_, patMETCorrMVAHandle);
+			iEvent.getByLabel(patMETCorrMVA_, patMETCorrMVAHandle);
 			pat::MET patMETCorrMVA = patMETCorrMVAHandle->front();
 
 			edm::Handle<reco::MuonCollection> mvametMuonCollection;
@@ -2625,7 +2867,7 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			}
 
 			edm::Handle<std::vector<pat::MET>> patMETCorrMVAMuTauHandle;
-			iEvent.getByLabel(pfMETCorrMVAMuTau_, patMETCorrMVAMuTauHandle);
+			iEvent.getByLabel(patMETCorrMVAMuTau_, patMETCorrMVAMuTauHandle);
 			pat::MET patMETCorrMVAMuTau = patMETCorrMVAMuTauHandle->front();
 
 			edm::Handle<reco::MuonCollection> mvamutaumetMuonCollection;
@@ -3174,6 +3416,12 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("Electron_chargedHadronIso", &Electron_chargedHadronIso);
 	output_tree->Branch("Electron_neutralHadronIso", &Electron_neutralHadronIso);
 	output_tree->Branch("Electron_photonIso", &Electron_photonIso);
+	output_tree->Branch("Electron_isoDeposits_chargedHadronIso04", &Electron_isoDeposits_chargedHadronIso04);
+	output_tree->Branch("Electron_isoDeposits_neutralHadronIso04", &Electron_isoDeposits_neutralHadronIso04);
+	output_tree->Branch("Electron_isoDeposits_photonIso04", &Electron_isoDeposits_photonIso04);
+	output_tree->Branch("Electron_isoDeposits_chargedHadronIso03", &Electron_isoDeposits_chargedHadronIso03);
+	output_tree->Branch("Electron_isoDeposits_neutralHadronIso03", &Electron_isoDeposits_neutralHadronIso03);
+	output_tree->Branch("Electron_isoDeposits_photonIso03", &Electron_isoDeposits_photonIso03);
 
 	output_tree->Branch("Electron_sigmaIetaIeta", &Electron_sigmaIetaIeta);
 	output_tree->Branch("Electron_hadronicOverEm", &Electron_hadronicOverEm);
@@ -3574,6 +3822,31 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("MET_CorrMVAMuTau_srcMuon_p4", &MET_CorrMVAMuTau_srcMuon_p4);
 	output_tree->Branch("MET_CorrMVAMuTau_srcTau_p4", &MET_CorrMVAMuTau_srcTau_p4);
 
+	output_tree->Branch("MET_Type1CorrElectronUp_et", &MET_Type1CorrElectronUp_et);
+	output_tree->Branch("MET_Type1CorrElectronDown_et", &MET_Type1CorrElectronDown_et);
+	output_tree->Branch("MET_Type1CorrMuonUp_et", &MET_Type1CorrMuonUp_et);
+	output_tree->Branch("MET_Type1CorrMuonDown_et", &MET_Type1CorrMuonDown_et);
+	output_tree->Branch("MET_Type1CorrTauUp_et", &MET_Type1CorrTauUp_et);
+	output_tree->Branch("MET_Type1CorrTauDown_et", &MET_Type1CorrTauDown_et);
+	output_tree->Branch("MET_Type1CorrJetResUp_et", &MET_Type1CorrJetResUp_et);
+	output_tree->Branch("MET_Type1CorrJetResDown_et", &MET_Type1CorrJetResDown_et);
+	output_tree->Branch("MET_Type1CorrJetEnUp_et", &MET_Type1CorrJetEnUp_et);
+	output_tree->Branch("MET_Type1CorrJetEnDown_et", &MET_Type1CorrJetEnDown_et);
+	output_tree->Branch("MET_Type1CorrUnclusteredUp_et", &MET_Type1CorrUnclusteredUp_et);
+	output_tree->Branch("MET_Type1CorrUnclusteredDown_et", &MET_Type1CorrUnclusteredDown_et);
+	output_tree->Branch("MET_Type1p2CorrElectronUp_et", &MET_Type1p2CorrElectronUp_et);
+	output_tree->Branch("MET_Type1p2CorrElectronDown_et", &MET_Type1p2CorrElectronDown_et);
+	output_tree->Branch("MET_Type1p2CorrMuonUp_et", &MET_Type1p2CorrMuonUp_et);
+	output_tree->Branch("MET_Type1p2CorrMuonDown_et", &MET_Type1p2CorrMuonDown_et);
+	output_tree->Branch("MET_Type1p2CorrTauUp_et", &MET_Type1p2CorrTauUp_et);
+	output_tree->Branch("MET_Type1p2CorrTauDown_et", &MET_Type1p2CorrTauDown_et);
+	output_tree->Branch("MET_Type1p2CorrJetResUp_et", &MET_Type1p2CorrJetResUp_et);
+	output_tree->Branch("MET_Type1p2CorrJetResDown_et", &MET_Type1p2CorrJetResDown_et);
+	output_tree->Branch("MET_Type1p2CorrJetEnUp_et", &MET_Type1p2CorrJetEnUp_et);
+	output_tree->Branch("MET_Type1p2CorrJetEnDown_et", &MET_Type1p2CorrJetEnDown_et);
+	output_tree->Branch("MET_Type1p2CorrUnclusteredUp_et", &MET_Type1p2CorrUnclusteredUp_et);
+	output_tree->Branch("MET_Type1p2CorrUnclusteredDown_et", &MET_Type1p2CorrUnclusteredDown_et);
+
 	//=============== Event Block ==============
 	output_tree->Branch("Event_EventNumber", &Event_EventNumber);
 	output_tree->Branch("Event_RunNumber", &Event_RunNumber);
@@ -3601,9 +3874,6 @@ void TauNtuple::beginJob() {
 	output_tree->Branch("KinWeightEta", &KinWeightEta);
 	output_tree->Branch("KinWeightMassPt", &KinWeightMassPt);
 	output_tree->Branch("EmbeddedWeight", &EmbeddedWeight);
-
-	// for pdf systematics
-	output_tree->Branch("PdfWeights", &PdfWeights);
 
 	//=============== Track Block ==============
 	output_tree->Branch("Track_p4", &Track_p4);
@@ -4171,6 +4441,12 @@ void TauNtuple::ClearEvent() {
 	Electron_chargedHadronIso.clear();
 	Electron_neutralHadronIso.clear();
 	Electron_photonIso.clear();
+	Electron_isoDeposits_chargedHadronIso04.clear();
+	Electron_isoDeposits_neutralHadronIso04.clear();
+	Electron_isoDeposits_photonIso04.clear();
+	Electron_isoDeposits_chargedHadronIso03.clear();
+	Electron_isoDeposits_neutralHadronIso03.clear();
+	Electron_isoDeposits_photonIso03.clear();
 
 	Electron_sigmaIetaIeta.clear();
 	Electron_hadronicOverEm.clear();
@@ -4275,8 +4551,6 @@ void TauNtuple::ClearEvent() {
 	PUWeight3D_p5 = 0;
 	PUWeight3D_m5 = 0;
 	PUWeightFineBins = 0;
-
-	PdfWeights.clear();
 
 	//=============== MC Block ==============
 

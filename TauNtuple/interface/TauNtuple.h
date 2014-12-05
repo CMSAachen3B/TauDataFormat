@@ -280,6 +280,46 @@ private:
 	edm::InputTag muonsForPfMetCorrMVAMuTau_;
 	edm::InputTag tausForPfMetCorrMVAMuTau_;
 	edm::InputTag pfMETUncorr_;
+	edm::InputTag patMETCorrT0rt_;
+	edm::InputTag patMETCorrT0rtT1_;
+	edm::InputTag patMETCorrT0pc_;
+	edm::InputTag patMETCorrT0pcT1_;
+	edm::InputTag patMETCorrT0rtTxy_;
+	edm::InputTag patMETCorrT0rtT1Txy_;
+	edm::InputTag patMETCorrT0pcTxy_;
+	edm::InputTag patMETCorrT0pcT1Txy_;
+	edm::InputTag patMETCorrT1_;
+	edm::InputTag patMETCorrT1Txy_;
+	edm::InputTag patCaloMETCorrT1_;
+	edm::InputTag patCaloMETCorrT1T2_;
+	edm::InputTag patMETCorrMVA_;
+	edm::InputTag patMETCorrMVAMuTau_;
+	edm::InputTag patMETUncorr_;
+	//input tags for MET systematics
+	edm::InputTag patMETType1CorrEleEnUp_;
+	edm::InputTag patMETType1CorrEleEnDown_;
+	edm::InputTag patMETType1CorrMuEnUp_;
+	edm::InputTag patMETType1CorrMuEnDown_;
+	edm::InputTag patMETType1CorrTauEnUp_;
+	edm::InputTag patMETType1CorrTauEnDown_;
+	edm::InputTag patMETType1CorrJetResUp_;
+	edm::InputTag patMETType1CorrJetResDown_;
+	edm::InputTag patMETType1CorrJetEnUp_;
+	edm::InputTag patMETType1CorrJetEnDown_;
+	edm::InputTag patMETType1CorrUnclusteredUp_;
+	edm::InputTag patMETType1CorrUnclusteredDown_;
+	edm::InputTag patMETType1p2CorrEleEnUp_;
+	edm::InputTag patMETType1p2CorrEleEnDown_;
+	edm::InputTag patMETType1p2CorrMuEnUp_;
+	edm::InputTag patMETType1p2CorrMuEnDown_;
+	edm::InputTag patMETType1p2CorrTauEnUp_;
+	edm::InputTag patMETType1p2CorrTauEnDown_;
+	edm::InputTag patMETType1p2CorrJetResUp_;
+	edm::InputTag patMETType1p2CorrJetResDown_;
+	edm::InputTag patMETType1p2CorrJetEnUp_;
+	edm::InputTag patMETType1p2CorrJetEnDown_;
+	edm::InputTag patMETType1p2CorrUnclusteredUp_;
+	edm::InputTag patMETType1p2CorrUnclusteredDown_;
 
 	edm::InputTag pfjetsTag_;
 	edm::InputTag genjetsTag_;
@@ -336,7 +376,6 @@ private:
 	// MC Signal
 	bool do_MCSummary_;
 	bool do_MCComplete_;
-	std::vector<edm::InputTag> pdfWeights_;
 
 	// Trigger
 	std::string processName_;
@@ -627,6 +666,12 @@ private:
 	std::vector<float> Electron_chargedHadronIso;
 	std::vector<float> Electron_neutralHadronIso;
 	std::vector<float> Electron_photonIso;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso04;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso04;
+	std::vector<float> Electron_isoDeposits_photonIso04;
+	std::vector<float> Electron_isoDeposits_chargedHadronIso03;
+	std::vector<float> Electron_isoDeposits_neutralHadronIso03;
+	std::vector<float> Electron_isoDeposits_photonIso03;
 
 	std::vector<float> Electron_sigmaIetaIeta;
 	std::vector<float> Electron_hadronicOverEm;
@@ -918,6 +963,32 @@ private:
 	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcMuon_p4;
 	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcTau_p4;
 
+	float MET_Type1CorrElectronUp_et;
+	float MET_Type1CorrElectronDown_et;
+	float MET_Type1CorrMuonUp_et;
+	float MET_Type1CorrMuonDown_et;
+	float MET_Type1CorrTauUp_et;
+	float MET_Type1CorrTauDown_et;
+	float MET_Type1CorrJetResUp_et;
+	float MET_Type1CorrJetResDown_et;
+	float MET_Type1CorrJetEnUp_et;
+	float MET_Type1CorrJetEnDown_et;
+	float MET_Type1CorrUnclusteredUp_et;
+	float MET_Type1CorrUnclusteredDown_et;
+
+	float MET_Type1p2CorrElectronUp_et;
+	float MET_Type1p2CorrElectronDown_et;
+	float MET_Type1p2CorrMuonUp_et;
+	float MET_Type1p2CorrMuonDown_et;
+	float MET_Type1p2CorrTauUp_et;
+	float MET_Type1p2CorrTauDown_et;
+	float MET_Type1p2CorrJetResUp_et;
+	float MET_Type1p2CorrJetResDown_et;
+	float MET_Type1p2CorrJetEnUp_et;
+	float MET_Type1p2CorrJetEnDown_et;
+	float MET_Type1p2CorrUnclusteredUp_et;
+	float MET_Type1p2CorrUnclusteredDown_et;
+
 	//=======  Event ===
 	int EventNumber;
 	unsigned int DataMC_Type_idx;
@@ -952,9 +1023,6 @@ private:
 	float KinWeightEta;
 	float KinWeightMassPt;
 	float EmbeddedWeight;
-
-	// for pdf systematics
-	std::vector<std::vector<double> > PdfWeights;
 
 	//====== Tracks =======
 	std::vector<std::vector<float> > Track_p4;
