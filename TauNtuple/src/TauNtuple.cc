@@ -2682,8 +2682,13 @@ void TauNtuple::fillMET(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			MET_Type1p2CorrUnclusteredUp_et = -1;
 			MET_Type1p2CorrUnclusteredDown_et = -1;
 		}else{
-
+			///////////////////////////////
+			//
 			// MET uncertainties
+			//
+			// Type1      = T0 + T1 + Txy (recommendation by JetMET POG and Christian Veelken)
+			// Type1Type2 = T0 + T1 + Txy + calibration for unclustered energy (better MET response, worse MET resolution)
+			//
 			edm::Handle<std::vector<pat::MET>> patMETType1CorrEleEnUpHandle;
 			iEvent.getByLabel(patMETType1CorrEleEnUp_,patMETType1CorrEleEnUpHandle);
 			pat::MET patMETType1CorrEleEnUp = patMETType1CorrEleEnUpHandle->front();
