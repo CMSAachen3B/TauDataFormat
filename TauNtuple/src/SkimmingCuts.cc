@@ -1,8 +1,7 @@
 #include "TauDataFormat/TauNtuple/interface/SkimmingCuts.h"
 
 SkimmingCuts::SkimmingCuts(const edm::ParameterSet& iConfig) :
-		preselection_(
-				iConfig.getUntrackedParameter<std::string>("preselection")) {
+		preselection_(iConfig.getUntrackedParameter<std::string>("preselection")) {
 }
 
 SkimmingCuts::~SkimmingCuts() {
@@ -41,15 +40,15 @@ bool SkimmingCuts::filter(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 			cntFound_++;
 		}
 	} else if (preselection_ == "EMuTvariable") {
-		if ((AcceptMuon && AcceptElectron) || DoubleMu(iEvent, iSetup)
-				|| DoubleEle(iEvent, iSetup)) {
+		if ((AcceptMuon && AcceptElectron)
+				|| DoubleMu(iEvent, iSetup)
+				|| DoubleEle(iEvent, iSetup)
+				) {
 			pass = true;
 			cntFound_++;
 		}
 	} else {
-		std::cout
-				<< "No preselection given. Will use the following instead: one muon + one electron or tau"
-				<< std::endl;
+		std::cout << "No preselection given. Will use the following instead: one muon + one electron or tau" << std::endl;
 		if (AcceptMuon && (AcceptElectron || PFTauCuts(iEvent, iSetup))) {
 			pass = true;
 			cntFound_++;
@@ -78,15 +77,14 @@ bool SkimmingCuts::ElectronCuts(edm::Event& iEvent, const edm::EventSetup& iSetu
 	edm::Handle<reco::GsfElectronCollection> electronCollection;
 	iEvent_->getByLabel(TauNtuple::PFElectronTag_, electronCollection);
 
-	for (unsigned int iElectron = 0; iElectron < electronCollection->size();
-			iElectron++) {
+	for (unsigned int iElectron = 0; iElectron < electronCollection->size();iElectron++) {
 		reco::GsfElectronRef RefElectron(electronCollection, iElectron);
 		if (RefElectron.isNonnull()) {
 			reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
 			if (RefElectron->p4().Et() > 8.
 					&& fabs(refSuperCluster->eta()) < 2.5
-					&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits()
-							<= 1) {
+					&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits()<= 1
+					) {
 				return true;
 			}
 		}
@@ -96,19 +94,18 @@ bool SkimmingCuts::ElectronCuts(edm::Event& iEvent, const edm::EventSetup& iSetu
 
 bool SkimmingCuts::PFTauCuts(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 	edm::Handle<std::vector<reco::PFTau> > PFTaus;
-	iEvent.getByLabel(
-			edm::InputTag(TauNtuple::hpsTauProducer_, "", "TauNtuple"), PFTaus);
+	iEvent.getByLabel(TauNtuple::hpsTauProducer_, PFTaus);
 
 	edm::Handle<reco::PFTauDiscriminator> HPSByDecayModeFinding;
-	iEvent.getByLabel(
-			edm::InputTag("hpsPFTauDiscriminationByDecayModeFinding", "",
-					"TauNtuple"), HPSByDecayModeFinding);
+	iEvent.getByLabel(edm::InputTag("hpsPFTauDiscriminationByDecayModeFinding", "","TauNtupleProcess"), HPSByDecayModeFinding);
 
 	for (unsigned int iPFTau = 0; iPFTau < PFTaus->size(); iPFTau++) {
 		reco::PFTauRef PFTauCand(PFTaus, iPFTau);
 		if (PFTauCand.isNonnull()) {
-			if (PFTauCand->p4().pt() > 18. && fabs(PFTauCand->p4().eta()) < 2.4
-					&& (*HPSByDecayModeFinding)[PFTauCand]) {
+			if (PFTauCand->p4().pt() > 18.
+					&& fabs(PFTauCand->p4().eta()) < 2.4
+					&& (*HPSByDecayModeFinding)[PFTauCand]
+				) {
 				return true;
 			}
 		}
@@ -139,15 +136,14 @@ bool SkimmingCuts::DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup) 
 	edm::Handle<reco::GsfElectronCollection> electronCollection;
 	iEvent_->getByLabel(TauNtuple::PFElectronTag_, electronCollection);
 
-	for (unsigned int iElectron = 0; iElectron < electronCollection->size();
-			iElectron++) {
+	for (unsigned int iElectron = 0; iElectron < electronCollection->size();iElectron++) {
 		reco::GsfElectronRef RefElectron(electronCollection, iElectron);
 		if (RefElectron.isNonnull()) {
 			reco::SuperClusterRef refSuperCluster = RefElectron->superCluster();
 			if (RefElectron->p4().pt() > 8.
 					&& fabs(refSuperCluster->eta()) < 2.5
-					&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits()
-							<= 1) {
+					&& RefElectron->gsfTrack()->trackerExpectedHitsInner().numberOfHits()<= 1
+				) {
 				es++;
 			}
 		}
