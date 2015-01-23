@@ -84,7 +84,6 @@ private:
   bool MuonCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
   bool ElectronCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
   bool PFTauCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
-  bool PFJetCuts(edm::Event& iEvent, const edm::EventSetup& iSetup);
   bool DoubleMu(edm::Event& iEvent, const edm::EventSetup& iSetup);
   bool DoubleEle(edm::Event& iEvent, const edm::EventSetup& iSetup);
   
