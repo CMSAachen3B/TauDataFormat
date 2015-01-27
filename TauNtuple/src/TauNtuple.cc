@@ -412,12 +412,7 @@ void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 // ------------ method called once each job just before starting event loop  ------------
 
 void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
-	if (!iEvent.isRealData()) {
-		TauDecay_CMSSW myTauDecay;
-		edm::Handle<reco::GenParticleCollection> genParticles;
-		iEvent.getByLabel(gensrc_, genParticles);
-		myTauDecay.CheckForSignal(DataMC_Type_idx, genParticles);
-
+	if (!iEvent.isRealData()){
 		edm::Handle<GenEventInfoProduct> GenEventInfoProduct;
 		iEvent.getByLabel("generator", GenEventInfoProduct);
 		GenEventInfoProduct_signalProcessID = GenEventInfoProduct->signalProcessID();
@@ -433,6 +428,13 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		GenEventInfoProduct_x1 = GenEventInfoProduct->pdf()->x.first;
 		GenEventInfoProduct_x2 = GenEventInfoProduct->pdf()->x.second;
 		GenEventInfoProduct_scalePDF = GenEventInfoProduct->pdf()->scalePDF;
+	}
+
+	if (!iEvent.isRealData() || Embedded_) {
+		TauDecay_CMSSW myTauDecay;
+		edm::Handle<reco::GenParticleCollection> genParticles;
+		iEvent.getByLabel(gensrc_, genParticles);
+		myTauDecay.CheckForSignal(DataMC_Type_idx, genParticles);
 
 		if (do_MCComplete_) {
 			std::vector<unsigned int> index;
