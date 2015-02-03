@@ -73,6 +73,7 @@ double TauNtuple::ElectronPtCut_(-1.);
 double TauNtuple::ElectronEtaCut_(999);
 double TauNtuple::JetPtCut_(-1.);
 double TauNtuple::JetEtaCut_(999);
+double TauNtuple::MCCompletePtCut_(-1.);
 
 edm::InputTag TauNtuple::primVtxTag_;
 edm::InputTag TauNtuple::muonsTag_;
@@ -243,6 +244,7 @@ TauNtuple::TauNtuple(const edm::ParameterSet& iConfig) :
 	ElectronEtaCut_ = iConfig.getParameter<double>("ElectronEtaCut"); //default: 2.5
 	JetPtCut_ = iConfig.getParameter<double>("JetPtCut"); //default: 18.0
 	JetEtaCut_ = iConfig.getParameter<double>("JetEtaCut"); //default: 5.2
+	MCCompletePtCut_ = iConfig.getParameter<double>("MCCompletePtCut"); //default: 2.5
 
 	primVtxTag_ = iConfig.getParameter<edm::InputTag>("primVtx");
 	muonsTag_ = iConfig.getParameter<edm::InputTag>("muons");
@@ -371,6 +373,16 @@ bool TauNtuple::isGoodGenJet(reco::GenJetRef &RefGenJet) {
 	return false;
 }
 
+bool TauNtuple::isGoodGenParticle(const reco::GenParticle &GenPar){
+	if (GenPar.p4().Pt() > MCCompletePtCut_) return true;
+	int id = abs(GenPar.pdgId());
+	if (id == PDGInfo::Z0 || id == PDGInfo::W_plus) return true;
+	if (id == PDGInfo::Higgs0) return true;
+	if (id >= PDGInfo::Z_prime0 && id <= PDGInfo::Higgs_plus) return true; //BSM resonances
+	if (id == PDGInfo::t) return true;
+	return false;
+}
+
 // member functions
 // ------------ method called to produce the data  ------------
 void TauNtuple::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
@@ -437,34 +449,40 @@ void TauNtuple::fillMCTruth(edm::Event& iEvent, const edm::EventSetup& iSetup) {
 		myTauDecay.CheckForSignal(DataMC_Type_idx, genParticles);
 
 		if (do_MCComplete_) {
-			std::vector<unsigned int> index;
 			for (reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr != genParticles->end(); ++itr) {
+				if ( !isGoodGenParticle(*itr) ) continue;
 				MC_pdgid.push_back(itr->pdgId());
 				MC_charge.push_back(itr->charge());
-				std::vector<double> iMC_p4;
+				std::vector<float> iMC_p4;
 				iMC_p4.push_back(itr->p4().E());
 				iMC_p4.push_back(itr->p4().Px());
 				iMC_p4.push_back(itr->p4().Py());
 				iMC_p4.push_back(itr->p4().Pz());
 
 				MC_p4.push_back(iMC_p4);
-				MC_midx.push_back(0);
+				MC_midx.push_back(-1);
 				MC_status.push_back(itr->status());
 				MC_childpdgid.push_back(std::vector<int>());
+				MC_childidx.push_back(std::vector<int>());
 			}
 			unsigned int i = 0;
-			for (reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr != genParticles->end(); ++itr, i++) {
+			for (reco::GenParticleCollection::const_iterator itr = genParticles->begin(); itr != genParticles->end(); ++itr) {
+				if ( !isGoodGenParticle(*itr) ) continue;
 				for (unsigned int d = 0; d < itr->numberOfDaughters(); d++) {
 					const reco::GenParticle *dau = static_cast<const reco::GenParticle*>(itr->daughter(d));
-					MC_childpdgid.at(MC_childpdgid.size() - 1).push_back(dau->pdgId());
 					unsigned int j = 0;
-					for (reco::GenParticleCollection::const_iterator jtr = genParticles->begin(); jtr != genParticles->end(); ++jtr, j++) {
+					for (reco::GenParticleCollection::const_iterator jtr = genParticles->begin(); jtr != genParticles->end(); ++jtr){
+						if ( !isGoodGenParticle(*jtr) ) continue;
 						if (dau->status() == jtr->status() && dau->p4() == jtr->p4() && dau->pdgId() == jtr->pdgId() && dau->numberOfMothers() == jtr->numberOfMothers()
 								&& dau->numberOfDaughters() == jtr->numberOfDaughters()) {
 							MC_midx.at(j) = i;
+							MC_childidx.at(i).push_back(j);
+							MC_childpdgid.at(i).push_back(dau->pdgId());
 						}
+						j++;
 					}
 				}
+				i++;
 			}
 		}
 		if (do_MCSummary_) {
@@ -3796,6 +3814,7 @@ void TauNtuple::beginJob() {
 		output_tree->Branch("MC_charge", &MC_charge);
 		output_tree->Branch("MC_midx", &MC_midx);
 		output_tree->Branch("MC_childpdgid", &MC_childpdgid);
+		output_tree->Branch("MC_childidx", &MC_childidx);
 		output_tree->Branch("MC_status", &MC_status);
 	}
 	if (do_MCSummary_) {
@@ -4458,6 +4477,7 @@ void TauNtuple::ClearEvent() {
 		MC_midx.clear();
 		MC_status.clear();
 		MC_childpdgid.clear();
+		MC_childidx.clear();
 	}
 	if (do_MCSummary_) {
 		MCSignalParticle_p4.clear();

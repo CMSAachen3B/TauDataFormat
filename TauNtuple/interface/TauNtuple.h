@@ -216,6 +216,8 @@ private:
 	static bool isGoodJet(reco::PFJetRef &RefJet);
 	static bool isGoodJet(pat::JetRef &RefJet);
 	static bool isGoodGenJet(reco::GenJetRef &RefGenJet);
+	static bool isGoodGenParticle(const reco::GenParticle &GenPar);
+
 
 	EGammaMvaEleEstimator* myMVATrigNoIP2012;
 	EGammaMvaEleEstimator* myMVATrig2012;
@@ -378,6 +380,7 @@ private:
 	// MC Signal
 	bool do_MCSummary_;
 	bool do_MCComplete_;
+	static double MCCompletePtCut_;
 
 	// Trigger
 	std::string processName_;
@@ -1057,11 +1060,12 @@ private:
 	double GenEventInfoProduct_scalePDF;
 
 	//do All
-	std::vector<std::vector<double> > MC_p4;
+	std::vector<std::vector<float> > MC_p4;
 	std::vector<int> MC_pdgid;
 	std::vector<std::vector<int> > MC_childpdgid;
+	std::vector<std::vector<int> > MC_childidx;
 	std::vector<int> MC_charge;
-	std::vector<unsigned int> MC_midx;
+	std::vector<int> MC_midx;
 	std::vector<int> MC_status;
 
 	// Signal particles Z, W, H0, Hpm
