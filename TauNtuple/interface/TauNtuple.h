@@ -196,9 +196,9 @@ private:
 	void TriggerMatch(edm::Handle<trigger::TriggerEvent> &triggerEvent, unsigned int triggerIndex, T obj, double drmax, std::vector<float> &match);
 	void fillEventInfo(edm::Event& iEvent, const edm::EventSetup& iSetup);
 	std::vector<bool> CheckTauDiscriminators(std::vector<edm::Handle<reco::PFTauDiscriminator> > tauDiscriminators, const reco::PFTauRef tauRef);
-	reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &UnmodifiedTau, int &match);
-	reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<float> &Jet, int &match);
-	reco::PFJetRef getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets, std::vector<float> &Tau, unsigned int &match);
+	reco::PFTauRef getMatchedHPSTau(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<double> &UnmodifiedTau, int &match);
+	reco::PFTauRef getHPSTauMatchedToJet(edm::Handle<std::vector<reco::PFTau> > & HPStaus, std::vector<double> &Jet, int &match);
+	reco::PFJetRef getJetIndexMatchedToGivenHPSTauCandidate(edm::Handle<std::vector<reco::PFJet> > & PFJets, std::vector<double> &Tau, unsigned int &match);
 
 	std::vector<reco::PFCandidatePtr> pfCandidates(const reco::PFJet& jet, int particleId, bool sort = true);
 	std::vector<reco::PFCandidatePtr> pfCandidates(const reco::PFJet& jet, const std::vector<int>& particleIds, bool sort);
@@ -216,6 +216,8 @@ private:
 	static bool isGoodJet(reco::PFJetRef &RefJet);
 	static bool isGoodJet(pat::JetRef &RefJet);
 	static bool isGoodGenJet(reco::GenJetRef &RefGenJet);
+	static bool isGoodGenParticle(const reco::GenParticle &GenPar);
+
 
 	EGammaMvaEleEstimator* myMVATrigNoIP2012;
 	EGammaMvaEleEstimator* myMVATrig2012;
@@ -296,6 +298,7 @@ private:
 	edm::InputTag patMETCorrMVAMuTau_;
 	edm::InputTag patMETUncorr_;
 	//input tags for MET systematics
+	edm::InputTag patMETType1Corr_;
 	edm::InputTag patMETType1CorrEleEnUp_;
 	edm::InputTag patMETType1CorrEleEnDown_;
 	edm::InputTag patMETType1CorrMuEnUp_;
@@ -308,6 +311,7 @@ private:
 	edm::InputTag patMETType1CorrJetEnDown_;
 	edm::InputTag patMETType1CorrUnclusteredUp_;
 	edm::InputTag patMETType1CorrUnclusteredDown_;
+	edm::InputTag patMETType1p2Corr_;
 	edm::InputTag patMETType1p2CorrEleEnUp_;
 	edm::InputTag patMETType1p2CorrEleEnDown_;
 	edm::InputTag patMETType1p2CorrMuEnUp_;
@@ -376,6 +380,7 @@ private:
 	// MC Signal
 	bool do_MCSummary_;
 	bool do_MCComplete_;
+	static double MCCompletePtCut_;
 
 	// Trigger
 	std::string processName_;
@@ -432,22 +437,22 @@ private:
 	int cnt_;
 
 	//=======  Vertex ===
-	std::vector<float> Vtx_chi2;
-	std::vector<float> Vtx_nTrk;
+	std::vector<double> Vtx_chi2;
+	std::vector<unsigned> Vtx_nTrk;
 	std::vector<float> Vtx_ndof;
-	std::vector<float> Vtx_y;
-	std::vector<float> Vtx_x;
-	std::vector<float> Vtx_z;
-	std::vector<std::vector<std::vector<float> > > Vtx_Cov;
+	std::vector<double> Vtx_y;
+	std::vector<double> Vtx_x;
+	std::vector<double> Vtx_z;
+	std::vector<std::vector<std::vector<double> > > Vtx_Cov;
 	std::vector<std::vector<int> > Vtx_Track_idx;
 	std::vector<std::vector<float> > Vtx_Track_Weights;
 	std::vector<bool> Vtx_isFake;
 
-	std::vector<std::vector<std::vector<float> > > Vtx_TracksP4;
+	std::vector<std::vector<std::vector<double> > > Vtx_TracksP4;
 
 	//=======  Muons ===
-	std::vector<std::vector<float> > Muon_p4;
-	std::vector<std::vector<float> > Muon_Poca;
+	std::vector<std::vector<double> > Muon_p4;
+	std::vector<std::vector<double> > Muon_Poca;
 	std::vector<bool> Muon_isGlobalMuon;
 	std::vector<bool> Muon_isStandAloneMuon;
 	std::vector<bool> Muon_isTrackerMuon;
@@ -461,8 +466,8 @@ private:
 	std::vector<float> Muon_emVetoEt03;
 	std::vector<float> Muon_hadEt03;
 	std::vector<float> Muon_hadVetoEt03;
-	std::vector<float> Muon_nJets03;
-	std::vector<float> Muon_nTracks03;
+	std::vector<int> Muon_nJets03;
+	std::vector<int> Muon_nTracks03;
 	std::vector<float> Muon_sumPt03;
 	std::vector<float> Muon_trackerVetoPt03;
 
@@ -470,8 +475,8 @@ private:
 	std::vector<float> Muon_emVetoEt05;
 	std::vector<float> Muon_hadEt05;
 	std::vector<float> Muon_hadVetoEt05;
-	std::vector<float> Muon_nJets05;
-	std::vector<float> Muon_nTracks05;
+	std::vector<int> Muon_nJets05;
+	std::vector<int> Muon_nTracks05;
 	std::vector<float> Muon_sumPt05;
 	std::vector<float> Muon_trackerVetoPt05;
 
@@ -497,23 +502,23 @@ private:
 	std::vector<int> Muon_charge;
 	std::vector<int> Muon_trackCharge;
 	std::vector<int> Muon_pdgid;
-	std::vector<float> Muon_B;
-	std::vector<float> Muon_M;
-	std::vector<std::vector<float> > Muon_par;
-	std::vector<std::vector<float> > Muon_cov;
+	std::vector<double> Muon_B;
+	std::vector<double> Muon_M;
+	std::vector<std::vector<double> > Muon_par;
+	std::vector<std::vector<double> > Muon_cov;
 
-	std::vector<float> Muon_hitPattern_pixelLayerwithMeas;
-	std::vector<float> Muon_numberOfMatchedStations;
+	std::vector<int> Muon_hitPattern_pixelLayerwithMeas;
+	std::vector<int> Muon_numberOfMatchedStations;
 	std::vector<float> Muon_normChi2;
-	std::vector<float> Muon_hitPattern_numberOfValidMuonHits;
-	std::vector<float> Muon_innerTrack_numberofValidHits;
+	std::vector<int> Muon_hitPattern_numberOfValidMuonHits;
+	std::vector<int> Muon_innerTrack_numberofValidHits;
 	std::vector<int> Muon_numberofValidPixelHits;
-	std::vector<float> Muon_numberOfMatches;
+	std::vector<int> Muon_numberOfMatches;
 	std::vector<int> Muon_trackerLayersWithMeasurement;
 
 	//======= PFTaus ===
-	std::vector<std::vector<float> > PFTau_p4;
-	std::vector<std::vector<float> > PFTau_Poca;
+	std::vector<std::vector<double> > PFTau_p4;
+	std::vector<std::vector<double> > PFTau_Poca;
 	std::vector<bool> PFTau_isTightIsolation;
 	std::vector<bool> PFTau_isMediumIsolation;
 	std::vector<bool> PFTau_isLooseIsolation;
@@ -552,62 +557,62 @@ private:
 	std::vector<int> PFTau_Charge;
 	std::vector<std::vector<int> > PFTau_Track_idx;
 
-	std::vector<std::vector<float> > PFTau_TIP_primaryVertex_pos;
-	std::vector<std::vector<float> > PFTau_TIP_primaryVertex_cov;
-	std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_pos;
-	std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_cov;
-	std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_vtxchi2;
-	std::vector<std::vector<float> > PFTau_TIP_secondaryVertex_vtxndof;
-	std::vector<std::vector<float> > PFTau_TIP_primaryVertex_vtxchi2;
-	std::vector<std::vector<float> > PFTau_TIP_primaryVertex_vtxndof;
+	std::vector<std::vector<double> > PFTau_TIP_primaryVertex_pos;
+	std::vector<std::vector<double> > PFTau_TIP_primaryVertex_cov;
+	std::vector<std::vector<double> > PFTau_TIP_secondaryVertex_pos;
+	std::vector<std::vector<double> > PFTau_TIP_secondaryVertex_cov;
+	std::vector<std::vector<double> > PFTau_TIP_secondaryVertex_vtxchi2;
+	std::vector<std::vector<double> > PFTau_TIP_secondaryVertex_vtxndof;
+	std::vector<std::vector<double> > PFTau_TIP_primaryVertex_vtxchi2;
+	std::vector<std::vector<double> > PFTau_TIP_primaryVertex_vtxndof;
 
-	std::vector<std::vector<float> > PFTau_a1_lvp;
-	std::vector<std::vector<float> > PFTau_a1_cov;
+	std::vector<std::vector<double> > PFTau_a1_lvp;
+	std::vector<std::vector<double> > PFTau_a1_cov;
 	std::vector<std::vector<int> > PFTau_a1_charge;
 	std::vector<std::vector<int> > PFTau_a1_pdgid;
-	std::vector<std::vector<float> > PFTau_a1_B;
-	std::vector<std::vector<float> > PFTau_a1_M;
+	std::vector<std::vector<double> > PFTau_a1_B;
+	std::vector<std::vector<double> > PFTau_a1_M;
 
-	std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks;
-	std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks_cov;
+	std::vector<std::vector<std::vector<double> > > PFTau_daughterTracks;
+	std::vector<std::vector<std::vector<double> > > PFTau_daughterTracks_cov;
 	std::vector<std::vector<int> > PFTau_daughterTracks_charge;
 	std::vector<std::vector<int> > PFTau_daughterTracks_pdgid;
-	std::vector<std::vector<float> > PFTau_daughterTracks_B;
-	std::vector<std::vector<float> > PFTau_daughterTracks_M;
-	std::vector<std::vector<std::vector<float> > > PFTau_daughterTracks_poca;
+	std::vector<std::vector<double> > PFTau_daughterTracks_B;
+	std::vector<std::vector<double> > PFTau_daughterTracks_M;
+	std::vector<std::vector<std::vector<double> > > PFTau_daughterTracks_poca;
 
-	std::vector<std::vector<std::vector<float> > > PFTau_PionsP4;
-	std::vector<std::vector<double> >  PFTau_PionsCharge;
+	std::vector<std::vector<std::vector<double> > > PFTau_PionsP4;
+	std::vector<std::vector<int> >  PFTau_PionsCharge;
 
 
-	std::vector<std::vector<float> > PFTau_3PS_A1_LV;
-	std::vector<std::vector<float> > PFTau_3PS_M_A1;
-	std::vector<std::vector<float> > PFTau_3PS_M_12;
-	std::vector<std::vector<float> > PFTau_3PS_M_13;
-	std::vector<std::vector<float> > PFTau_3PS_M_23;
+	std::vector<std::vector<double> > PFTau_3PS_A1_LV;
+	std::vector<std::vector<double> > PFTau_3PS_M_A1;
+	std::vector<std::vector<double> > PFTau_3PS_M_12;
+	std::vector<std::vector<double> > PFTau_3PS_M_13;
+	std::vector<std::vector<double> > PFTau_3PS_M_23;
 	std::vector<std::vector<int> > PFTau_3PS_Tau_Charge;
 	std::vector<std::vector<float> > PFTau_3PS_LCchi2;
 	std::vector<std::vector<int> > PFTau_3PS_has3ProngSolution;
-	std::vector<std::vector<std::vector<float> > > PFTau_3PS_Tau_LV;
+	std::vector<std::vector<std::vector<double> > > PFTau_3PS_Tau_LV;
 
-	std::vector<std::vector<float> > PFTau_TIP_flightLength;
-	std::vector<std::vector<float> > PFTau_TIP_flightLengthSig;
+	std::vector<std::vector<double> > PFTau_TIP_flightLength;
+	std::vector<std::vector<double> > PFTau_TIP_flightLengthSig;
 
-	std::vector<std::vector<std::vector<float> > > PFTau_PiZeroP4;
+	std::vector<std::vector<std::vector<double> > > PFTau_PiZeroP4;
 	std::vector<std::vector<int> > PFTau_PiZeroNumOfPhotons;
 	std::vector<std::vector<int> > PFTau_PiZeroNumOfElectrons;
-	std::vector<std::vector<std::vector<float> > > PFTau_ChargedHadronsP4;
+	std::vector<std::vector<std::vector<double> > > PFTau_ChargedHadronsP4;
 	std::vector<std::vector<std::vector<int> > > PFTau_ChargedHadronsCharge;
-	std::vector<std::vector<std::vector<float> > > PFTau_GammaP4;
-	std::vector<std::vector<std::vector<float> > > PFTau_Photons_p4_inDR05;
+	std::vector<std::vector<std::vector<double> > > PFTau_GammaP4;
+	std::vector<std::vector<std::vector<double> > > PFTau_Photons_p4_inDR05;
 	//-------- Gamma information ---------
 
-	std::vector<std::vector<float> > PFTau_MatchedPFJetP4;
-	std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetGammasP4;
-	std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetSCVariables;
-	std::vector<std::vector<std::vector<float> > > PFTau_MatchedPFJetPhotonVariables;
+	std::vector<std::vector<double> > PFTau_MatchedPFJetP4;
+	std::vector<std::vector<std::vector<double> > > PFTau_MatchedPFJetGammasP4;
+	std::vector<std::vector<std::vector<double> > > PFTau_MatchedPFJetSCVariables;
+	std::vector<std::vector<std::vector<double> > > PFTau_MatchedPFJetPhotonVariables;
 
-	std::vector<float> PFTau_PhotonEnergyFraction;
+	std::vector<double> PFTau_PhotonEnergyFraction;
 
         std::vector<std::vector<int> > PFTau_photon_hasPixelSeed;
         std::vector<std::vector<float> > PFTau_photon_hadronicOverEm;
@@ -622,9 +627,9 @@ private:
 //   std::vector<std::vector<int> > PFTau_hasPhoton;
 
 	//=======  Electrons ===
-	float RhoIsolationAllInputTags;
-	std::vector<std::vector<float> > Electron_p4;
-	std::vector<std::vector<float> > Electron_Poca;
+	double RhoIsolationAllInputTags;
+	std::vector<std::vector<double> > Electron_p4;
+	std::vector<std::vector<double> > Electron_Poca;
 	std::vector<float> Electron_Gsf_deltaEtaEleClusterTrackAtCalo;
 	std::vector<float> Electron_Gsf_deltaEtaSeedClusterTrackAtCalo;
 	std::vector<float> Electron_Gsf_deltaEtaSuperClusterTrackAtVtx;
@@ -642,9 +647,9 @@ private:
 	std::vector<bool> Electron_Gsf_passingCutBasedPreselection;
 	std::vector<bool> Electron_Gsf_passingMvaPreselection;
 	std::vector<int> Electron_gsftrack_trackerExpectedHitsInner_numberOfLostHits;
-	std::vector<float> Electron_supercluster_e;
-	std::vector<float> Electron_supercluster_phi;
-	std::vector<float> Electron_supercluster_eta;
+	std::vector<double> Electron_supercluster_e;
+	std::vector<double> Electron_supercluster_phi;
+	std::vector<double> Electron_supercluster_eta;
 	std::vector<float> Electron_supercluster_centroid_x;
 	std::vector<float> Electron_supercluster_centroid_y;
 	std::vector<float> Electron_supercluster_centroid_z;
@@ -666,12 +671,12 @@ private:
 	std::vector<float> Electron_chargedHadronIso;
 	std::vector<float> Electron_neutralHadronIso;
 	std::vector<float> Electron_photonIso;
-	std::vector<float> Electron_isoDeposits_chargedHadronIso04;
-	std::vector<float> Electron_isoDeposits_neutralHadronIso04;
-	std::vector<float> Electron_isoDeposits_photonIso04;
-	std::vector<float> Electron_isoDeposits_chargedHadronIso03;
-	std::vector<float> Electron_isoDeposits_neutralHadronIso03;
-	std::vector<float> Electron_isoDeposits_photonIso03;
+	std::vector<double> Electron_isoDeposits_chargedHadronIso04;
+	std::vector<double> Electron_isoDeposits_neutralHadronIso04;
+	std::vector<double> Electron_isoDeposits_photonIso04;
+	std::vector<double> Electron_isoDeposits_chargedHadronIso03;
+	std::vector<double> Electron_isoDeposits_neutralHadronIso03;
+	std::vector<double> Electron_isoDeposits_photonIso03;
 
 	std::vector<float> Electron_sigmaIetaIeta;
 	std::vector<float> Electron_hadronicOverEm;
@@ -679,47 +684,47 @@ private:
 	std::vector<float> Electron_eSuperClusterOverP;
 	std::vector<float> Electron_ecalEnergy;
 	std::vector<float> Electron_trackMomentumAtVtx;
-	std::vector<float> Electron_numberOfMissedHits;  //number of missing hits conversion rejection
+	std::vector<int> Electron_numberOfMissedHits;  //number of missing hits conversion rejection
 	std::vector<bool> Electron_HasMatchedConversions;
 
 	// Electron energy calibration
-	std::vector<float> Electron_RegEnergy;
-	std::vector<float> Electron_RegEnergyError;
+	std::vector<double> Electron_RegEnergy;
+	std::vector<double> Electron_RegEnergyError;
 
 	// Electron MVA ID
-	std::vector<float> Electron_Rho_kt6PFJets;
-	std::vector<float> Electron_MVA_Trig_discriminator;
-	std::vector<float> Electron_MVA_TrigNoIP_discriminator;
-	std::vector<float> Electron_MVA_NonTrig_discriminator;
+	std::vector<double> Electron_Rho_kt6PFJets;
+	std::vector<double> Electron_MVA_Trig_discriminator;
+	std::vector<double> Electron_MVA_TrigNoIP_discriminator;
+	std::vector<double> Electron_MVA_NonTrig_discriminator;
 
 	std::vector<int> Electron_charge;
 	std::vector<int> Electron_trackCharge;
 	std::vector<int> Electron_pdgid;
-	std::vector<float> Electron_B;
-	std::vector<float> Electron_M;
-	std::vector<std::vector<float> > Electron_par;
-	std::vector<std::vector<float> > Electron_cov;
+	std::vector<double> Electron_B;
+	std::vector<double> Electron_M;
+	std::vector<std::vector<double> > Electron_par;
+	std::vector<std::vector<double> > Electron_cov;
 
 	//=======  PFJets ===
-	std::vector<std::vector<float> > PFJet_p4;
+	std::vector<std::vector<double> > PFJet_p4;
 	std::vector<float> PFJet_chargedEmEnergy;
 	std::vector<float> PFJet_chargedHadronEnergy;
-	std::vector<float> PFJet_chargedHadronMultiplicity;
+	std::vector<int> PFJet_chargedHadronMultiplicity;
 	std::vector<float> PFJet_chargedMuEnergy;
-	std::vector<float> PFJet_chargedMultiplicity;
+	std::vector<int> PFJet_chargedMultiplicity;
 	std::vector<float> PFJet_electronEnergy;
-	std::vector<float> PFJet_electronMultiplicity;
+	std::vector<int> PFJet_electronMultiplicity;
 	std::vector<float> PFJet_HFEMEnergy;
-	std::vector<float> PFJet_HFEMMultiplicity;
+	std::vector<int> PFJet_HFEMMultiplicity;
 	std::vector<float> PFJet_HFHadronEnergy;
-	std::vector<float> PFJet_HFHadronMultiplicity;
+	std::vector<int> PFJet_HFHadronMultiplicity;
 	std::vector<float> PFJet_muonEnergy;
-	std::vector<float> PFJet_muonMultiplicity;
+	std::vector<int> PFJet_muonMultiplicity;
 	std::vector<float> PFJet_neutralEmEnergy;
 	std::vector<float> PFJet_neutralHadronEnergy;
-	std::vector<float> PFJet_neutralHadronMultiplicity;
+	std::vector<int> PFJet_neutralHadronMultiplicity;
 	std::vector<float> PFJet_photonEnergy;
-	std::vector<float> PFJet_photonMultiplicity;
+	std::vector<int> PFJet_photonMultiplicity;
 	std::vector<float> PFJet_jetArea;
 	std::vector<float> PFJet_maxDistance;
 	std::vector<int> PFJet_nConstituents;
@@ -730,12 +735,12 @@ private:
 	std::vector<int> PFJet_MatchedHPS_idx;
 
 	std::vector<float> PFJet_PUJetID_discr;
-	std::vector<float> PFJet_PUJetID_looseWP;
-	std::vector<float> PFJet_PUJetID_mediumWP;
-	std::vector<float> PFJet_PUJetID_tightWP;
+	std::vector<bool> PFJet_PUJetID_looseWP;
+	std::vector<bool> PFJet_PUJetID_mediumWP;
+	std::vector<bool> PFJet_PUJetID_tightWP;
 
-	std::vector<std::vector<std::vector<float> > > PFJet_TracksP4;
-	std::vector<float> PFJet_nTrk;
+	std::vector<std::vector<std::vector<double> > > PFJet_TracksP4;
+	std::vector<int> PFJet_nTrk;
 
 	std::vector<int> PFJet_numberOfDaughters;
 	std::vector<float> PFJet_chargedEmEnergyFraction;
@@ -743,7 +748,7 @@ private:
 	std::vector<float> PFJet_neutralHadronEnergyFraction;
 	std::vector<float> PFJet_neutralEmEnergyFraction;
 
-	std::vector<float> PFJet_partonFlavour;
+	std::vector<int> PFJet_partonFlavour;
 	std::vector<float> PFJet_bDiscriminator;
 	std::vector<std::vector<float> > PFJet_BTagWeight;
 	//std::vector<std::string> PFJet_bTagAlgorithmName;
@@ -751,243 +756,215 @@ private:
 
 	std::vector<float> PFJet_JECuncertainty;
 
-	std::vector<std::vector<float> > PFJet_GenJet_p4;
-	std::vector<std::vector<std::vector<float> > > PFJet_GenJet_Constituents_p4;
-	std::vector<std::vector<float> > PFJet_GenJetNoNu_p4;
-	std::vector<std::vector<std::vector<float> > > PFJet_GenJetNoNu_Constituents_p4;
+	std::vector<std::vector<double> > PFJet_GenJet_p4;
+	std::vector<std::vector<std::vector<double> > > PFJet_GenJet_Constituents_p4;
+	std::vector<std::vector<double> > PFJet_GenJetNoNu_p4;
+	std::vector<std::vector<std::vector<double> > > PFJet_GenJetNoNu_Constituents_p4;
 
 	//=======  MET ===
 	// now only PFMET
-	float MET_Uncorr_et;
+	double MET_Uncorr_et;
 	float MET_Uncorr_pt;
-	float MET_Uncorr_phi;
+	double MET_Uncorr_phi;
 	float MET_Uncorr_sumET;
-	float MET_Uncorr_significance;
-	float MET_Uncorr_significance_xx;
-	float MET_Uncorr_significance_xy;
-	float MET_Uncorr_significance_yy;
+	double MET_Uncorr_significance;
+	double MET_Uncorr_significance_xx;
+	double MET_Uncorr_significance_xy;
+	double MET_Uncorr_significance_yy;
 	float MET_Uncorr_MuonEtFraction;
 	float MET_Uncorr_NeutralEMFraction;
 	float MET_Uncorr_NeutralHadEtFraction;
 	float MET_Uncorr_Type6EtFraction;
 	float MET_Uncorr_Type7EtFraction;
 
-	float MET_CorrT0rt_et;
+	double MET_CorrT0rt_et;
 	float MET_CorrT0rt_pt;
-	float MET_CorrT0rt_phi;
+	double MET_CorrT0rt_phi;
 	float MET_CorrT0rt_sumET;
-	float MET_CorrT0rt_significance;
-	float MET_CorrT0rt_significance_xx;
-	float MET_CorrT0rt_significance_xy;
-	float MET_CorrT0rt_significance_yy;
 	float MET_CorrT0rt_MuonEtFraction;
 	float MET_CorrT0rt_NeutralEMFraction;
 	float MET_CorrT0rt_NeutralHadEtFraction;
 	float MET_CorrT0rt_Type6EtFraction;
 	float MET_CorrT0rt_Type7EtFraction;
 
-	float MET_CorrT0rtT1_et;
+	double MET_CorrT0rtT1_et;
 	float MET_CorrT0rtT1_pt;
-	float MET_CorrT0rtT1_phi;
+	double MET_CorrT0rtT1_phi;
 	float MET_CorrT0rtT1_sumET;
-	float MET_CorrT0rtT1_significance;
-	float MET_CorrT0rtT1_significance_xx;
-	float MET_CorrT0rtT1_significance_xy;
-	float MET_CorrT0rtT1_significance_yy;
 	float MET_CorrT0rtT1_MuonEtFraction;
 	float MET_CorrT0rtT1_NeutralEMFraction;
 	float MET_CorrT0rtT1_NeutralHadEtFraction;
 	float MET_CorrT0rtT1_Type6EtFraction;
 	float MET_CorrT0rtT1_Type7EtFraction;
 
-	float MET_CorrT0pc_et;
+	double MET_CorrT0pc_et;
 	float MET_CorrT0pc_pt;
-	float MET_CorrT0pc_phi;
+	double MET_CorrT0pc_phi;
 	float MET_CorrT0pc_sumET;
-	float MET_CorrT0pc_significance;
-	float MET_CorrT0pc_significance_xx;
-	float MET_CorrT0pc_significance_xy;
-	float MET_CorrT0pc_significance_yy;
 	float MET_CorrT0pc_MuonEtFraction;
 	float MET_CorrT0pc_NeutralEMFraction;
 	float MET_CorrT0pc_NeutralHadEtFraction;
 	float MET_CorrT0pc_Type6EtFraction;
 	float MET_CorrT0pc_Type7EtFraction;
 
-	float MET_CorrT0pcT1_et;
+	double MET_CorrT0pcT1_et;
 	float MET_CorrT0pcT1_pt;
-	float MET_CorrT0pcT1_phi;
+	double MET_CorrT0pcT1_phi;
 	float MET_CorrT0pcT1_sumET;
-	float MET_CorrT0pcT1_significance;
-	float MET_CorrT0pcT1_significance_xx;
-	float MET_CorrT0pcT1_significance_xy;
-	float MET_CorrT0pcT1_significance_yy;
 	float MET_CorrT0pcT1_MuonEtFraction;
 	float MET_CorrT0pcT1_NeutralEMFraction;
 	float MET_CorrT0pcT1_NeutralHadEtFraction;
 	float MET_CorrT0pcT1_Type6EtFraction;
 	float MET_CorrT0pcT1_Type7EtFraction;
 
-	float MET_CorrT0rtTxy_et;
+	double MET_CorrT0rtTxy_et;
 	float MET_CorrT0rtTxy_pt;
-	float MET_CorrT0rtTxy_phi;
+	double MET_CorrT0rtTxy_phi;
 	float MET_CorrT0rtTxy_sumET;
-	float MET_CorrT0rtTxy_significance;
-	float MET_CorrT0rtTxy_significance_xx;
-	float MET_CorrT0rtTxy_significance_xy;
-	float MET_CorrT0rtTxy_significance_yy;
 	float MET_CorrT0rtTxy_MuonEtFraction;
 	float MET_CorrT0rtTxy_NeutralEMFraction;
 	float MET_CorrT0rtTxy_NeutralHadEtFraction;
 	float MET_CorrT0rtTxy_Type6EtFraction;
 	float MET_CorrT0rtTxy_Type7EtFraction;
 
-	float MET_CorrT0rtT1Txy_et;
+	double MET_CorrT0rtT1Txy_et;
 	float MET_CorrT0rtT1Txy_pt;
-	float MET_CorrT0rtT1Txy_phi;
+	double MET_CorrT0rtT1Txy_phi;
 	float MET_CorrT0rtT1Txy_sumET;
-	float MET_CorrT0rtT1Txy_significance;
-	float MET_CorrT0rtT1Txy_significance_xx;
-	float MET_CorrT0rtT1Txy_significance_xy;
-	float MET_CorrT0rtT1Txy_significance_yy;
 	float MET_CorrT0rtT1Txy_MuonEtFraction;
 	float MET_CorrT0rtT1Txy_NeutralEMFraction;
 	float MET_CorrT0rtT1Txy_NeutralHadEtFraction;
 	float MET_CorrT0rtT1Txy_Type6EtFraction;
 	float MET_CorrT0rtT1Txy_Type7EtFraction;
 
-	float MET_CorrT0pcTxy_et;
+	double MET_CorrT0pcTxy_et;
 	float MET_CorrT0pcTxy_pt;
-	float MET_CorrT0pcTxy_phi;
+	double MET_CorrT0pcTxy_phi;
 	float MET_CorrT0pcTxy_sumET;
-	float MET_CorrT0pcTxy_significance;
-	float MET_CorrT0pcTxy_significance_xx;
-	float MET_CorrT0pcTxy_significance_xy;
-	float MET_CorrT0pcTxy_significance_yy;
 	float MET_CorrT0pcTxy_MuonEtFraction;
 	float MET_CorrT0pcTxy_NeutralEMFraction;
 	float MET_CorrT0pcTxy_NeutralHadEtFraction;
 	float MET_CorrT0pcTxy_Type6EtFraction;
 	float MET_CorrT0pcTxy_Type7EtFraction;
 
-	float MET_CorrT0pcT1Txy_et;
+	double MET_CorrT0pcT1Txy_et;
 	float MET_CorrT0pcT1Txy_pt;
-	float MET_CorrT0pcT1Txy_phi;
+	double MET_CorrT0pcT1Txy_phi;
 	float MET_CorrT0pcT1Txy_sumET;
-	float MET_CorrT0pcT1Txy_significance;
-	float MET_CorrT0pcT1Txy_significance_xx;
-	float MET_CorrT0pcT1Txy_significance_xy;
-	float MET_CorrT0pcT1Txy_significance_yy;
 	float MET_CorrT0pcT1Txy_MuonEtFraction;
 	float MET_CorrT0pcT1Txy_NeutralEMFraction;
 	float MET_CorrT0pcT1Txy_NeutralHadEtFraction;
 	float MET_CorrT0pcT1Txy_Type6EtFraction;
 	float MET_CorrT0pcT1Txy_Type7EtFraction;
 
-	float MET_CorrT1_et;
+	double MET_CorrT1_et;
 	float MET_CorrT1_pt;
-	float MET_CorrT1_phi;
+	double MET_CorrT1_phi;
 	float MET_CorrT1_sumET;
-	float MET_CorrT1_significance;
-	float MET_CorrT1_significance_xx;
-	float MET_CorrT1_significance_xy;
-	float MET_CorrT1_significance_yy;
 	float MET_CorrT1_MuonEtFraction;
 	float MET_CorrT1_NeutralEMFraction;
 	float MET_CorrT1_NeutralHadEtFraction;
 	float MET_CorrT1_Type6EtFraction;
 	float MET_CorrT1_Type7EtFraction;
 
-	float MET_CorrT1Txy_et;
+	double MET_CorrT1Txy_et;
 	float MET_CorrT1Txy_pt;
-	float MET_CorrT1Txy_phi;
+	double MET_CorrT1Txy_phi;
 	float MET_CorrT1Txy_sumET;
-	float MET_CorrT1Txy_significance;
-	float MET_CorrT1Txy_significance_xx;
-	float MET_CorrT1Txy_significance_xy;
-	float MET_CorrT1Txy_significance_yy;
 	float MET_CorrT1Txy_MuonEtFraction;
 	float MET_CorrT1Txy_NeutralEMFraction;
 	float MET_CorrT1Txy_NeutralHadEtFraction;
 	float MET_CorrT1Txy_Type6EtFraction;
 	float MET_CorrT1Txy_Type7EtFraction;
 
-	float MET_CorrCaloT1_et;
+	double MET_CorrCaloT1_et;
 	float MET_CorrCaloT1_pt;
-	float MET_CorrCaloT1_phi;
+	double MET_CorrCaloT1_phi;
 	float MET_CorrCaloT1_sumET;
-	float MET_CorrCaloT1_significance;
-	float MET_CorrCaloT1_significance_xx;
-	float MET_CorrCaloT1_significance_xy;
-	float MET_CorrCaloT1_significance_yy;
 
-	float MET_CorrCaloT1T2_et;
+	double MET_CorrCaloT1T2_et;
 	float MET_CorrCaloT1T2_pt;
-	float MET_CorrCaloT1T2_phi;
+	double MET_CorrCaloT1T2_phi;
 	float MET_CorrCaloT1T2_sumET;
-	float MET_CorrCaloT1T2_significance;
-	float MET_CorrCaloT1T2_significance_xx;
-	float MET_CorrCaloT1T2_significance_xy;
-	float MET_CorrCaloT1T2_significance_yy;
 
-	float MET_CorrMVA_et;
+	double MET_CorrMVA_et;
 	float MET_CorrMVA_pt;
-	float MET_CorrMVA_phi;
+	double MET_CorrMVA_phi;
 	float MET_CorrMVA_sumET;
-	float MET_CorrMVA_significance;
-	float MET_CorrMVA_significance_xx;
-	float MET_CorrMVA_significance_xy;
-	float MET_CorrMVA_significance_yy;
+	double MET_CorrMVA_significance;
+	double MET_CorrMVA_significance_xx;
+	double MET_CorrMVA_significance_xy;
+	double MET_CorrMVA_significance_yy;
 	float MET_CorrMVA_MuonEtFraction;
 	float MET_CorrMVA_NeutralEMFraction;
 	float MET_CorrMVA_NeutralHadEtFraction;
 	float MET_CorrMVA_Type6EtFraction;
 	float MET_CorrMVA_Type7EtFraction;
-	std::vector<std::vector<float> > MET_CorrMVA_srcMuon_p4;
-	std::vector<std::vector<float> > MET_CorrMVA_srcElectron_p4;
-	std::vector<std::vector<float> > MET_CorrMVA_srcTau_p4;
+	std::vector<std::vector<double> > MET_CorrMVA_srcMuon_p4;
+	std::vector<std::vector<double> > MET_CorrMVA_srcElectron_p4;
+	std::vector<std::vector<double> > MET_CorrMVA_srcTau_p4;
 
-	float MET_CorrMVAMuTau_et;
+	double MET_CorrMVAMuTau_et;
 	float MET_CorrMVAMuTau_pt;
-	float MET_CorrMVAMuTau_phi;
+	double MET_CorrMVAMuTau_phi;
 	float MET_CorrMVAMuTau_sumET;
-	float MET_CorrMVAMuTau_significance;
-	float MET_CorrMVAMuTau_significance_xx;
-	float MET_CorrMVAMuTau_significance_xy;
-	float MET_CorrMVAMuTau_significance_yy;
+	double MET_CorrMVAMuTau_significance;
+	double MET_CorrMVAMuTau_significance_xx;
+	double MET_CorrMVAMuTau_significance_xy;
+	double MET_CorrMVAMuTau_significance_yy;
 	float MET_CorrMVAMuTau_MuonEtFraction;
 	float MET_CorrMVAMuTau_NeutralEMFraction;
 	float MET_CorrMVAMuTau_NeutralHadEtFraction;
 	float MET_CorrMVAMuTau_Type6EtFraction;
 	float MET_CorrMVAMuTau_Type7EtFraction;
-	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcMuon_p4;
-	std::vector<std::vector<float> > MET_CorrMVAMuTau_srcTau_p4;
+	std::vector<std::vector<double> > MET_CorrMVAMuTau_srcMuon_p4;
+	std::vector<std::vector<double> > MET_CorrMVAMuTau_srcTau_p4;
 
-	float MET_Type1CorrElectronUp_et;
-	float MET_Type1CorrElectronDown_et;
-	float MET_Type1CorrMuonUp_et;
-	float MET_Type1CorrMuonDown_et;
-	float MET_Type1CorrTauUp_et;
-	float MET_Type1CorrTauDown_et;
-	float MET_Type1CorrJetResUp_et;
-	float MET_Type1CorrJetResDown_et;
-	float MET_Type1CorrJetEnUp_et;
-	float MET_Type1CorrJetEnDown_et;
-	float MET_Type1CorrUnclusteredUp_et;
-	float MET_Type1CorrUnclusteredDown_et;
+	double MET_Type1Corr_et;
+	float MET_Type1Corr_pt;
+	double MET_Type1Corr_phi;
+	float MET_Type1Corr_sumET;
+	float MET_Type1Corr_MuonEtFraction;
+	float MET_Type1Corr_NeutralEMFraction;
+	float MET_Type1Corr_NeutralHadEtFraction;
+	float MET_Type1Corr_Type6EtFraction;
+	float MET_Type1Corr_Type7EtFraction;
 
-	float MET_Type1p2CorrElectronUp_et;
-	float MET_Type1p2CorrElectronDown_et;
-	float MET_Type1p2CorrMuonUp_et;
-	float MET_Type1p2CorrMuonDown_et;
-	float MET_Type1p2CorrTauUp_et;
-	float MET_Type1p2CorrTauDown_et;
-	float MET_Type1p2CorrJetResUp_et;
-	float MET_Type1p2CorrJetResDown_et;
-	float MET_Type1p2CorrJetEnUp_et;
-	float MET_Type1p2CorrJetEnDown_et;
-	float MET_Type1p2CorrUnclusteredUp_et;
-	float MET_Type1p2CorrUnclusteredDown_et;
+	double MET_Type1p2Corr_et;
+	float MET_Type1p2Corr_pt;
+	double MET_Type1p2Corr_phi;
+	float MET_Type1p2Corr_sumET;
+	float MET_Type1p2Corr_MuonEtFraction;
+	float MET_Type1p2Corr_NeutralEMFraction;
+	float MET_Type1p2Corr_NeutralHadEtFraction;
+	float MET_Type1p2Corr_Type6EtFraction;
+	float MET_Type1p2Corr_Type7EtFraction;
+
+	double MET_Type1CorrElectronUp_et;
+	double MET_Type1CorrElectronDown_et;
+	double MET_Type1CorrMuonUp_et;
+	double MET_Type1CorrMuonDown_et;
+	double MET_Type1CorrTauUp_et;
+	double MET_Type1CorrTauDown_et;
+	double MET_Type1CorrJetResUp_et;
+	double MET_Type1CorrJetResDown_et;
+	double MET_Type1CorrJetEnUp_et;
+	double MET_Type1CorrJetEnDown_et;
+	double MET_Type1CorrUnclusteredUp_et;
+	double MET_Type1CorrUnclusteredDown_et;
+
+	double MET_Type1p2CorrElectronUp_et;
+	double MET_Type1p2CorrElectronDown_et;
+	double MET_Type1p2CorrMuonUp_et;
+	double MET_Type1p2CorrMuonDown_et;
+	double MET_Type1p2CorrTauUp_et;
+	double MET_Type1p2CorrTauDown_et;
+	double MET_Type1p2CorrJetResUp_et;
+	double MET_Type1p2CorrJetResDown_et;
+	double MET_Type1p2CorrJetEnUp_et;
+	double MET_Type1p2CorrJetEnDown_et;
+	double MET_Type1p2CorrUnclusteredUp_et;
+	double MET_Type1p2CorrUnclusteredDown_et;
 
 	//=======  Event ===
 	int EventNumber;
@@ -1009,11 +986,11 @@ private:
 	float PUWeight3D_m5;
 	float PUWeightFineBins;
 
-	std::vector<float> beamspot_par;
-	std::vector<float> beamspot_cov;
-	float beamspot_emittanceX;
-	float beamspot_emittanceY;
-	float beamspot_betaStar;
+	std::vector<double> beamspot_par;
+	std::vector<double> beamspot_cov;
+	double beamspot_emittanceX;
+	double beamspot_emittanceY;
+	double beamspot_betaStar;
 
 	// for embedded samples
 	float TauSpinnerWeight;
@@ -1025,27 +1002,27 @@ private:
 	float EmbeddedWeight;
 
 	//====== Tracks =======
-	std::vector<std::vector<float> > Track_p4;
-	std::vector<std::vector<float> > Track_Poca;
-	std::vector<float> Track_chi2;
-	std::vector<float> Track_ndof;
+	std::vector<std::vector<double> > Track_p4;
+	std::vector<std::vector<double> > Track_Poca;
+	std::vector<double> Track_chi2;
+	std::vector<double> Track_ndof;
 	std::vector<unsigned short> Track_numberOfLostHits;
 	std::vector<unsigned short> Track_numberOfValidHits;
 	std::vector<unsigned int> Track_qualityMask;
 
 	std::vector<int> Track_charge;
 	std::vector<int> Track_pdgid;
-	std::vector<float> Track_B;
-	std::vector<float> Track_M;
-	std::vector<std::vector<float> > Track_par;
-	std::vector<std::vector<float> > Track_cov;
+	std::vector<double> Track_B;
+	std::vector<double> Track_M;
+	std::vector<std::vector<double> > Track_par;
+	std::vector<std::vector<double> > Track_cov;
 
 	//====== Trigger =======
 	std::vector<std::string> HTLTriggerName;
 	std::vector<unsigned int> HLTPrescale;
 	std::vector<unsigned int> NHLTL1GTSeeds;
 	std::vector<unsigned int> L1SEEDPrescale;
-	std::vector<unsigned int> L1SEEDisTechBit;
+	std::vector<bool> L1SEEDisTechBit;
 	std::vector<bool> L1SEEDInvalidPrescale;
 	std::vector<bool> TriggerAccept;
 	std::vector<bool> TriggerWasRun;
@@ -1071,36 +1048,37 @@ private:
 	//====== MCTruth =======
 	// verbose variables
 	std::vector<double> GenEventInfoProduct_weights;
-	float GenEventInfoProduct_signalProcessID;
+	unsigned GenEventInfoProduct_signalProcessID;
 	float GenEventInfoProduct_weight;
 	float GenEventInfoProduct_qScale;
 	float GenEventInfoProduct_alphaQED;
 	float GenEventInfoProduct_alphaQCD;
 	int GenEventInfoProduct_id1;
 	int GenEventInfoProduct_id2;
-	float GenEventInfoProduct_x1;
-	float GenEventInfoProduct_x2;
-	float GenEventInfoProduct_scalePDF;
+	double GenEventInfoProduct_x1;
+	double GenEventInfoProduct_x2;
+	double GenEventInfoProduct_scalePDF;
 
 	//do All
 	std::vector<std::vector<float> > MC_p4;
 	std::vector<int> MC_pdgid;
 	std::vector<std::vector<int> > MC_childpdgid;
+	std::vector<std::vector<int> > MC_childidx;
 	std::vector<int> MC_charge;
-	std::vector<unsigned int> MC_midx;
+	std::vector<int> MC_midx;
 	std::vector<int> MC_status;
 
 	// Signal particles Z, W, H0, Hpm
-	std::vector<std::vector<float> > MCSignalParticle_p4;
+	std::vector<std::vector<double> > MCSignalParticle_p4;
 	std::vector<int> MCSignalParticle_pdgid;
 	std::vector<std::vector<int> > MCSignalParticle_childpdgid;
 	std::vector<int> MCSignalParticle_charge;
-	std::vector<std::vector<float> > MCSignalParticle_Poca;
+	std::vector<std::vector<double> > MCSignalParticle_Poca;
 	std::vector<std::vector<unsigned int> > MCSignalParticle_Tauidx;
 
 	// MC Tau Info
-	std::vector<std::vector<std::vector<float> > > MCTauandProd_p4;
-	std::vector<std::vector<std::vector<float> > > MCTauandProd_Vertex;
+	std::vector<std::vector<std::vector<double> > > MCTauandProd_p4;
+	std::vector<std::vector<std::vector<double> > > MCTauandProd_Vertex;
 	std::vector<std::vector<int> > MCTauandProd_pdgid;
 	std::vector<std::vector<unsigned int> > MCTauandProd_midx;
 	std::vector<std::vector<int> > MCTauandProd_charge;

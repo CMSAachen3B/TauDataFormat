@@ -51,6 +51,9 @@ void TauDecay_CMSSW::Analyze(const reco::GenParticle *Particle,unsigned int midx
     }
     return;
   }
+  if(Particle->status()==1 && pdgid == PDGInfo::eta){
+	  std::cout << "Found undecayed eta resonance. Decay mode ID won't work." << std::endl;
+  }
   if(Particle->status()==1 || isTauResonanceCounter(pdgid)){
     TauDecayProducts.push_back(Particle);
     MotherIdx.push_back(midx);
